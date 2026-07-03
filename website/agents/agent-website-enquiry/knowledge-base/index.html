@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Base — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .kb-layout { display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start }
+    @media(max-width:800px){.kb-layout{grid-template-columns:1fr}}
+    .kb-tabs { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:8px;position:sticky;top:80px }
+    .kb-tab { display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:.8125rem;font-weight:600;color:var(--t3);cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left }
+    .kb-tab:hover { background:var(--border-s);color:var(--t1) }
+    .kb-tab.active { background:var(--accent);color:#fff }
+    .kb-tab-ico { width:18px;text-align:center;font-size:.875rem }
+    .kb-section { display:none }
+    .kb-section.active { display:block }
+    .kb-field-row { margin-bottom:18px }
+    .kb-field-label { font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px }
+    .tag-list { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px }
+    .tag { display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--accent-bg);color:var(--accent);border-radius:99px;font-size:.75rem;font-weight:600 }
+    .tag-del { cursor:pointer;color:var(--accent);opacity:.6;font-size:.875rem;padding:0 2px }
+    .tag-del:hover { opacity:1 }
+    .tag-add { display:flex;gap:6px;margin-top:6px }
+    .kb-card { background:var(--border-s);border-radius:10px;padding:14px;margin-bottom:10px }
+    .link-row { display:flex;align-items:center;gap:10px;margin-bottom:8px }
+    .log-entry { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem }
+    .log-entry:last-child { border:none }
+    .train-bar { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Knowledge Base</div>
+          <div class="ag-ph-sub">What the Website Enquiry Agent knows about each business</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bizPicker" style="width:200px" onchange="loadBiz(this.value)"></select>
+        </div>
+      </div>
+
+      <!-- Train banner -->
+      <div class="train-bar">
+        <div>
+          <div style="font-size:.9375rem;font-weight:800;color:#4338CA;margin-bottom:4px">🧠 Ready to train the agent</div>
+          <div style="font-size:.8125rem;color:#6366F1" id="trainSub">Knowledge base loaded for <strong>Sunshine Nursery</strong>. Save and train to apply changes.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn--ghost" onclick="resetKB()">↺ Reset</button>
+          <button class="btn btn--primary" onclick="trainAgent()">🚀 Train Website Enquiry Agent</button>
+        </div>
+      </div>
+
+      <div class="kb-layout">
+        <!-- Tab nav -->
+        <div class="kb-tabs">
+          <div class="kb-tab active" data-sec="hours" onclick="switchTab(this)"><span class="kb-tab-ico">🕐</span>Hours</div>
+          <div class="kb-tab" data-sec="services" onclick="switchTab(this)"><span class="kb-tab-ico">📋</span>Services</div>
+          <div class="kb-tab" data-sec="pricing" onclick="switchTab(this)"><span class="kb-tab-ico">💰</span>Pricing</div>
+          <div class="kb-tab" data-sec="faqs" onclick="switchTab(this)"><span class="kb-tab-ico">❓</span>FAQs</div>
+          <div class="kb-tab" data-sec="policies" onclick="switchTab(this)"><span class="kb-tab-ico">📄</span>Policies</div>
+          <div class="kb-tab" data-sec="booking" onclick="switchTab(this)"><span class="kb-tab-ico">📅</span>Booking Rules</div>
+          <div class="kb-tab" data-sec="escalation" onclick="switchTab(this)"><span class="kb-tab-ico">🚨</span>Escalation</div>
+          <div class="kb-tab" data-sec="links" onclick="switchTab(this)"><span class="kb-tab-ico">🔗</span>Links</div>
+          <div class="ag-divider" style="margin:8px 0"></div>
+          <div class="kb-tab" data-sec="log" onclick="switchTab(this)"><span class="kb-tab-ico">📜</span>Training Log</div>
+        </div>
+
+        <!-- Content -->
+        <div class="ag-card" style="min-width:0">
+
+          <!-- HOURS -->
+          <div class="kb-section active" id="sec-hours">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:16px">🕐 Opening Hours</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Monday – Friday</div>
+              <input class="ag-input" id="kb-hours-weekday" placeholder="e.g. 7:30am – 6:00pm">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Saturday</div>
+              <input class="ag-input" id="kb-hours-sat" placeholder="e.g. 9:00am – 1:00pm">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Sunday / Public Holidays</div>
+              <input class="ag-input" id="kb-hours-sun" placeholder="e.g. Closed">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">After-Hours Message (shown to visitors outside hours)</div>
+              <textarea class="ag-textarea" id="kb-hours-msg" placeholder="e.g. We're currently closed but leave your details and we'll call you back!"></textarea>
+            </div>
+          </div>
+
+          <!-- SERVICES -->
+          <div class="kb-section" id="sec-services">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:4px">📋 Services Offered</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:16px">The agent uses this to answer "what do you offer?" questions</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Age Groups / Service Categories</div>
+              <div class="tag-list" id="ageGroupTags"></div>
+              <div class="tag-add">
+                <input class="ag-input" id="ageGroupInput" placeholder="Add age group or service…">
+                <button class="btn btn--ghost btn--sm" onclick="addTag('ageGroup')">+ Add</button>
+              </div>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Key Programs / Specialities</div>
+              <textarea class="ag-textarea" id="kb-services-programs" placeholder="e.g. Montessori-inspired curriculum, nature play, STEM activities…" style="height:90px"></textarea>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Meal / Food Offerings</div>
+              <input class="ag-input" id="kb-services-meals" placeholder="e.g. Fresh meals provided daily (breakfast, lunch, afternoon snack)">
+            </div>
+          </div>
+
+          <!-- PRICING -->
+          <div class="kb-section" id="sec-pricing">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:4px">💰 Pricing</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:16px">The agent answers fee questions using this data</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Pricing Summary (displayed in chat)</div>
+              <textarea class="ag-textarea" id="kb-fees-summary" placeholder="e.g. Infant: $1,800/month, Toddler: $1,200/month…" style="height:120px"></textarea>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Subsidies / Funding Accepted</div>
+              <input class="ag-input" id="kb-fees-subsidy" placeholder="e.g. CWELCC, CARE, Ontario Child Benefit">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Sibling / Other Discounts</div>
+              <input class="ag-input" id="kb-fees-discount" placeholder="e.g. 10% sibling discount on second child">
+            </div>
+          </div>
+
+          <!-- FAQs -->
+          <div class="kb-section" id="sec-faqs">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:4px">❓ FAQs</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:16px">These are the exact answers the agent will give when asked</div>
+            <div id="faqList"></div>
+            <button class="btn btn--ghost btn--sm" onclick="addFaq()" style="margin-top:8px">+ Add FAQ</button>
+          </div>
+
+          <!-- POLICIES -->
+          <div class="kb-section" id="sec-policies">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:16px">📄 Policies</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Sick / Illness Policy</div>
+              <textarea class="ag-textarea" id="kb-sick" placeholder="e.g. Children must be symptom-free for 24 hours before returning…" style="height:80px"></textarea>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Waitlist Policy</div>
+              <textarea class="ag-textarea" id="kb-waitlist" placeholder="e.g. Waitlist is free, no deposit required. We contact you when a spot opens…" style="height:80px"></textarea>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Curriculum / Philosophy</div>
+              <textarea class="ag-textarea" id="kb-curriculum" placeholder="e.g. Play-based, Montessori-inspired learning that nurtures curiosity…" style="height:80px"></textarea>
+            </div>
+          </div>
+
+          <!-- BOOKING RULES -->
+          <div class="kb-section" id="sec-booking">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:16px">📅 Booking Rules</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Tour Availability</div>
+              <input class="ag-input" id="kb-tour" placeholder="e.g. Mon–Fri 10am and 2pm, approximately 30 minutes">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Booking Availability (Spots)</div>
+              <textarea class="ag-textarea" id="kb-availability" placeholder="e.g. Toddler: a few spots for Sep 2026. Preschool: open. Infant: waitlist only." style="height:80px"></textarea>
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Enrolment Process</div>
+              <textarea class="ag-textarea" id="kb-enrolment" placeholder="e.g. 1. Book a tour 2. Complete enrolment form 3. Pay deposit to secure spot…" style="height:80px"></textarea>
+            </div>
+          </div>
+
+          <!-- ESCALATION -->
+          <div class="kb-section" id="sec-escalation">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:4px">🚨 Escalation Rules</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:16px">When should the agent escalate to a human?</div>
+            <div id="escalationList"></div>
+            <button class="btn btn--ghost btn--sm" onclick="addEscalation()" style="margin-top:8px">+ Add Rule</button>
+          </div>
+
+          <!-- LINKS -->
+          <div class="kb-section" id="sec-links">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:16px">🔗 Key Links</div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Booking / Enrolment Link</div>
+              <input class="ag-input" id="kb-link-booking" placeholder="e.g. https://yourbusiness.com/book">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Review / Google Review Link</div>
+              <input class="ag-input" id="kb-link-review" placeholder="e.g. https://g.page/r/your-google-review">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Brochure / PDF Link</div>
+              <input class="ag-input" id="kb-link-brochure" placeholder="e.g. https://yourbusiness.com/brochure.pdf">
+            </div>
+            <div class="kb-field-row">
+              <div class="kb-field-label">Pricing Page</div>
+              <input class="ag-input" id="kb-link-pricing" placeholder="e.g. https://yourbusiness.com/fees">
+            </div>
+          </div>
+
+          <!-- TRAINING LOG -->
+          <div class="kb-section" id="sec-log">
+            <div style="font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:16px">📜 Training Log</div>
+            <div id="logList"></div>
+          </div>
+
+          <!-- Save row -->
+          <div class="ag-divider" style="margin:20px 0 16px"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn--ghost" onclick="resetKB()">↺ Discard</button>
+            <button class="btn btn--primary" onclick="saveKB()">💾 Save Knowledge Base</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+var _curBizId = 'b1';
+var _tagData = { ageGroup: [] };
+var _faqs = [];
+var _escalations = [];
+var _logs = [];
+
+/* ── Populate biz picker ────────────────────────────── */
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option'); o.value=b.id; o.textContent=b.name;
+  document.getElementById('bizPicker').appendChild(o);
+});
+
+/* ── Default KB data ────────────────────────────────── */
+var KB_DEFAULTS = {
+  b1:{
+    hoursWeekday:'7:30am – 6:00pm', hoursSat:'9:00am – 1:00pm', hoursSun:'Closed',
+    hoursMsg:"We're currently closed, but leave your name and number and we'll call you back within one business day! 😊",
+    ageGroups:['Infant Care (6wk–12m)','Toddler Care (12m–3yrs)','Preschool (3–5yrs)','School Age (5–12yrs)'],
+    programs:'Montessori-inspired curriculum, nature play, STEM activities, music, art, and daily outdoor time.',
+    meals:'Fresh meals provided daily — breakfast, morning snack, lunch, and afternoon snack.',
+    feesSummary:'Infant Care (6wk–12m): from $1,800/month\nToddler Care (12m–3yrs): from $1,200/month\nPreschool (3–5yrs): from $1,100/month\nSchool Age (5–12yrs): from $650/month',
+    subsidy:'CWELCC, CARE, Ontario Child Benefit',
+    discount:'10% sibling discount on the second child enrolled',
+    sick:'Children must be symptom-free for 24 hours before returning. This includes fever, vomiting, and diarrhea.',
+    waitlist:'Our waitlist is completely free — no deposit required. When a spot opens we contact you immediately.',
+    curriculum:'Play-based, Montessori-inspired approach that nurtures curiosity, independence, and love of learning.',
+    tour:'Monday to Friday at 10:00am and 2:00pm. Tours last approximately 30 minutes.',
+    availability:'Toddler Room (12m–3yrs): a few spots for September 2026.\nPreschool (3–5yrs): open enrolment.\nInfant Room: waitlist only.',
+    enrolment:'1. Book a tour  2. Complete online enrolment form  3. Pay $250 deposit to secure spot',
+    linkBooking:'https://sunshinenursery.ca/book-a-tour',
+    linkReview:'https://g.page/r/sunshine-nursery-review',
+    linkBrochure:'https://sunshinenursery.ca/brochure.pdf',
+    linkPricing:'https://sunshinenursery.ca/fees',
+    faqs:[
+      {q:'What are your fees / how much does daycare cost?',a:'Our fees range from $650–$1,800/month depending on your child\'s age. We accept CWELCC and CARE subsidies.'},
+      {q:'Do you have availability?',a:'We have spots in our Toddler and Preschool rooms for September 2026. Our Infant Room is waitlist only.'},
+      {q:'Can we come for a tour?',a:'Absolutely! Tours run Mon–Fri at 10am and 2pm. They\'re about 30 minutes and you\'ll meet our educators.'},
+      {q:'Do you accept government subsidies?',a:'Yes — we accept CWELCC and CARE. Our Director can walk you through eligibility and the application.'},
+    ],
+    escalations:[
+      'Child has a medical or special needs requirement that needs a centre director assessment',
+      'Parent asks about financial hardship or subsidy amounts — refer to Director',
+      'Parent is upset or has a complaint — escalate immediately to management',
+    ],
+    logs:[
+      {ico:'🚀',msg:'Knowledge base trained — 4 FAQs, 3 escalation rules active',time:'Today 10:22am'},
+      {ico:'💾',msg:'KB saved — hours and availability updated',time:'Yesterday 4:15pm'},
+      {ico:'🚀',msg:'Initial training completed for Sunshine Nursery',time:'Jun 20 2:00pm'},
+    ],
+  },
+};
+
+/* ── Load business ──────────────────────────────────── */
+window.loadBiz = function(id){
+  _curBizId = id;
+  var saved = AD.store.get('kb_'+id, null);
+  var d = saved || KB_DEFAULTS[id] || {};
+  var b = AD.businesses.find(function(x){return x.id===id;})||{name:id};
+  document.getElementById('trainSub').innerHTML='Knowledge base loaded for <strong>'+b.name+'</strong>. Save and train to apply changes.';
+
+  /* Hours */
+  document.getElementById('kb-hours-weekday').value = d.hoursWeekday||'';
+  document.getElementById('kb-hours-sat').value = d.hoursSat||'';
+  document.getElementById('kb-hours-sun').value = d.hoursSun||'';
+  document.getElementById('kb-hours-msg').value = d.hoursMsg||'';
+  /* Services */
+  _tagData.ageGroup = (d.ageGroups||[]).slice();
+  renderTags('ageGroup');
+  document.getElementById('kb-services-programs').value = d.programs||'';
+  document.getElementById('kb-services-meals').value = d.meals||'';
+  /* Pricing */
+  document.getElementById('kb-fees-summary').value = d.feesSummary||'';
+  document.getElementById('kb-fees-subsidy').value = d.subsidy||'';
+  document.getElementById('kb-fees-discount').value = d.discount||'';
+  /* Policies */
+  document.getElementById('kb-sick').value = d.sick||'';
+  document.getElementById('kb-waitlist').value = d.waitlist||'';
+  document.getElementById('kb-curriculum').value = d.curriculum||'';
+  /* Booking */
+  document.getElementById('kb-tour').value = d.tour||'';
+  document.getElementById('kb-availability').value = d.availability||'';
+  document.getElementById('kb-enrolment').value = d.enrolment||'';
+  /* Links */
+  document.getElementById('kb-link-booking').value = d.linkBooking||'';
+  document.getElementById('kb-link-review').value = d.linkReview||'';
+  document.getElementById('kb-link-brochure').value = d.linkBrochure||'';
+  document.getElementById('kb-link-pricing').value = d.linkPricing||'';
+  /* FAQs */
+  _faqs = (d.faqs||[]).map(function(f){return {q:f.q,a:f.a};});
+  renderFaqs();
+  /* Escalations */
+  _escalations = (d.escalations||[]).slice();
+  renderEscalations();
+  /* Logs */
+  _logs = (d.logs||[]).slice();
+  renderLogs();
+};
+loadBiz('b1');
+
+/* ── Tags ───────────────────────────────────────────── */
+function renderTags(key){
+  var el=document.getElementById(key+'Tags');
+  el.innerHTML=_tagData[key].map(function(t,i){
+    return '<span class="tag">'+t+'<span class="tag-del" onclick="removeTag(\''+key+'\','+i+')">×</span></span>';
+  }).join('');
+}
+window.addTag = function(key){
+  var inp=document.getElementById(key+'Input');
+  var v=inp.value.trim(); if(!v) return;
+  _tagData[key].push(v); inp.value=''; renderTags(key);
+};
+window.removeTag = function(key,i){
+  _tagData[key].splice(i,1); renderTags(key);
+};
+
+/* ── FAQs ───────────────────────────────────────────── */
+function renderFaqs(){
+  document.getElementById('faqList').innerHTML=_faqs.map(function(f,i){
+    return '<div class="kb-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+      '<div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;color:var(--t4)">FAQ '+(i+1)+'</div>'+
+      '<button class="btn btn--ghost btn--sm" onclick="removeFaq('+i+')" style="color:var(--red)">✕ Remove</button></div>'+
+      '<div class="kb-field-label">Question</div><input class="ag-input" value="'+escHtml(f.q)+'" oninput="_faqs['+i+'].q=this.value" style="margin-bottom:8px">'+
+      '<div class="kb-field-label">Agent Answer</div><textarea class="ag-textarea" oninput="_faqs['+i+'].a=this.value" style="height:72px">'+escHtml(f.a)+'</textarea>'+
+    '</div>';
+  }).join('');
+}
+window.addFaq = function(){ _faqs.push({q:'',a:''}); renderFaqs(); };
+window.removeFaq = function(i){ _faqs.splice(i,1); renderFaqs(); };
+
+/* ── Escalations ─────────────────────────────────────── */
+function renderEscalations(){
+  document.getElementById('escalationList').innerHTML=_escalations.map(function(r,i){
+    return '<div class="kb-card" style="display:flex;align-items:center;gap:10px">'+
+      '<span style="font-size:.875rem">🚨</span>'+
+      '<input class="ag-input" value="'+escHtml(r)+'" oninput="_escalations['+i+']=this.value" style="flex:1">'+
+      '<button class="btn btn--ghost btn--sm" onclick="removeEsc('+i+')" style="color:var(--red)">✕</button>'+
+    '</div>';
+  }).join('');
+}
+window.addEscalation = function(){ _escalations.push(''); renderEscalations(); };
+window.removeEsc = function(i){ _escalations.splice(i,1); renderEscalations(); };
+
+/* ── Logs ───────────────────────────────────────────── */
+function renderLogs(){
+  document.getElementById('logList').innerHTML=_logs.length
+    ? _logs.map(function(l){
+        return '<div class="log-entry"><span style="font-size:1.1rem">'+l.ico+'</span><div style="flex:1"><div style="color:var(--t1);font-weight:600">'+l.msg+'</div></div><div style="font-size:.6875rem;color:var(--t4);white-space:nowrap">'+l.time+'</div></div>';
+      }).join('')
+    : '<div style="text-align:center;padding:24px;color:var(--t4)">No training history yet</div>';
+}
+
+/* ── Save / Train / Reset ────────────────────────────── */
+window.saveKB = function(){
+  var data = collectData();
+  AD.store.set('kb_'+_curBizId, data);
+  AG.toast('Knowledge base saved!','success');
+};
+window.trainAgent = function(){
+  var data = collectData();
+  data.logs = [{ico:'🚀',msg:'Knowledge base trained — '+_faqs.length+' FAQs, '+_escalations.length+' escalation rules active',time:'Just now'}].concat(_logs);
+  _logs = data.logs;
+  AD.store.set('kb_'+_curBizId, data);
+  renderLogs();
+  AG.toast('Agent trained successfully! 🎉','success');
+};
+window.resetKB = function(){
+  AD.store.remove('kb_'+_curBizId);
+  loadBiz(_curBizId);
+  AG.toast('Reset to defaults','success');
+};
+
+function collectData(){
+  return {
+    hoursWeekday:document.getElementById('kb-hours-weekday').value,
+    hoursSat:document.getElementById('kb-hours-sat').value,
+    hoursSun:document.getElementById('kb-hours-sun').value,
+    hoursMsg:document.getElementById('kb-hours-msg').value,
+    ageGroups:_tagData.ageGroup.slice(),
+    programs:document.getElementById('kb-services-programs').value,
+    meals:document.getElementById('kb-services-meals').value,
+    feesSummary:document.getElementById('kb-fees-summary').value,
+    subsidy:document.getElementById('kb-fees-subsidy').value,
+    discount:document.getElementById('kb-fees-discount').value,
+    sick:document.getElementById('kb-sick').value,
+    waitlist:document.getElementById('kb-waitlist').value,
+    curriculum:document.getElementById('kb-curriculum').value,
+    tour:document.getElementById('kb-tour').value,
+    availability:document.getElementById('kb-availability').value,
+    enrolment:document.getElementById('kb-enrolment').value,
+    linkBooking:document.getElementById('kb-link-booking').value,
+    linkReview:document.getElementById('kb-link-review').value,
+    linkBrochure:document.getElementById('kb-link-brochure').value,
+    linkPricing:document.getElementById('kb-link-pricing').value,
+    faqs:_faqs.slice(),
+    escalations:_escalations.slice(),
+    logs:_logs.slice(),
+  };
+}
+
+/* ── Tab switching ──────────────────────────────────── */
+window.switchTab = function(el){
+  document.querySelectorAll('.kb-tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.kb-section').forEach(function(s){s.classList.remove('active')});
+  el.classList.add('active');
+  var sec=document.getElementById('sec-'+el.dataset.sec);
+  if(sec) sec.classList.add('active');
+};
+
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>

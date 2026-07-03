@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Base — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.kb-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+.kb-section { margin-bottom: 8px; }
+.kb-section-title { font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); padding: 16px 18px 6px; }
+.faq-item { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 10px; }
+.faq-q { font-size: .875rem; font-weight: 700; color: var(--t1); margin-bottom: 6px; }
+.faq-a { font-size: .8125rem; color: var(--t2); line-height: 1.6; }
+.kb-editor-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); }
+.kb-editor-hdr { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.kb-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kb-stat { background: var(--bg-3); border-radius: 8px; padding: 12px; text-align: center; }
+.kb-stat-val { font-size: 1.25rem; font-weight: 800; color: var(--t1); }
+.kb-stat-lbl { font-size: .6875rem; color: var(--t3); margin-top: 2px; }
+@media (max-width: 900px) { .kb-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Knowledge Base</h1>
+          <p class="page-sub">Everything your AI employees know about Sunshine Nursery</p>
+        </div>
+        <div class="page-hdr-right">
+          <button class="btn btn--primary" onclick="saveAll()">Save All Changes</button>
+        </div>
+      </div>
+
+      <div class="kb-layout">
+        <div>
+
+          <!-- Core Info -->
+          <div class="kb-editor-card" style="margin-bottom:20px">
+            <div class="kb-editor-hdr">
+              <div class="card-title">Core Business Information</div>
+              <span class="badge badge--green">Auto-synced to AI</span>
+            </div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Opening Hours</label>
+                <input class="form-input" id="kb-hours" type="text" value="Monday to Friday, 7:30 AM to 6:30 PM. Closed on bank holidays and for two weeks over Christmas.">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Age Groups Supported</label>
+                <input class="form-input" id="kb-ages" type="text" value="We support children from 12 months to 5 years.">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Tour Availability</label>
+                <input class="form-input" id="kb-tours" type="text" value="Tours available Tuesday, Wednesday and Thursday at 10:00 AM or 2:00 PM.">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Meals & Inclusions</label>
+                <textarea class="form-textarea" id="kb-meals" rows="2">Fresh breakfast, lunch and afternoon snack prepared daily on-site. All allergies catered for. Nappies, wipes and sun cream included.</textarea>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Safety & Security Policy</label>
+                <textarea class="form-textarea" id="kb-safety" rows="2">All staff DBS-checked and first-aid trained. Secure keypad entry — registered adults only. Children signed in/out. Emergency contacts on file.</textarea>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Curriculum</label>
+                <textarea class="form-textarea" id="kb-curriculum" rows="2">Play-based early learning: language development, fine/gross motor skills, social-emotional growth, outdoor play, music, storytelling, and creative arts. Each child has a dedicated key worker.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fees -->
+          <div class="kb-editor-card" style="margin-bottom:20px">
+            <div class="kb-editor-hdr"><div class="card-title">Fees & Funding</div></div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div class="form-row">
+                <div class="form-group" style="margin:0"><label class="form-label">Full-time (5 days)</label><input class="form-input" type="text" value="$1,150/month — includes all meals, nappies, wipes, activities, daily updates."></div>
+                <div class="form-group" style="margin:0"><label class="form-label">Part-time (3 days)</label><input class="form-input" type="text" value="$820/month for 3 days per week."></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="margin:0"><label class="form-label">Part-time (2 days)</label><input class="form-input" type="text" value="$650/month for 2 days per week."></div>
+                <div class="form-group" style="margin:0"><label class="form-label">Sibling Discount</label><input class="form-input" type="text" value="10% sibling discount for the second child."></div>
+              </div>
+              <div class="form-group" style="margin:0"><label class="form-label">Government Funding</label><input class="form-input" type="text" value="We accept 15-hour and 30-hour Government Childcare Funding."></div>
+            </div>
+          </div>
+
+          <!-- FAQs -->
+          <div class="kb-editor-card" style="margin-bottom:20px">
+            <div class="kb-editor-hdr">
+              <div class="card-title">Frequently Asked Questions</div>
+              <button class="btn btn--ghost btn--sm" onclick="addFaq()">+ Add FAQ</button>
+            </div>
+            <div style="padding:16px 20px" id="faqList"></div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+          <!-- Stats -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">Knowledge Health</div></div>
+            <div class="card-body">
+              <div class="kb-stat-grid" style="margin-bottom:12px">
+                <div class="kb-stat"><div class="kb-stat-val">97%</div><div class="kb-stat-lbl">Accuracy</div></div>
+                <div class="kb-stat"><div class="kb-stat-val">234</div><div class="kb-stat-lbl">Q&A answered</div></div>
+                <div class="kb-stat"><div class="kb-stat-val">5</div><div class="kb-stat-lbl">FAQs defined</div></div>
+                <div class="kb-stat"><div class="kb-stat-val">0</div><div class="kb-stat-lbl">Gaps flagged</div></div>
+              </div>
+              <div class="badge badge--green" style="width:100%;justify-content:center;padding:8px">Knowledge is up to date</div>
+            </div>
+          </div>
+
+          <!-- Unanswered questions -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">Questions AI Flagged</div></div>
+            <div class="card-body">
+              <div style="font-size:.8125rem;color:var(--t2);margin-bottom:10px">Questions it couldn't answer with confidence:</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:var(--bdg-amber-bg);border:1px solid var(--bdg-amber-t);border-radius:8px;padding:10px 12px;font-size:.78125rem;color:var(--bdg-amber-t)">"Do you accept funded 2-year-old hours?"</div>
+                <div style="background:var(--bdg-amber-bg);border:1px solid var(--bdg-amber-t);border-radius:8px;padding:10px 12px;font-size:.78125rem;color:var(--bdg-amber-t)">"What is your late collection fee?"</div>
+              </div>
+              <button class="btn btn--ghost btn--sm btn--full" style="margin-top:12px" onclick="addGaps()">Add answers →</button>
+            </div>
+          </div>
+
+          <!-- Google review link -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Google Review Link</div></div>
+            <div class="card-body">
+              <div class="form-group" style="margin-bottom:8px">
+                <label class="form-label">Your Google Review URL</label>
+                <input class="form-input" type="url" id="googleLink" value="https://g.page/r/sunshine-nursery/review">
+              </div>
+              <button class="btn btn--secondary btn--sm btn--full" onclick="DR.showToast('Review link saved')">Save Link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'Knowledge Base' }
+  ]
+});
+
+const D = window.DR_DATA;
+
+function renderFaqs() {
+  document.getElementById('faqList').innerHTML = D.knowledgeBase.faqs.map((f, i) => `
+    <div class="faq-item">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div class="faq-q">${f.q}</div>
+          <div class="faq-a">${f.a}</div>
+        </div>
+        <button class="btn btn--ghost btn--sm" onclick="editFaq(${i})" style="flex-shrink:0">Edit</button>
+      </div>
+    </div>
+  `).join('');
+}
+renderFaqs();
+
+function addFaq() {
+  D.knowledgeBase.faqs.push({ q: 'New question?', a: 'Your answer here.' });
+  renderFaqs();
+  DR.showToast('New FAQ added — fill in the details above');
+}
+
+function editFaq(i) {
+  const f = D.knowledgeBase.faqs[i];
+  const newQ = prompt('Edit question:', f.q);
+  if (newQ === null) return;
+  const newA = prompt('Edit answer:', f.a);
+  if (newA === null) return;
+  D.knowledgeBase.faqs[i] = { q: newQ, a: newA };
+  renderFaqs();
+  DR.showToast('FAQ updated');
+}
+
+function addGaps() {
+  DR.showToast('Adding unanswered questions to your FAQ list...');
+  setTimeout(() => {
+    D.knowledgeBase.faqs.push({ q: 'Do you accept funded 2-year-old hours?', a: 'Yes — we accept 15-hour Government Childcare Funding for eligible 2-year-olds.' });
+    D.knowledgeBase.faqs.push({ q: 'What is your late collection fee?', a: 'A £10 late fee applies after 6:30 PM, increasing to £15 after 6:45 PM.' });
+    renderFaqs();
+    DR.showToast('2 questions added to knowledge base');
+  }, 800);
+}
+
+function saveAll() {
+  DR.showToast('Knowledge base saved — AI employees updating now');
+}
+</script>
+</body>
+</html>

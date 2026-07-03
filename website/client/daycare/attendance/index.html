@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .att-board { display:flex;flex-direction:column;gap:10px; }
+    .att-row { display:grid;grid-template-columns:180px 1fr auto auto auto auto;gap:12px;align-items:center;padding:14px 16px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:12px;transition:border-color .15s; }
+    .att-row:hover { border-color:var(--accent); }
+    .att-child-info { display:flex;align-items:center;gap:10px; }
+    .att-child-name { font-size:.875rem;font-weight:600;color:var(--t1); }
+    .att-child-room { font-size:.75rem;color:var(--t3); }
+    .att-time-slot { font-size:.8125rem;color:var(--t2); }
+    .att-time-label { font-size:.6875rem;color:var(--t4);margin-bottom:1px; }
+    .att-action-group { display:flex;gap:6px; }
+    .att-action-btn { padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;background:var(--card-bg);color:var(--t2); }
+    .att-action-btn.is-checkin  { background:#DCFCE7;border-color:#16A34A;color:#16A34A; }
+    .att-action-btn.is-checkout { background:#EFF6FF;border-color:#2563EB;color:#2563EB; }
+    .att-action-btn:hover { opacity:.85; }
+
+    .ai-reminder-card { border:1.5px solid var(--accent);background:var(--accent-bg);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:20px; }
+    .ai-reminder-body { flex:1; }
+    .ai-reminder-title { font-size:.875rem;font-weight:700;color:var(--accent);margin-bottom:4px; }
+    .ai-reminder-text { font-size:.8125rem;color:var(--t2);line-height:1.5; }
+
+    .summary-chips { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .sum-chip { flex:1;min-width:110px;padding:14px 16px;border-radius:12px;text-align:center; }
+    .sum-chip .n { font-size:1.75rem;font-weight:700; }
+    .sum-chip .l { font-size:.75rem;font-weight:500;margin-top:2px; }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Attendance</h1>
+            <p class="page-sub">Check-in / Check-out · Monday, 30 June 2026</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Attendance report downloaded','success')">Export Report</button>
+            <button class="btn btn--primary" onclick="markAllPresent()">Mark All Present</button>
+          </div>
+        </div>
+
+        <!-- AI reminder -->
+        <div class="ai-reminder-card">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div class="ai-reminder-body">
+            <div class="ai-reminder-title">Ava sent 2 absence reminders this morning</div>
+            <div class="ai-reminder-text">Rohan Sharma and Mia Chen have not checked in by 10:00 AM. Ava sent WhatsApp reminders to both parents automatically. One response received.</div>
+          </div>
+          <a href="/client/daycare/parent-messages" class="btn btn--ghost" style="white-space:nowrap">View Messages</a>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-chips" id="summaryChips"></div>
+
+        <!-- Board -->
+        <div class="att-board" id="attBoard"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'attendance' });
+
+    const chipDefs = [
+      { status:'present',  label:'Present',   bg:'#DCFCE7', color:'#16A34A' },
+      { status:'absent',   label:'Absent',    bg:'#FEE2E2', color:'#DC2626' },
+      { status:'late',     label:'Late',      bg:'#FFFBEB', color:'#D97706' },
+      { status:'pickedup', label:'Picked Up', bg:'#EFF6FF', color:'#2563EB' },
+    ];
+
+    function counts() {
+      const c = { present:0,absent:0,late:0,pickedup:0 };
+      DC.attendance.forEach(a => { if(c[a.status]!==undefined) c[a.status]++; });
+      return c;
+    }
+
+    function renderSummary() {
+      const c = counts();
+      document.getElementById('summaryChips').innerHTML = chipDefs.map(d => `
+        <div class="sum-chip" style="background:${d.bg};color:${d.color}">
+          <div class="n">${c[d.status]}</div>
+          <div class="l">${d.label}</div>
+        </div>`).join('');
+    }
+
+    function renderBoard() {
+      document.getElementById('attBoard').innerHTML = DC.attendance.map(a => {
+        const c = DC.children.find(x=>x.id===a.childId);
+        if(!c) return '';
+        const chipCls = { present:'att-chip--present', absent:'att-chip--absent', late:'att-chip--late', pickedup:'att-chip--pickedup' };
+        return `
+          <div class="att-row" id="row-${a.childId}">
+            <div class="att-child-info">
+              <div class="av av-sm av--${CL.avatarColor(c.name)}">${c.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+              <div>
+                <div class="att-child-name">${c.name}</div>
+                <div class="att-child-room">${c.room}</div>
+              </div>
+            </div>
+            <span class="att-chip ${chipCls[a.status]||''}" id="chip-${a.childId}">${a.status.charAt(0).toUpperCase()+a.status.slice(1)}</span>
+            <div class="att-time-slot">
+              <div class="att-time-label">Check-in</div>
+              <div id="cin-${a.childId}">${a.checkedIn||'—'}</div>
+            </div>
+            <div class="att-time-slot">
+              <div class="att-time-label">Picked Up</div>
+              <div>${a.pickedUp||'—'}</div>
+            </div>
+            <div class="att-time-slot">
+              <div class="att-time-label">Parent</div>
+              <div style="font-size:.75rem">${c.parentName}</div>
+            </div>
+            <div class="att-action-group">
+              ${a.status==='absent'||!a.checkedIn
+                ? `<button class="att-action-btn is-checkin" onclick="checkIn('${a.childId}')">Check In</button>`
+                : `<button class="att-action-btn is-checkout" onclick="checkOut('${a.childId}')">Check Out</button>`}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    window.checkIn = (id) => {
+      const a = DC.attendance.find(x=>x.childId===id);
+      if(!a) return;
+      const now = new Date();
+      a.checkedIn = now.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+      a.status = 'present';
+      renderSummary(); renderBoard();
+      CL.showToast('Check-in recorded','success');
+    };
+
+    window.checkOut = (id) => {
+      const a = DC.attendance.find(x=>x.childId===id);
+      if(!a) return;
+      a.status = 'pickedup';
+      renderSummary(); renderBoard();
+      CL.showToast('Check-out recorded','success');
+    };
+
+    window.markAllPresent = () => {
+      DC.attendance.forEach(a => {
+        if(a.status==='absent') {
+          a.status='present';
+          a.checkedIn = '09:00 AM';
+        }
+      });
+      renderSummary(); renderBoard();
+      CL.showToast('All children marked present','success');
+    };
+
+    renderSummary(); renderBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Base — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .kb-layout { display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start; }
+    @media(max-width:900px){.kb-layout{grid-template-columns:1fr}}
+
+    .kb-nav { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:20px; }
+    .kb-nav-head { padding:14px 16px;border-bottom:1px solid var(--border);font-size:.875rem;font-weight:700;color:var(--t1); }
+    .kb-nav-item { display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:.8125rem;font-weight:500;color:var(--t3);cursor:pointer;border-bottom:1px solid var(--s2);transition:all .15s; }
+    .kb-nav-item:last-child { border-bottom:none; }
+    .kb-nav-item:hover { background:var(--s1);color:var(--t1); }
+    .kb-nav-item.is-active { background:var(--accent-bg);color:var(--accent);border-left:3px solid var(--accent); }
+
+    .kb-section { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden; }
+    .kb-section-head { display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border); }
+    .kb-section-title { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .kb-section-body { padding:16px 20px; }
+    .kb-field { margin-bottom:14px; }
+    .kb-field-label { font-size:.6875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px; }
+    .kb-field-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .kb-field-input:focus { border-color:var(--accent); }
+    .kb-field-textarea { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);resize:vertical;min-height:80px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .kb-field-textarea:focus { border-color:var(--accent); }
+
+    .faq-item { border:1.5px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden; }
+    .faq-q { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-size:.875rem;font-weight:600;color:var(--t1);transition:background .15s; }
+    .faq-q:hover { background:var(--s1); }
+    .faq-q-ico { transition:transform .2s;color:var(--t3); }
+    .faq-q.is-open .faq-q-ico { transform:rotate(90deg); }
+    .faq-a { padding:0 14px 12px;font-size:.8125rem;color:var(--t2);line-height:1.6;display:none; }
+    .faq-a.is-open { display:block; }
+    .faq-edit-btn { padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.6875rem;font-weight:600;cursor:pointer;background:var(--card-bg);color:var(--t3);transition:all .15s; }
+    .faq-edit-btn:hover { border-color:var(--accent);color:var(--accent); }
+
+    .train-ai-btn { display:flex;align-items:center;gap:10px;padding:16px 20px;border:2px dashed var(--accent);border-radius:12px;background:var(--accent-bg);cursor:pointer;width:100%;text-align:left;transition:all .15s; }
+    .train-ai-btn:hover { background:var(--accent);color:#fff; }
+    .train-ai-btn:hover * { color:#fff!important; }
+    .train-ai-ico { width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .train-ai-ico svg { width:20px;height:20px;color:#fff; }
+    .train-title { font-size:.9375rem;font-weight:700;color:var(--accent); }
+    .train-sub { font-size:.8125rem;color:var(--t3);margin-top:1px; }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Knowledge Base</h1>
+            <p class="page-sub">Edit the information your AI uses to answer parents</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost">+ Add Section</button>
+            <button class="btn btn--primary" onclick="saveAll()">Save All Changes</button>
+          </div>
+        </div>
+
+        <div class="kb-layout">
+
+          <!-- Nav -->
+          <div class="kb-nav">
+            <div class="kb-nav-head">Sections</div>
+            <div class="kb-nav-item is-active" onclick="scrollTo('nurseryInfo')">🏠 Nursery Info</div>
+            <div class="kb-nav-item" onclick="scrollTo('hours')">⏰ Hours</div>
+            <div class="kb-nav-item" onclick="scrollTo('admissions')">📋 Admissions</div>
+            <div class="kb-nav-item" onclick="scrollTo('fees')">💰 Fees</div>
+            <div class="kb-nav-item" onclick="scrollTo('policies')">📜 Policies</div>
+            <div class="kb-nav-item" onclick="scrollTo('faqs')">❓ FAQs</div>
+          </div>
+
+          <!-- Content -->
+          <div>
+
+            <!-- Nursery Info -->
+            <div class="kb-section" id="nurseryInfo">
+              <div class="kb-section-head">
+                <div class="kb-section-title">🏠 Nursery Info</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Section saved','success')">Save</button>
+              </div>
+              <div class="kb-section-body" id="nurseryInfoBody"></div>
+            </div>
+
+            <!-- Hours -->
+            <div class="kb-section" id="hours">
+              <div class="kb-section-head">
+                <div class="kb-section-title">⏰ Operating Hours</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Section saved','success')">Save</button>
+              </div>
+              <div class="kb-section-body" id="hoursBody"></div>
+            </div>
+
+            <!-- Admissions -->
+            <div class="kb-section" id="admissions">
+              <div class="kb-section-head">
+                <div class="kb-section-title">📋 Admissions Process</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Section saved','success')">Save</button>
+              </div>
+              <div class="kb-section-body">
+                <div class="kb-field">
+                  <div class="kb-field-label">Process Description</div>
+                  <textarea class="kb-field-textarea" id="kbAdmissions" rows="4"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fees -->
+            <div class="kb-section" id="fees">
+              <div class="kb-section-head">
+                <div class="kb-section-title">💰 Fees & Billing</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Section saved','success')">Save</button>
+              </div>
+              <div class="kb-section-body">
+                <div class="kb-field">
+                  <div class="kb-field-label">Fee Information</div>
+                  <textarea class="kb-field-textarea" id="kbFees" rows="4"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Policies -->
+            <div class="kb-section" id="policies">
+              <div class="kb-section-head">
+                <div class="kb-section-title">📜 Policies</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Section saved','success')">Save</button>
+              </div>
+              <div class="kb-section-body">
+                <div class="kb-field">
+                  <div class="kb-field-label">Sick Child Policy</div>
+                  <textarea class="kb-field-textarea" id="kbSick" rows="3"></textarea>
+                </div>
+                <div class="kb-field">
+                  <div class="kb-field-label">Late Pickup Policy</div>
+                  <textarea class="kb-field-textarea" id="kbLate" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQs -->
+            <div class="kb-section" id="faqs">
+              <div class="kb-section-head">
+                <div class="kb-section-title">❓ FAQs</div>
+                <button class="btn btn--ghost btn--sm" onclick="addFaq()">+ Add FAQ</button>
+              </div>
+              <div class="kb-section-body" id="faqList"></div>
+            </div>
+
+            <!-- Train AI -->
+            <button class="train-ai-btn" onclick="trainAI()">
+              <div class="train-ai-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div>
+                <div class="train-title">Train AI with Latest Information</div>
+                <div class="train-sub">Sync all knowledge base updates to your AI employees · Last trained: Today 9:00 AM</div>
+              </div>
+            </button>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'knowledge-base' });
+
+    const kb  = DC.knowledgeBase;
+    const nur = DC.nursery;
+
+    /* Nursery info section — from DC.nursery */
+    document.getElementById('nurseryInfoBody').innerHTML = `
+      <div class="kb-field"><div class="kb-field-label">Nursery Name</div><input class="kb-field-input" value="${nur.name}"></div>
+      <div class="kb-field"><div class="kb-field-label">Address</div><input class="kb-field-input" value="${nur.address}"></div>
+      <div class="kb-field"><div class="kb-field-label">Phone</div><input class="kb-field-input" value="${nur.phone}"></div>
+      <div class="kb-field"><div class="kb-field-label">Email</div><input class="kb-field-input" value="${nur.email}"></div>
+      <div class="kb-field"><div class="kb-field-label">About</div><textarea class="kb-field-textarea" rows="3">${nur.tagline||''}</textarea></div>`;
+
+    document.getElementById('hoursBody').innerHTML = `
+      <div class="kb-field"><div class="kb-field-label">Opening Hours</div><input class="kb-field-input" value="${kb.openingHours||'Monday–Friday 7:00 AM – 6:00 PM'}"></div>
+      <div class="kb-field"><div class="kb-field-label">Weekend Hours</div><input class="kb-field-input" value="Closed weekends"></div>
+      <div class="kb-field"><div class="kb-field-label">Holiday Policy</div><textarea class="kb-field-textarea" rows="2">Closed on all Alberta statutory holidays. Two weeks notice given for any closures.</textarea></div>`;
+
+    /* Fees: kb.fees is an object {fullTime, partTime3, partTime2, sibling, funding} */
+    const feesText = kb.fees ? Object.entries(kb.fees).map(([k,v])=>`${k}: ${v}`).join('\n') : '';
+    document.getElementById('kbAdmissions').value = kb.waitlist || 'Contact us to join the waitlist. We operate a FIFO waitlist with sibling priority.';
+    document.getElementById('kbFees').value = feesText;
+    document.getElementById('kbSick').value = kb.sickChildPolicy || '';
+    document.getElementById('kbLate').value = kb.paymentPolicy || '';
+
+    /* FAQs */
+    function renderFaqs() {
+      document.getElementById('faqList').innerHTML = (kb.faqs||[]).map((f,i) => `
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(${i})" id="faq-q-${i}">
+            ${f.q}
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="faq-edit-btn" onclick="event.stopPropagation();editFaq(${i})">Edit</span>
+              <span class="faq-q-ico">›</span>
+            </div>
+          </div>
+          <div class="faq-a" id="faq-a-${i}">${f.a}</div>
+        </div>`).join('');
+    }
+
+    window.toggleFaq = i => {
+      document.getElementById(`faq-q-${i}`)?.classList.toggle('is-open');
+      document.getElementById(`faq-a-${i}`)?.classList.toggle('is-open');
+    };
+    window.editFaq = i => CL.showToast('FAQ editor coming soon','info');
+    window.addFaq  = () => {
+      kb.faqs.push({ q:'New question?', a:'Answer here.' });
+      renderFaqs();
+      CL.showToast('FAQ added','success');
+    };
+    window.saveAll = () => CL.showToast('All sections saved','success');
+    window.trainAI = () => {
+      CL.showToast('Training AI with latest knowledge…','info');
+      setTimeout(()=>CL.showToast('AI trained successfully!','success'), 1800);
+    };
+
+    renderFaqs();
+  </script>
+</body>
+</html>

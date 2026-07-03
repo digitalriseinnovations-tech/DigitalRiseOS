@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .rev-cards { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px; }
+    @media(max-width:900px){.rev-cards{grid-template-columns:repeat(2,1fr)}}
+
+    .rev-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px; }
+    .rev-card-label { font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:6px; }
+    .rev-card-val { font-size:1.75rem;font-weight:800;color:var(--t1); }
+    .rev-card-growth { font-size:.75rem;margin-top:4px; }
+
+    .invoice-toolbar { display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px; }
+    .search-box { position:relative;flex:1;min-width:200px;max-width:320px; }
+    .search-box input { width:100%;padding:8px 12px 8px 34px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;transition:border-color .15s; }
+    .search-box input:focus { border-color:var(--accent); }
+    .search-box svg { position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--t4); }
+
+    .invoice-table { width:100%;border-collapse:collapse; }
+    .invoice-table th { text-align:left;font-size:.6875rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;border-bottom:1px solid var(--border); }
+    .invoice-table td { padding:12px;border-bottom:1px solid var(--s2);font-size:.875rem;vertical-align:middle; }
+    .invoice-table tr:last-child td { border-bottom:none; }
+    .invoice-table tr:hover td { background:var(--s1); }
+    .inv-name { font-weight:600;color:var(--t1); }
+    .inv-child { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .inv-amount { font-weight:700;color:var(--t1); }
+    .due-overdue { color:#DC2626;font-weight:600; }
+
+    .chart-bar-wrap { display:flex;gap:6px;align-items:flex-end;height:80px; }
+    .chart-col { flex:1;display:flex;flex-direction:column;align-items:center;gap:4px; }
+    .chart-bar { width:100%;border-radius:4px 4px 0 0;background:var(--accent-bg);transition:background .2s; }
+    .chart-bar.is-current { background:var(--accent); }
+    .chart-lbl { font-size:.6875rem;color:var(--t4); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Billing</h1>
+            <p class="page-sub">Revenue, invoices, and payment tracking</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Exporting statements…','info')">Export PDF</button>
+            <button class="btn btn--primary" onclick="CL.showToast('Invoice creator coming soon','info')">+ New Invoice</button>
+          </div>
+        </div>
+
+        <!-- Revenue cards -->
+        <div class="rev-cards" id="revCards"></div>
+
+        <!-- Revenue chart + invoice table -->
+        <div class="grid-2-col" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Monthly Revenue</div>
+              <span style="font-size:.75rem;color:var(--t3)">Last 6 months</span>
+            </div>
+            <div class="chart-bar-wrap" id="revenueChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Payment Status</div>
+            </div>
+            <div id="paymentStatus"></div>
+          </div>
+        </div>
+
+        <!-- Invoice table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Invoices</div>
+            <a class="card-action" onclick="CL.showToast('Sending reminders to overdue parents…','info')">Send Reminders</a>
+          </div>
+          <div class="invoice-toolbar">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="invSearch" placeholder="Search invoices…" oninput="renderInvoices()">
+            </div>
+            <select id="invFilter" class="filter-select" onchange="renderInvoices()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.8125rem;background:var(--s1);color:var(--t1)">
+              <option value="all">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="invoice-table">
+              <thead>
+                <tr>
+                  <th>Parent</th>
+                  <th>Child</th>
+                  <th>Month</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="invoiceBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'billing' });
+
+    const rev = DC.billing;
+    const invs = DC.billing.invoices;
+
+    /* Revenue cards */
+    document.getElementById('revCards').innerHTML = [
+      { label:'Monthly Revenue',    value:'$'+rev.monthlyRevenue.toLocaleString(),            growth:'+$1.1k',  dir:'up',  color:'purple' },
+      { label:'Annual Run Rate',    value:'$'+(rev.monthlyRevenue*12).toLocaleString(),        growth:'+12%',    dir:'up',  color:'green' },
+      { label:'Pending Payments',   value:'$'+rev.pending.toLocaleString(),                    growth:'2 inv.',  dir:'',    color:'amber' },
+      { label:'Overdue',            value:'$'+rev.overdue.toLocaleString(),                    growth:'1 inv.',  dir:'down',color:'red' },
+    ].map(k=>`
+      <div class="rev-card">
+        <div class="rev-card-label">${k.label}</div>
+        <div class="rev-card-val">${k.value}</div>
+        <div class="rev-card-growth" style="color:${k.dir==='up'?'#16A34A':k.dir==='down'?'#DC2626':'var(--t4)'}">
+          ${k.dir==='up'?'▲ ':k.dir==='down'?'▼ ':''}${k.growth}
+        </div>
+      </div>`).join('');
+
+    /* Revenue chart */
+    const months = [
+      { m:'Jan', v:31200 },{ m:'Feb', v:33400 },{ m:'Mar', v:32800 },
+      { m:'Apr', v:35600 },{ m:'May', v:34200 },{ m:'Jun', v:rev.monthlyRevenue, current:true },
+    ];
+    const maxV = Math.max(...months.map(m=>m.v));
+    document.getElementById('revenueChart').innerHTML = months.map(m=>`
+      <div class="chart-col">
+        <div class="chart-bar ${m.current?'is-current':''}" style="height:${Math.round(m.v/maxV*72)}px" title="$${m.v.toLocaleString()}"></div>
+        <div class="chart-lbl">${m.m}</div>
+      </div>`).join('');
+
+    /* Payment status donut-like */
+    const paid    = invs.filter(i=>i.status==='paid').length;
+    const pending = invs.filter(i=>i.status==='pending').length;
+    const overdue = invs.filter(i=>i.status==='overdue').length;
+    document.getElementById('paymentStatus').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${[
+          { label:'Paid',    count:paid,    total:invs.length, color:'#16A34A', bg:'#DCFCE7' },
+          { label:'Pending', count:pending, total:invs.length, color:'#D97706', bg:'#FFFBEB' },
+          { label:'Overdue', count:overdue, total:invs.length, color:'#DC2626', bg:'#FEE2E2' },
+        ].map(s=>`
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <span style="font-size:.8125rem;font-weight:500;color:var(--t2)">${s.label}</span>
+              <span style="font-size:.8125rem;font-weight:700;color:${s.color}">${s.count}/${invs.length}</span>
+            </div>
+            <div style="height:6px;background:var(--s3);border-radius:99px;overflow:hidden">
+              <div style="width:${Math.round(s.count/invs.length*100)}%;height:100%;background:${s.color};border-radius:99px"></div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+
+    /* Invoice table */
+    const statusBadge = { paid:'badge--green', pending:'badge--amber', overdue:'badge--red' };
+
+    function renderInvoices() {
+      const q   = document.getElementById('invSearch').value.toLowerCase();
+      const fil = document.getElementById('invFilter').value;
+      const list = invs.filter(i=>{
+        if(fil!=='all'&&i.status!==fil) return false;
+        if(q&&!i.parent.toLowerCase().includes(q)&&!i.child.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      document.getElementById('invoiceBody').innerHTML = list.map(i=>`
+        <tr>
+          <td>
+            <div class="inv-name">${i.parent}</div>
+          </td>
+          <td><span style="color:var(--t3)">${i.child}</span></td>
+          <td><span style="color:var(--t2)">Jul 2026</span></td>
+          <td class="inv-amount">${CL.fmtMoney(i.amount)}</td>
+          <td><span class="${i.status==='overdue'?'due-overdue':''}" style="font-size:.8125rem">${i.dueDate}</span></td>
+          <td><span class="badge ${statusBadge[i.status]||'badge--grey'}">${i.status.charAt(0).toUpperCase()+i.status.slice(1)}</span></td>
+          <td>
+            ${i.status==='paid'
+              ? `<button class="btn btn--ghost btn--sm" onclick="CL.showToast('Receipt downloaded','success')">Receipt</button>`
+              : `<button class="btn btn--primary btn--sm" onclick="sendReminder('${i.id}')">Send Reminder</button>`}
+          </td>
+        </tr>`).join('');
+    }
+
+    window.sendReminder = id => {
+      const inv = invs.find(i=>i.id===id);
+      CL.showToast(`Reminder sent to ${inv?.parentName||'parent'} via WhatsApp`, 'success');
+    };
+
+    renderInvoices();
+  </script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Messages — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .inbox-layout { display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 60px - 80px);min-height:500px;gap:0;background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden; }
+    @media(max-width:720px){.inbox-layout{grid-template-columns:1fr}}
+
+    /* Left: conversation list */
+    .conv-list { border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden; }
+    .conv-list-head { padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0; }
+    .conv-list-title { font-size:.875rem;font-weight:700;color:var(--t1); }
+    .conv-search { padding:8px 12px 8px 12px;border:0;border-bottom:1px solid var(--border);background:var(--s1); }
+    .conv-search input { width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.8125rem;background:var(--card-bg);color:var(--t1);outline:none; }
+    .conv-search input:focus { border-color:var(--accent); }
+    .conv-channels { display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto; }
+    .channel-tab { padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;color:var(--t3);white-space:nowrap; }
+    .channel-tab.is-active { background:var(--accent-bg);color:var(--accent);border-color:var(--accent); }
+    .conv-items { overflow-y:auto;flex:1; }
+    .conv-item { display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--s2);cursor:pointer;transition:background .15s; }
+    .conv-item:hover { background:var(--s1); }
+    .conv-item.is-active { background:var(--accent-bg); }
+    .conv-item-body { flex:1;min-width:0; }
+    .conv-item-name { font-size:.875rem;font-weight:600;color:var(--t1);display:flex;justify-content:space-between; }
+    .conv-item-time { font-size:.625rem;font-weight:400;color:var(--t4); }
+    .conv-item-preview { font-size:.75rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px; }
+    .conv-unread { min-width:18px;height:18px;border-radius:99px;background:var(--accent);color:#fff;font-size:.625rem;font-weight:700;display:flex;align-items:center;justify-content:center; }
+    .channel-icon { font-size:.625rem;font-weight:600;padding:1px 4px;border-radius:4px;background:var(--s2);color:var(--t4);margin-left:4px; }
+
+    /* Right: thread */
+    .conv-thread { display:flex;flex-direction:column;overflow:hidden; }
+    .thread-head { padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px; }
+    .thread-name { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .thread-child { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .thread-msgs { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px; }
+    .msg-bubble { max-width:72%;padding:10px 14px;border-radius:14px;font-size:.875rem;line-height:1.5; }
+    .msg-bubble.is-in  { background:var(--s2);color:var(--t1);align-self:flex-start;border-bottom-left-radius:4px; }
+    .msg-bubble.is-out { background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px; }
+    .msg-bubble.is-ai  { background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;align-self:flex-end;border-bottom-right-radius:4px; }
+    .msg-bubble.is-system { background:var(--s1);color:var(--t3);font-size:.75rem;font-style:italic;align-self:center;max-width:90%;border-radius:8px; }
+    .msg-meta { font-size:.625rem;opacity:.7;margin-top:3px; }
+    .thread-compose { padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0; }
+    .compose-input { flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.875rem;background:var(--s1);color:var(--t1);resize:none;min-height:42px;max-height:120px;font-family:inherit;outline:none;transition:border-color .15s; }
+    .compose-input:focus { border-color:var(--accent); }
+    .send-btn { width:40px;height:40px;border-radius:10px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;transition:opacity .15s; }
+    .send-btn:hover { opacity:.85; }
+    .send-btn svg { width:18px;height:18px; }
+    .ai-reply-btn { padding:7px 12px;border:1.5px solid var(--accent);border-radius:8px;background:var(--accent-bg);color:var(--accent);font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s; }
+    .ai-reply-btn:hover { background:var(--accent);color:#fff; }
+
+    .empty-thread { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t4); }
+    .empty-thread .ico { font-size:2.5rem;margin-bottom:12px; }
+    .empty-thread .msg { font-size:.875rem; }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content" style="padding-bottom:0">
+
+        <div class="page-header" style="padding-bottom:16px">
+          <div>
+            <h1 class="page-title">Parent Messages</h1>
+            <p class="page-sub">Multi-channel inbox · WhatsApp · Chat · Email</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Composing new message…','info')">+ New Message</button>
+          </div>
+        </div>
+
+        <div class="inbox-layout">
+
+          <!-- Left: conversations -->
+          <div class="conv-list">
+            <div class="conv-list-head">
+              <span class="conv-list-title">Inbox</span>
+              <span class="badge badge--purple">3 unread</span>
+            </div>
+            <div class="conv-search">
+              <input type="text" placeholder="Search conversations…">
+            </div>
+            <div class="conv-channels">
+              <span class="channel-tab is-active" onclick="setChannel(this,'all')">All</span>
+              <span class="channel-tab" onclick="setChannel(this,'whatsapp')">📱 WhatsApp</span>
+              <span class="channel-tab" onclick="setChannel(this,'chat')">💬 Chat</span>
+              <span class="channel-tab" onclick="setChannel(this,'email')">📧 Email</span>
+            </div>
+            <div class="conv-items" id="convList"></div>
+          </div>
+
+          <!-- Right: thread -->
+          <div class="conv-thread" id="convThread">
+            <div class="empty-thread">
+              <div class="ico">💬</div>
+              <div class="msg">Select a conversation to read messages</div>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'parent-messages' });
+
+    const chIcon = { whatsapp:'📱', chat:'💬', email:'📧' };
+    let activeConv = null;
+
+    window.setChannel = (el, ch) => {
+      document.querySelectorAll('.channel-tab').forEach(t=>t.classList.remove('is-active'));
+      el.classList.add('is-active');
+    };
+
+    function renderConvList() {
+      document.getElementById('convList').innerHTML = DC.parentMessages.map(c => {
+        const last = c.messages[c.messages.length-1];
+        return `
+          <div class="conv-item ${activeConv===c.id?'is-active':''}" onclick="openConv('${c.id}')">
+            <div class="av av-sm av--${CL.avatarColor(c.parentName)}">${c.parentName.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+            <div class="conv-item-body">
+              <div class="conv-item-name">
+                ${c.parentName}
+                <span class="conv-item-time">${last.time||''}</span>
+              </div>
+              <div class="conv-item-preview">
+                <span class="channel-icon">${chIcon[c.channel]||''}</span>
+                ${last.text}
+              </div>
+            </div>
+            ${c.unread?`<div class="conv-unread">${c.unread}</div>`:''}
+          </div>`;
+      }).join('');
+    }
+
+    window.openConv = (id) => {
+      activeConv = id;
+      const c = DC.parentMessages.find(x=>x.id===id);
+      if(!c) return;
+      c.unread = 0;
+      renderConvList();
+
+      const child = DC.children.find(ch=>ch.parentName===c.parentName);
+      document.getElementById('convThread').innerHTML = `
+        <div class="thread-head">
+          <div class="av av-sm av--${CL.avatarColor(c.parentName)}">${c.parentName.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+          <div>
+            <div class="thread-name">${c.parentName}</div>
+            <div class="thread-child">${child?child.name+' · ':''} ${chIcon[c.channel]||''} ${c.channel}</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="ai-reply-btn" onclick="aiReply('${c.id}')">⚡ AI Reply</button>
+          </div>
+        </div>
+        <div class="thread-msgs" id="threadMsgs"></div>
+        <div class="thread-compose">
+          <textarea class="compose-input" id="composeInput" placeholder="Write a message…" rows="1"></textarea>
+          <button class="send-btn" onclick="sendMsg('${c.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>`;
+
+      renderThread(c);
+
+      document.getElementById('composeInput').addEventListener('keydown', e => {
+        if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMsg(c.id); }
+      });
+    };
+
+    function renderThread(c) {
+      const el = document.getElementById('threadMsgs');
+      if(!el) return;
+      el.innerHTML = c.messages.map(m => {
+        const cls = m.role==='parent'?'is-in':m.role==='ai'?'is-ai':m.role==='system'?'is-system':'is-out';
+        const label = m.role==='ai'?'⚡ Ava (AI)':m.role==='parent'?c.parentName:m.role==='system'?'System':'You';
+        return `
+          <div class="msg-bubble ${cls}">
+            ${m.text}
+            <div class="msg-meta">${label} · ${m.time||''}</div>
+          </div>`;
+      }).join('');
+      el.scrollTop = el.scrollHeight;
+    }
+
+    window.sendMsg = (id) => {
+      const c = DC.parentMessages.find(x=>x.id===id);
+      const inp = document.getElementById('composeInput');
+      const text = inp?.value.trim();
+      if(!text||!c) return;
+      c.messages.push({ role:'staff', text, time:'Just now' });
+      inp.value = '';
+      renderThread(c);
+    };
+
+    window.aiReply = (id) => {
+      const c = DC.parentMessages.find(x=>x.id===id);
+      if(!c) return;
+      CL.showToast('AI generating reply…','info');
+      setTimeout(() => {
+        const last = c.messages[c.messages.length-1];
+        const reply = `Hi ${c.parentName.split(' ')[0]}! Thank you for your message. I'll look into that right away and get back to you shortly. Is there anything else I can help you with?`;
+        c.messages.push({ role:'ai', text:reply, time:'Just now' });
+        renderThread(c);
+        CL.showToast('AI reply ready — review before sending','success');
+      }, 1000);
+    };
+
+    renderConvList();
+  </script>
+</body>
+</html>

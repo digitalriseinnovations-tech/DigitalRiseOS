@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .int-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px; }
+    @media(max-width:900px){.int-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.int-grid{grid-template-columns:1fr}}
+    .int-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:12px; }
+    .int-card.is-soon { opacity:.7; }
+    .int-ico { width:48px;height:48px;border-radius:12px;background:var(--border-s);display:flex;align-items:center;justify-content:center;font-size:1.5rem; }
+    .int-cat { font-size:.5625rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4); }
+    .cat-hd { font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin:24px 0 10px;padding-bottom:6px;border-bottom:1.5px solid var(--border); }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Integrations</div>
+          <div class="ag-ph-sub">8 connected channels · 4 coming soon</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section">
+        <div class="ag-stat" style="border-left:3px solid var(--green)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">Connected</div><div style="font-size:1.25rem">✅</div></div><div class="ag-stat-val">8</div></div>
+        <div class="ag-stat" style="border-left:3px solid var(--amber)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">Coming Soon</div><div style="font-size:1.25rem">🔜</div></div><div class="ag-stat-val">4</div></div>
+        <div class="ag-stat" style="border-left:3px solid var(--accent)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">Channels Active</div><div style="font-size:1.25rem">📡</div></div><div class="ag-stat-val">5</div></div>
+        <div class="ag-stat" style="border-left:3px solid var(--blue)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">Total Messages Handled</div><div style="font-size:1.25rem">💬</div></div><div class="ag-stat-val">211</div></div>
+      </div>
+
+      <div id="intSections"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'integrations' });
+
+var _intStates = {};
+AD.integrations.forEach(function(i){ _intStates[i.id] = i.status; });
+
+var categories = {};
+AD.integrations.forEach(function(i){
+  if(!categories[i.category]) categories[i.category]=[];
+  categories[i.category].push(i);
+});
+
+var catOrder = ['Channels','Reviews','Scheduling','Data','Social','Automation','Payments'];
+var html = '';
+catOrder.forEach(function(cat){
+  if(!categories[cat]) return;
+  html += '<div class="cat-hd">'+cat+'</div><div class="int-grid">';
+  html += categories[cat].map(function(i){
+    var isSoon = i.status==='coming_soon';
+    var isConn = _intStates[i.id]==='connected';
+    return '<div class="int-card'+(isSoon?' is-soon':'')+'">' +
+      '<div style="display:flex;align-items:center;gap:12px">' +
+        '<div class="int-ico">'+i.icon+'</div>' +
+        '<div><div class="int-cat">'+i.category+'</div><div style="font-size:.9375rem;font-weight:700;color:var(--t1)">'+i.name+'</div></div>' +
+      '</div>' +
+      '<div style="font-size:.8125rem;color:var(--t2);line-height:1.4">'+i.desc+'</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between">' +
+        '<span class="badge '+(isConn?'badge--green':isSoon?'badge--gray':'badge--amber')+'">'+(isSoon?'Coming Soon':isConn?'Connected':'Disconnected')+'</span>' +
+        (isSoon
+          ? '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'We\'ll notify you when \'+\''+i.name+'\'+\' is available!\',\'info\')">Notify Me</button>'
+          : isConn
+            ? '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Opening \'+\''+i.name+'\'+\' settings…\',\'info\')">Configure</button>'
+            : '<button class="btn btn--primary btn--sm" onclick="AG.toast(\'Connecting \'+\''+i.name+'\'+\'…\',\'success\')">Connect</button>'
+        ) +
+      '</div>' +
+    '</div>';
+  }).join('');
+  html += '</div>';
+});
+document.getElementById('intSections').innerHTML = html;
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Employee — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .ai-emp-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px; }
+    .ai-emp-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow .2s,border-color .2s; }
+    .ai-emp-card:hover { border-color:var(--accent);box-shadow:0 8px 32px rgba(124,58,237,.10); }
+    .ai-emp-header { padding:24px 24px 0;position:relative; }
+    .ai-emp-gradient { position:absolute;top:0;left:0;right:0;height:80px;opacity:.12;border-radius:14px 14px 0 0; }
+    .ai-emp-avatar { width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;position:relative;z-index:1;margin-bottom:12px; }
+    .ai-emp-status { display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:.6875rem;font-weight:700;margin-bottom:6px; }
+    .ai-emp-status.is-online { background:#DCFCE7;color:#16A34A; }
+    .ai-emp-status.is-offline { background:#F1F5F9;color:#94A3B8; }
+    .ai-emp-status-dot { width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .ai-emp-name { font-size:1.125rem;font-weight:800;color:var(--t1); }
+    .ai-emp-role { font-size:.8125rem;color:var(--t3);margin-top:2px; }
+    .ai-emp-body { padding:16px 24px 20px; }
+    .ai-stats-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0; }
+    .ai-stat { padding:10px;background:var(--s1);border-radius:10px;text-align:center; }
+    .ai-stat-val { font-size:1.25rem;font-weight:700;color:var(--t1); }
+    .ai-stat-lbl { font-size:.6875rem;color:var(--t3);margin-top:1px; }
+    .ai-channels { display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px; }
+    .ai-channel-chip { display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.6875rem;font-weight:600;background:var(--s2);color:var(--t3); }
+    .ai-services { display:flex;flex-direction:column;gap:5px;margin-bottom:14px; }
+    .ai-service-item { display:flex;align-items:center;gap:6px;font-size:.8125rem;color:var(--t2); }
+    .ai-service-item svg { width:12px;height:12px;color:var(--accent);flex-shrink:0; }
+    .ai-emp-footer { display:flex;gap:8px;padding:0 24px 20px; }
+
+    /* Settings drawer */
+    .side-panel { position:fixed;top:0;right:-520px;width:520px;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1); }
+    .side-panel.is-open { right:0; }
+    .panel-head { display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:2; }
+    .panel-head-title { font-size:1rem;font-weight:700;color:var(--t1); }
+    .panel-close { width:32px;height:32px;border-radius:8px;border:none;background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3); }
+    .panel-close svg { width:16px;height:16px; }
+    .panel-body { padding:24px; }
+    .settings-field { margin-bottom:18px; }
+    .settings-label { font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.05em; }
+    .settings-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .settings-input:focus { border-color:var(--accent); }
+    .settings-textarea { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);resize:vertical;min-height:80px;font-family:inherit;outline:none;box-sizing:border-box; }
+    .settings-textarea:focus { border-color:var(--accent); }
+    .settings-select { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box; }
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--s2); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-lbl { font-size:.875rem;font-weight:500;color:var(--t2); }
+    .toggle { position:relative;width:40px;height:22px;border-radius:99px;background:var(--s3);cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
+    .toggle.is-on { background:var(--accent); }
+    .toggle::after { content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s; }
+    .toggle.is-on::after { left:21px; }
+
+    .summary-bar { background:var(--s1);border-radius:10px;padding:12px 16px;display:flex;gap:20px;margin-bottom:24px;flex-wrap:wrap; }
+    .sum-stat { text-align:center; }
+    .sum-stat-val { font-size:1.25rem;font-weight:700;color:var(--accent); }
+    .sum-stat-lbl { font-size:.6875rem;color:var(--t4); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">AI Employee</h1>
+            <p class="page-sub">Your AI workforce — always on, never overwhelmed</p>
+          </div>
+        </div>
+
+        <!-- Summary bar -->
+        <div class="summary-bar">
+          <div class="sum-stat"><div class="sum-stat-val" id="totalTasks">0</div><div class="sum-stat-lbl">Tasks Today</div></div>
+          <div class="sum-stat"><div class="sum-stat-val" id="totalAll">0</div><div class="sum-stat-lbl">All-Time Tasks</div></div>
+          <div class="sum-stat"><div class="sum-stat-val" id="avgAccuracy">0%</div><div class="sum-stat-lbl">Avg Accuracy</div></div>
+          <div class="sum-stat"><div class="sum-stat-val" id="avgResponse">—</div><div class="sum-stat-lbl">Avg Response</div></div>
+          <div class="sum-stat"><div class="sum-stat-val">4/4</div><div class="sum-stat-lbl">Employees Online</div></div>
+        </div>
+
+        <!-- AI Employee cards -->
+        <div class="ai-emp-grid" id="aiEmpGrid"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Settings panel -->
+  <div class="side-panel" id="aiSettingsPanel">
+    <div class="panel-head">
+      <div class="panel-head-title" id="panelEmpName">AI Settings</div>
+      <button class="panel-close" onclick="CL.closePanel('aiSettingsPanel')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panelEmpBody"></div>
+  </div>
+  <div id="panelOverlay"></div>
+
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'ai-employee' });
+
+    /* Summary stats */
+    const totalToday = DC.aiEmployees.reduce((s,e)=>s+e.tasksToday,0);
+    const totalAll   = DC.aiEmployees.reduce((s,e)=>s+e.totalTasks,0);
+    const avgAcc     = Math.round(DC.aiEmployees.reduce((s,e)=>s+e.accuracy,0)/DC.aiEmployees.length);
+    document.getElementById('totalTasks').textContent = totalToday;
+    document.getElementById('totalAll').textContent   = totalAll.toLocaleString();
+    document.getElementById('avgAccuracy').textContent= avgAcc+'%';
+    document.getElementById('avgResponse').textContent= DC.aiEmployees[0].responseTime;
+
+    const chanIcons = { 'Website Chat':'💬','WhatsApp':'📱','Voice':'📞','Email':'📧','SMS':'💬' };
+
+    /* AI Employee cards */
+    document.getElementById('aiEmpGrid').innerHTML = DC.aiEmployees.map(e => `
+      <div class="ai-emp-card">
+        <div class="ai-emp-header">
+          <div class="ai-emp-gradient" style="background:linear-gradient(135deg,${e.gradient[0]},${e.gradient[1]})"></div>
+          <div class="ai-emp-avatar" style="background:linear-gradient(135deg,${e.gradient[0]},${e.gradient[1]})">${e.name[0]}</div>
+          <div class="ai-emp-status ${e.status==='online'?'is-online':'is-offline'}">
+            <span class="ai-emp-status-dot"></span>
+            ${e.status==='online'?'Online':'Offline'}
+          </div>
+          <div class="ai-emp-name">${e.name}</div>
+          <div class="ai-emp-role">${e.role}</div>
+        </div>
+        <div class="ai-emp-body">
+          <div class="ai-stats-grid">
+            <div class="ai-stat"><div class="ai-stat-val">${e.tasksToday}</div><div class="ai-stat-lbl">Tasks Today</div></div>
+            <div class="ai-stat"><div class="ai-stat-val">${e.totalTasks.toLocaleString()}</div><div class="ai-stat-lbl">All-Time</div></div>
+            <div class="ai-stat"><div class="ai-stat-val">${e.accuracy}%</div><div class="ai-stat-lbl">Accuracy</div></div>
+            <div class="ai-stat"><div class="ai-stat-val">${e.responseTime}</div><div class="ai-stat-lbl">Avg Response</div></div>
+          </div>
+          <div class="ai-channels">
+            ${e.channels.map(c=>`<span class="ai-channel-chip">${chanIcons[c]||'📡'} ${c}</span>`).join('')}
+          </div>
+          <div class="ai-services">
+            ${e.services.slice(0,4).map(s=>`
+              <div class="ai-service-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                ${s}
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="ai-emp-footer">
+          <button class="btn btn--ghost" style="flex:1" onclick="openEmpSettings('${e.id}')">⚙ Settings</button>
+          <button class="btn btn--primary" style="flex:1" onclick="CL.showToast('Chat with ${e.name} coming soon','info')">Chat with ${e.name}</button>
+        </div>
+      </div>`).join('');
+
+    window.openEmpSettings = (id) => {
+      const e = DC.aiEmployees.find(x=>x.id===id);
+      if(!e) return;
+      document.getElementById('panelEmpName').textContent = `${e.name} — Settings`;
+      document.getElementById('panelEmpBody').innerHTML = `
+        <div class="settings-field">
+          <label class="settings-label">Greeting Message</label>
+          <textarea class="settings-textarea">${e.greeting}</textarea>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Tone</label>
+          <select class="settings-select">
+            ${['Warm','Professional','Friendly','Formal'].map(t=>`<option ${t===e.tone?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Escalation Rule</label>
+          <textarea class="settings-textarea">${e.escalationRule}</textarea>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Active Channels</label>
+          ${e.channels.map(c=>`
+            <div class="toggle-row">
+              <span class="toggle-lbl">${chanIcons[c]||'📡'} ${c}</span>
+              <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+            </div>`).join('')}
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Capabilities</label>
+          ${e.services.map(s=>`
+            <div class="toggle-row">
+              <span class="toggle-lbl">${s}</span>
+              <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:20px">
+          <button class="btn btn--primary" style="flex:1" onclick="CL.showToast('Settings saved','success')">Save Changes</button>
+          <button class="btn btn--ghost" onclick="CL.closePanel('aiSettingsPanel')">Cancel</button>
+        </div>`;
+      CL.openPanel('aiSettingsPanel');
+    };
+  </script>
+</body>
+</html>

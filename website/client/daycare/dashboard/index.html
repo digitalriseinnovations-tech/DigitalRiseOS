@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    /* ── Gradient KPI hero cards ── */
+    .kpi-hero { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:22px; }
+    @media(max-width:1100px){ .kpi-hero{grid-template-columns:repeat(3,1fr)} }
+    @media(max-width:700px) { .kpi-hero{grid-template-columns:repeat(2,1fr)} }
+
+    .kph { border-radius:16px; padding:18px 20px; position:relative; overflow:hidden; cursor:pointer;
+           transition:transform .15s,box-shadow .2s; color:#fff; text-decoration:none; display:block; }
+    .kph:hover { transform:translateY(-3px); box-shadow:0 14px 36px rgba(0,0,0,.2); }
+    .kph-label { font-size:.5625rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; opacity:.8; margin-bottom:10px; }
+    .kph-val   { font-size:1.875rem; font-weight:900; line-height:1; letter-spacing:-.03em; }
+    .kph-delta { font-size:.6875rem; font-weight:700; opacity:.85; margin-top:5px; }
+    .kph-spark { margin-top:10px; }
+    .kph.grad-purple { background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%); }
+    .kph.grad-teal   { background:linear-gradient(135deg,#0D9488 0%,#0891B2 100%); }
+    .kph.grad-green  { background:linear-gradient(135deg,#16A34A 0%,#059669 100%); }
+    .kph.grad-amber  { background:linear-gradient(135deg,#D97706 0%,#B45309 100%); }
+    .kph.grad-blue   { background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 100%); }
+    .kph-decor  { position:absolute;right:-14px;top:-14px;width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.08); pointer-events:none; }
+    .kph-decor2 { position:absolute;right:10px;bottom:-20px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.05); pointer-events:none; }
+
+    /* ── Layout rows ── */
+    .dash-row   { display:grid; gap:16px; margin-bottom:16px; }
+    .dr-6040    { grid-template-columns:3fr 2fr; }
+    .dr-333     { grid-template-columns:1.8fr 1.1fr 1.1fr; }
+    .dr-equal   { grid-template-columns:1fr 1fr 1fr; }
+    @media(max-width:1200px){ .dr-6040,.dr-333,.dr-equal{grid-template-columns:1fr 1fr} }
+    @media(max-width:800px) { .dr-6040,.dr-333,.dr-equal{grid-template-columns:1fr} }
+
+    /* ── Chart card ── */
+    .cc { background:var(--card-bg); border:1.5px solid var(--border); border-radius:16px; padding:20px; overflow:hidden; }
+    .cc-hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; gap:8px; }
+    .cc-ht { font-size:.9375rem; font-weight:700; color:var(--t1); line-height:1.2; }
+    .cc-sub { font-size:.75rem; color:var(--t3); margin-top:2px; }
+
+    /* ── Revenue numbers ── */
+    .rev-big { font-size:2rem;font-weight:900;color:var(--t1);letter-spacing:-.04em;line-height:1; }
+    .chip-up   { display:inline-flex;align-items:center;gap:3px;background:#DCFCE7;color:#16A34A;padding:3px 9px;border-radius:20px;font-size:.6875rem;font-weight:700; }
+    .chip-down { display:inline-flex;align-items:center;gap:3px;background:#FEE2E2;color:#DC2626;padding:3px 9px;border-radius:20px;font-size:.6875rem;font-weight:700; }
+    .rev-foot  { display:flex;gap:20px;padding-top:12px;border-top:1px solid var(--s2);margin-top:14px;flex-wrap:wrap; }
+    .rev-stat .lbl { font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t4); }
+    .rev-stat .val { font-size:.9375rem;font-weight:800;margin-top:2px; }
+
+    /* ── Donut ── */
+    .donut-lay { display:flex;align-items:center;gap:18px; }
+    .dl-row    { display:flex;align-items:center;gap:8px;margin-bottom:9px; }
+    .dl-dot    { width:10px;height:10px;border-radius:3px;flex-shrink:0; }
+    .dl-name   { font-size:.8125rem;color:var(--t2);flex:1; }
+    .dl-n      { font-size:.8125rem;font-weight:700;color:var(--t1); }
+    .dl-cap    { font-size:.6875rem;color:var(--t4); }
+    .enroll-stats { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px; }
+    .enroll-stat  { border-radius:10px;padding:10px 12px; }
+    .enroll-stat .n { font-size:1.375rem;font-weight:900;color:var(--t1); }
+    .enroll-stat .l { font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-top:2px; }
+
+    /* ── AI Timeline ── */
+    .ai-tl  { display:flex;flex-direction:column; }
+    .ai-tli { display:flex;gap:10px;padding-bottom:12px;position:relative; }
+    .ai-tli::before { content:'';position:absolute;left:13px;top:28px;bottom:0;width:1.5px;background:var(--s3); }
+    .ai-tli:last-child { padding-bottom:0; }
+    .ai-tli:last-child::before { display:none; }
+    .ai-ico  { width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;z-index:1; }
+    .ai-msg  { font-size:.78125rem;color:var(--t2);line-height:1.5; }
+    .ai-time { font-size:.625rem;color:var(--t4);margin-top:2px; }
+
+    /* ── Birthday ── */
+    .bday-card { background:linear-gradient(135deg,#F3F0FF,#EDE9FE);border:1.5px solid #DDD6FE;border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:8px; }
+    .bday-av   { width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.875rem;flex-shrink:0; }
+    .bday-nm   { font-size:.8125rem;font-weight:700;color:var(--t1); }
+    .bday-sub  { font-size:.625rem;color:var(--t3);margin-top:1px; }
+    .bday-bdg  { margin-left:auto;background:linear-gradient(135deg,#FBBF24,#F59E0B);color:#fff;font-size:.5rem;font-weight:800;padding:3px 7px;border-radius:20px;white-space:nowrap;letter-spacing:.04em; }
+
+    /* ── Occasions ── */
+    .occ-item { display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--s2); }
+    .occ-item:last-child { border:none; }
+    .occ-ico  { font-size:1.125rem;width:26px;text-align:center;flex-shrink:0; }
+    .occ-nm   { font-size:.78125rem;font-weight:700;color:var(--t1); }
+    .occ-idea { font-size:.625rem;color:var(--t3);margin-top:1px;line-height:1.3; }
+    .occ-dt   { font-size:.625rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 6px;border-radius:5px;white-space:nowrap;margin-left:auto; }
+
+    /* ── Tours ── */
+    .tr-row  { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--s2); }
+    .tr-row:last-child { border:none; }
+    .tr-tag  { min-width:46px;text-align:center;background:var(--accent-bg);border-radius:8px;padding:5px 6px;flex-shrink:0; }
+    .tr-dm   { font-size:.4375rem;font-weight:800;text-transform:uppercase;color:var(--accent); }
+    .tr-dt   { font-size:.9375rem;font-weight:900;color:var(--t1);line-height:1; }
+    .tr-info .nm { font-size:.8125rem;font-weight:600;color:var(--t1); }
+    .tr-info .sm { font-size:.6875rem;color:var(--t3); }
+
+    /* ── Messages ── */
+    .mg-row  { display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--s2);cursor:pointer; }
+    .mg-row:last-child { border:none; }
+    .mg-row:hover .mg-name { color:var(--accent); }
+    .mg-name { font-size:.78125rem;font-weight:600;color:var(--t1);transition:color .12s; }
+    .mg-prev { font-size:.6875rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;max-width:180px; }
+    .mg-dot  { width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-left:auto; }
+
+    /* ── Funnel ── */
+    .fn-row  { display:flex;align-items:center;gap:9px;margin-bottom:9px; }
+    .fn-lbl  { font-size:.75rem;font-weight:600;color:var(--t2);min-width:96px; }
+    .fn-trk  { flex:1;height:9px;background:var(--s2);border-radius:99px;overflow:hidden; }
+    .fn-fill { height:100%;border-radius:99px;transition:width .9s ease; }
+    .fn-n    { font-size:.78125rem;font-weight:700;color:var(--t1);min-width:20px;text-align:right; }
+
+    /* ── Quick actions ── */
+    .qa-g  { display:grid;grid-template-columns:repeat(3,1fr);gap:8px; }
+    .qa-i  { display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;text-decoration:none;transition:all .15s;background:var(--card-bg); }
+    .qa-i:hover { border-color:var(--accent);background:var(--accent-bg);transform:translateY(-1px); }
+    .qa-i .ic { font-size:1.25rem; }
+    .qa-i .lb { font-size:.5rem;font-weight:800;color:var(--t3);text-align:center;text-transform:uppercase;letter-spacing:.05em; }
+
+    /* ── Section mini-header ── */
+    .sml-hd { font-size:.5rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--t4);margin-bottom:8px; }
+
+    /* ── Legend row ── */
+    .leg { display:flex;gap:14px;font-size:.6875rem;color:var(--t3);margin-bottom:14px;flex-wrap:wrap; }
+    .leg-dot { display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px; }
+
+    /* ── Staff row ── */
+    .sf-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--s2); }
+    .sf-row:last-child { border:none; }
+    .sf-status { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+
+    /* ── Alert banner ── */
+    .alert-bar { display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;margin-bottom:20px; }
+    .alert-bar--info    { background:var(--c-blue-bg);border:1.5px solid rgba(37,99,235,.2); }
+    .alert-bar--warning { background:var(--c-amber-bg);border:1.5px solid rgba(217,119,6,.2); }
+  </style>
+</head>
+<body class="cl-body">
+<div class="cl-layout">
+  <aside class="cl-sidebar" id="clSidebar"></aside>
+  <div class="cl-main-wrap">
+    <header class="cl-topbar" id="clTopbar"></header>
+    <main class="cl-content">
+
+      <!-- ── Page Header ── -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="dashGreeting">Good morning, David 👋</h1>
+          <p class="page-sub" id="dashSub">Loading…</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn--ghost" onclick="window.location='/client/daycare/daily-reports'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Daily Reports
+          </button>
+          <button class="btn btn--primary" onclick="window.location='/client/daycare/attendance'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Attendance
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Tabs ── -->
+      <div class="tab-nav" role="tablist">
+        <button class="tab-nav-btn is-active" data-tab="overview" role="tab">Today</button>
+        <button class="tab-nav-btn" id="revTabBtn" data-tab="revenue" role="tab">Revenue</button>
+        <button class="tab-nav-btn" data-tab="children" role="tab">Children</button>
+        <button class="tab-nav-btn" data-tab="staff" role="tab">Staff</button>
+      </div>
+
+      <!-- ════ TAB: TODAY OVERVIEW ════ -->
+      <div data-tab-panel="overview">
+
+        <!-- KPI Hero Cards -->
+        <div class="kpi-hero" id="kpiHero"></div>
+
+        <!-- Row 1: Revenue Chart + Enrollment Donut -->
+        <div class="dash-row dr-6040" id="revOverviewRow">
+          <div class="cc" id="revOverviewCard">
+            <div class="cc-hd">
+              <div>
+                <div class="cc-ht">Revenue Overview</div>
+                <div class="cc-sub">Monthly trend · Jan–Jun 2026</div>
+              </div>
+              <div class="leg">
+                <span><span class="leg-dot" style="background:#7C3AED"></span>Revenue</span>
+                <span><span class="leg-dot" style="background:#22D3EE;height:2px;border-top:2px dashed #22D3EE;display:inline-block"></span>Target</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+              <div>
+                <div class="rev-big">$36,800</div>
+                <div style="margin-top:7px;display:flex;align-items:center;gap:8px">
+                  <span class="chip-up">▲ +12.4% vs last month</span>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t4)">Annual Run Rate</div>
+                <div style="font-size:1.25rem;font-weight:800;color:var(--t1)">$441,600</div>
+              </div>
+            </div>
+            <div id="revChart"></div>
+            <div class="rev-foot">
+              <div class="rev-stat"><div class="lbl">Paid</div><div class="val" style="color:#16A34A">$33,350</div></div>
+              <div class="rev-stat"><div class="lbl">Pending</div><div class="val" style="color:#D97706">$3,450</div></div>
+              <div class="rev-stat"><div class="lbl">Overdue</div><div class="val" style="color:#DC2626">$1,150</div></div>
+              <a href="/client/daycare/billing" class="card-action" style="margin-left:auto;align-self:center">View Billing →</a>
+            </div>
+          </div>
+
+          <div class="cc">
+            <div class="cc-hd">
+              <div class="cc-ht">Enrollment</div>
+              <a href="/client/daycare/children" class="card-action">View Children →</a>
+            </div>
+            <div class="donut-lay">
+              <div id="donutSvg" style="flex-shrink:0"></div>
+              <div id="donutLegend" style="flex:1"></div>
+            </div>
+            <div class="enroll-stats" id="enrollStats"></div>
+          </div>
+        </div>
+
+        <!-- Row 2: Attendance Bar + AI Feed + July Highlights -->
+        <div class="dash-row dr-333">
+          <div class="cc">
+            <div class="cc-hd">
+              <div>
+                <div class="cc-ht">Weekly Attendance</div>
+                <div class="cc-sub">Children present per day</div>
+              </div>
+              <span class="chip-up">93% avg</span>
+            </div>
+            <div id="attBar"></div>
+            <div style="display:flex;gap:14px;font-size:.75rem;margin-top:10px;padding-top:10px;border-top:1px solid var(--s2)">
+              <span style="color:var(--t3)">Target: <strong style="color:var(--t1)">30</strong></span>
+              <span style="color:var(--t3)">Today: <strong style="color:var(--accent)">28</strong></span>
+              <span style="color:var(--t3)">Absent: <strong style="color:#DC2626">4</strong></span>
+            </div>
+            <div style="margin-top:12px">
+              <div class="sml-hd">STAFF ON DUTY TODAY</div>
+              <div id="staffOnDuty"></div>
+            </div>
+          </div>
+
+          <div class="cc">
+            <div class="cc-hd">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div class="cc-ht">AI Activity</div>
+              </div>
+              <a href="/client/daycare/ai-employee" class="card-action">All →</a>
+            </div>
+            <div class="ai-tl" id="aiTL"></div>
+            <a href="/client/daycare/parent-messages" class="btn btn--ghost btn--sm btn--full" style="margin-top:12px">View All Messages</a>
+          </div>
+
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">🗓 July Highlights</div></div>
+            <div class="sml-hd">BIRTHDAYS THIS MONTH</div>
+            <div id="bdaySection"></div>
+            <div class="sml-hd" style="margin-top:14px">COMING UP</div>
+            <div id="occItems"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Funnel + Tours & Messages + Quick Actions -->
+        <div class="dash-row dr-equal">
+          <div class="cc">
+            <div class="cc-hd">
+              <div class="cc-ht">Admissions Funnel</div>
+              <a href="/client/daycare/admissions" class="card-action">Pipeline →</a>
+            </div>
+            <div id="funnelChart"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--s2);font-size:.8125rem">
+              <span style="color:var(--t3)">Enquiry → Enrolled</span>
+              <span style="font-weight:700;color:#16A34A">33% conversion</span>
+            </div>
+          </div>
+
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">Upcoming Tours</div><a href="/client/daycare/tours" class="card-action">All →</a></div>
+            <div id="tourRows"></div>
+            <div class="sml-hd" style="margin-top:14px">RECENT MESSAGES</div>
+            <div id="msgRows"></div>
+            <a href="/client/daycare/parent-messages" class="btn btn--ghost btn--sm btn--full" style="margin-top:10px">Open Inbox</a>
+          </div>
+
+          <div class="cc">
+            <div class="cc-ht" style="margin-bottom:14px">Quick Actions</div>
+            <div class="qa-g" id="qaGrid"></div>
+          </div>
+        </div>
+
+      </div><!-- end tab: overview -->
+
+      <!-- ════ TAB: REVENUE ════ -->
+      <div data-tab-panel="revenue" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px" id="revKpis"></div>
+        <div class="dash-row dr-6040">
+          <div class="cc">
+            <div class="cc-hd">
+              <div><div class="cc-ht">Monthly Revenue Trend</div><div class="cc-sub">Jan–Jun 2026 · Target: $35k/month</div></div>
+              <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Exporting revenue report…','info')">Export CSV</button>
+            </div>
+            <div id="revChart2"></div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--s2)" id="revMonths"></div>
+          </div>
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">Revenue Breakdown</div></div>
+            <div id="revBreakdown"></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--s2)">
+              <div class="sml-hd">OUTSTANDING</div>
+              <div id="revOutstanding"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cc" style="margin-top:16px">
+          <div class="cc-hd"><div class="cc-ht">Recent Invoices</div><a href="/client/daycare/billing" class="card-action">Billing →</a></div>
+          <div id="revInvoices"></div>
+        </div>
+      </div>
+
+      <!-- ════ TAB: CHILDREN ════ -->
+      <div data-tab-panel="children" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px" id="childKpis"></div>
+        <div class="dash-row dr-6040">
+          <div class="cc">
+            <div class="cc-hd">
+              <div class="cc-ht">Children — Today's Status</div>
+              <a href="/client/daycare/children" class="card-action">Manage →</a>
+            </div>
+            <div id="childrenList"></div>
+          </div>
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">Rooms at a Glance</div></div>
+            <div id="roomCards"></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--s2)">
+              <div class="sml-hd">ALLERGIES & ALERTS</div>
+              <div id="allergyAlerts"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ TAB: STAFF ════ -->
+      <div data-tab-panel="staff" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px" id="staffKpis"></div>
+        <div class="dash-row dr-6040">
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">Staff Roster Today</div><a href="/client/daycare/staff" class="card-action">Manage →</a></div>
+            <div id="staffList"></div>
+          </div>
+          <div class="cc">
+            <div class="cc-hd"><div class="cc-ht">Upcoming Tasks</div></div>
+            <div id="staffTasks"></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--s2)">
+              <div class="sml-hd">STAFF RATIOS</div>
+              <div id="staffRatios"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<div id="panelOverlay"></div>
+
+<script src="/client/daycare/shared/daycare-data.js"></script>
+<script src="/client/daycare/shared/client.js"></script>
+<script>
+/* catch any unhandled error and log it */
+window.onerror = function(msg,src,line) { console.error('DASH ERR ['+line+']: '+msg); };
+
+try { CL.init({ page: 'dashboard' }); } catch(e) { console.error('CL.init failed',e); }
+
+/* ── Greeting ── */
+try {
+  var _h = new Date().getHours();
+  var _gr = _h < 12 ? 'morning' : _h < 17 ? 'afternoon' : 'evening';
+  document.getElementById('dashGreeting').textContent = 'Good ' + _gr + ', David 👋';
+  var _days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var _months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var _now = new Date();
+  var _bdays = (DC.children||[]).filter(function(c){
+    var p=(c.dob||'').split('-'); return +p[1]===_now.getMonth()+1 && +p[2]===_now.getDate();
+  });
+  var _btext = _bdays.length ? ' &nbsp;&middot;&nbsp; <span style="color:var(--accent);font-weight:700">🎂 '+
+    _bdays.map(function(c){return c.name.split(' ')[0];}).join(' & ')+"'s birthday today!</span>" : '';
+  document.getElementById('dashSub').innerHTML = _days[_now.getDay()]+' '+_now.getDate()+' '+_months[_now.getMonth()]+' 2026 &nbsp;&middot;&nbsp; Sunshine Nursery'+_btext;
+} catch(e){ console.error('Greeting',e); }
+
+/* ── SVG helpers ── */
+function smooth(ps){
+  if(!ps||ps.length<2) return 'M0 0';
+  var d='M'+ps[0].x.toFixed(1)+' '+ps[0].y.toFixed(1);
+  for(var i=0;i<ps.length-1;i++){
+    var p0=i>0?ps[i-1]:ps[i],p1=ps[i],p2=ps[i+1],p3=i<ps.length-2?ps[i+2]:p2;
+    var c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6;
+    var c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
+    d+=' C'+c1x.toFixed(1)+' '+c1y.toFixed(1)+','+c2x.toFixed(1)+' '+c2y.toFixed(1)+','+p2.x.toFixed(1)+' '+p2.y.toFixed(1);
+  }
+  return d;
+}
+
+function buildAreaChart(el,opts){
+  if(!el) return;
+  try {
+    var data=opts.data,labels=opts.labels,min=opts.min,max=opts.max,color=opts.color,targetData=opts.targetData;
+    var W=opts.W||560,H=opts.H||140,pL=opts.pL||36,pR=opts.pR||10,pT=opts.pT||12,pB=opts.pB||26;
+    var cW=W-pL-pR,cH=H-pT-pB;
+    var gx=function(i){return pL+i/(data.length-1)*cW;};
+    var gy=function(v){return pT+cH-((v-min)/(max-min))*cH;};
+    var pts=data.map(function(v,i){return {x:gx(i),y:gy(v)};});
+    var rL=smooth(pts),lp=pts[pts.length-1];
+    var area=rL+' L'+lp.x.toFixed(1)+' '+(H-pB)+' L'+pts[0].x.toFixed(1)+' '+(H-pB)+' Z';
+    var gid='rg'+(Math.random()*1e6|0);
+    var grid='';
+    [min+(max-min)*.25,min+(max-min)*.5,min+(max-min)*.75,max].forEach(function(v){
+      var y=gy(v).toFixed(1);
+      grid+='<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="var(--s3)" stroke-width="1"/>';
+      grid+='<text x="'+(pL-5)+'" y="'+(+y+3.5)+'" text-anchor="end" font-size="8.5" fill="var(--t4)">$'+(v/1000).toFixed(0)+'k</text>';
+    });
+    var xlbls=labels.map(function(l,i){return '<text x="'+gx(i).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="8.5" fill="var(--t4)">'+l+'</text>';}).join('');
+    var tLine='';
+    if(targetData){var tpts=targetData.map(function(v,i){return {x:gx(i),y:gy(v)};});tLine='<path d="'+smooth(tpts)+'" fill="none" stroke="#22D3EE" stroke-width="1.5" stroke-dasharray="5,4" opacity=".55"/>';}
+    var dots='';
+    pts.forEach(function(p,i){
+      var il=i===pts.length-1;
+      dots+='<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(il?5:3)+'" fill="'+(il?color:'var(--card-bg)')+'" stroke="'+color+'" stroke-width="'+(il?0:2)+'"/>';
+    });
+    var lv=data[data.length-1];
+    el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">'+
+      '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="'+color+'" stop-opacity=".2"/>'+
+      '<stop offset="100%" stop-color="'+color+'" stop-opacity=".01"/>'+
+      '</linearGradient></defs>'+
+      grid+xlbls+
+      '<path d="'+area+'" fill="url(#'+gid+')"/>'+
+      tLine+
+      '<path d="'+rL+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+      dots+
+      '<rect x="'+(lp.x-30).toFixed(0)+'" y="'+(lp.y-20).toFixed(0)+'" width="62" height="16" rx="5" fill="'+color+'"/>'+
+      '<text x="'+lp.x.toFixed(1)+'" y="'+(lp.y-9).toFixed(0)+'" text-anchor="middle" font-size="9" fill="white" font-weight="700">$'+(lv/1000).toFixed(1)+'k ▲</text>'+
+      '</svg>';
+  } catch(e){console.error('buildAreaChart',e);}
+}
+
+/* ── Tab system: lazy render ── */
+var _tabDone={};
+function _activateTab(key){
+  document.querySelectorAll('.tab-nav-btn[data-tab]').forEach(function(t){t.classList.toggle('is-active',t.dataset.tab===key);});
+  document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.style.display=p.dataset.tabPanel===key?'block':'none';});
+  if(!_tabDone[key]){_tabDone[key]=true;try{_renderTab(key);}catch(e){console.error('tab',key,e);}}
+}
+document.querySelectorAll('.tab-nav-btn[data-tab]').forEach(function(t){t.addEventListener('click',function(){_activateTab(t.dataset.tab);});});
+_activateTab('overview');
+
+/* ── Role-based visibility ── */
+if(CL.getRole()==='staff'){
+  var _revBtn=document.getElementById('revTabBtn');
+  if(_revBtn){_revBtn.style.display='none';}
+  var _revCard=document.getElementById('revOverviewCard');
+  if(_revCard){_revCard.style.display='none';}
+  var _revRow=document.getElementById('revOverviewRow');
+  if(_revRow){_revRow.style.gridTemplateColumns='1fr';}
+}
+
+function _renderTab(key){
+  if(key==='overview') _renderOverview();
+  else if(key==='revenue') _renderRevenue();
+  else if(key==='children') _renderChildren();
+  else if(key==='staff') _renderStaff();
+}
+
+/* ══ OVERVIEW TAB ══ */
+function _renderOverview(){
+/* KPI Cards */
+try{
+var _isStaff=CL.getRole()==='staff';
+var kpis=_isStaff?[
+  {label:'Enrolled',        val:DC.kpis.enrolled,      delta:'▲ +2 this month',                        grad:'grad-purple',href:'/client/daycare/children',        spark:[28,29,30,30,31,31,32]},
+  {label:'Present Today',   val:DC.kpis.todayPresent,  delta:DC.kpis.todayPresent+'/'+DC.kpis.enrolled+' today', grad:'grad-green', href:'/client/daycare/attendance', spark:[24,26,27,29,26,28,28]},
+  {label:'Absent Today',    val:DC.kpis.todayAbsent,   delta:'Follow up if needed',                     grad:'grad-amber', href:'/client/daycare/attendance',      spark:[4,3,2,1,4,3,4]},
+  {label:'Unread Messages', val:DC.kpis.messagesUnread,delta:'Needs attention',                         grad:'grad-blue',  href:'/client/daycare/parent-messages', spark:[1,2,3,5,3,4,5]},
+]:[
+  {label:'Enrolled',        val:DC.kpis.enrolled,    delta:'▲ +2 this month',    grad:'grad-purple', href:'/client/daycare/children',        spark:[28,29,30,30,31,31,32]},
+  {label:'Monthly Revenue', val:'$'+(DC.kpis.monthlyRevenue||0).toLocaleString(), delta:'▲ +12.4% vs last', grad:'grad-teal', href:'/client/daycare/billing', spark:[31200,33400,32800,35600,34200,36800]},
+  {label:'Present Today',   val:DC.kpis.todayPresent, delta:DC.kpis.todayPresent+'/'+DC.kpis.enrolled+' today', grad:'grad-green', href:'/client/daycare/attendance', spark:[24,26,27,29,26,28,28]},
+  {label:'New Enquiries',   val:DC.kpis.newEnquiries, delta:'▲ +3 this week',    grad:'grad-amber',  href:'/client/daycare/admissions',      spark:[3,5,4,7,5,7,8]},
+  {label:'Unread Messages', val:DC.kpis.messagesUnread, delta:'Needs attention', grad:'grad-blue',   href:'/client/daycare/parent-messages', spark:[1,2,3,5,3,4,5]},
+];
+var heroHtml='';
+kpis.forEach(function(k){
+  var mx=Math.max.apply(null,k.spark),mn=Math.min.apply(null,k.spark),W=90,H=26;
+  var pts=k.spark.map(function(v,i){return {x:2+i/(k.spark.length-1)*(W-4),y:H-4-((v-mn)/(mx-mn||1))*(H-8)};});
+  var line=smooth(pts);
+  var area=line+' L'+pts[pts.length-1].x.toFixed(1)+' '+H+' L'+pts[0].x.toFixed(1)+' '+H+' Z';
+  heroHtml+='<a href="'+k.href+'" class="kph '+k.grad+'">'+
+    '<div class="kph-decor"></div><div class="kph-decor2"></div>'+
+    '<div class="kph-label">'+k.label+'</div>'+
+    '<div class="kph-val">'+k.val+'</div>'+
+    '<div class="kph-delta">'+k.delta+'</div>'+
+    '<div class="kph-spark"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;display:block">'+
+    '<path d="'+area+'" fill="rgba(255,255,255,.15)"/>'+
+    '<path d="'+line+'" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="'+pts[pts.length-1].x.toFixed(1)+'" cy="'+pts[pts.length-1].y.toFixed(1)+'" r="3" fill="white"/>'+
+    '</svg></div></a>';
+});
+document.getElementById('kpiHero').innerHTML=heroHtml;
+}catch(e){console.error('KPI',e);}
+
+/* Revenue chart */
+try{buildAreaChart(document.getElementById('revChart'),{data:[31200,33400,32800,35600,34200,36800],targetData:[33000,33000,33000,34000,34000,35000],labels:['Jan','Feb','Mar','Apr','May','Jun'],min:29000,max:38500,color:'#7C3AED'});}catch(e){console.error('revChart',e);}
+
+/* Enrollment Donut */
+try{
+  var dcols=['#7C3AED','#2563EB','#16A34A','#D97706'];
+  var dtotal=DC.rooms.reduce(function(s,r){return s+r.enrolled;},0);
+  var dcx=56,dcy=56,dr=42,dsw=15,dcirc=2*Math.PI*dr,dsegs='',doff=0;
+  DC.rooms.forEach(function(rm,i){
+    var pct=rm.enrolled/dtotal||0,dash=(pct*dcirc).toFixed(2),gap=((1-pct)*dcirc).toFixed(2);
+    dsegs+='<circle cx="'+dcx+'" cy="'+dcy+'" r="'+dr+'" fill="none" stroke="'+dcols[i]+'" stroke-width="'+dsw+'" stroke-dasharray="'+dash+' '+gap+'" transform="rotate('+(doff*360-90).toFixed(1)+' '+dcx+' '+dcy+')" />';
+    doff+=pct;
+  });
+  document.getElementById('donutSvg').innerHTML='<svg width="112" height="112" viewBox="0 0 112 112">'+
+    '<circle cx="'+dcx+'" cy="'+dcy+'" r="'+dr+'" fill="none" stroke="var(--s2)" stroke-width="'+dsw+'"/>'+dsegs+
+    '<text x="'+dcx+'" y="'+(dcy-5)+'" text-anchor="middle" font-size="22" font-weight="900" fill="var(--t1)">'+dtotal+'</text>'+
+    '<text x="'+dcx+'" y="'+(dcy+10)+'" text-anchor="middle" font-size="7.5" fill="var(--t3)" font-weight="700">ENROLLED</text></svg>';
+  var dleg='';
+  DC.rooms.forEach(function(rm,i){dleg+='<div class="dl-row"><div class="dl-dot" style="background:'+dcols[i]+'"></div><span class="dl-name">'+rm.name+'</span><span class="dl-n">'+rm.enrolled+'</span><span class="dl-cap">/'+rm.capacity+'</span></div>';});
+  document.getElementById('donutLegend').innerHTML=dleg;
+  document.getElementById('enrollStats').innerHTML=[
+    {l:'Capacity',  v:DC.nursery.capacity,       bg:'var(--s1)'},
+    {l:'Enrolled',  v:dtotal,                    bg:'#F3F0FF'},
+    {l:'Available', v:DC.nursery.capacity-dtotal,bg:'#F0FDF4'},
+    {l:'Enquiries', v:DC.kpis.newEnquiries,      bg:'#FFFBEB'},
+  ].map(function(e){return '<div class="enroll-stat" style="background:'+e.bg+'"><div class="n">'+e.v+'</div><div class="l">'+e.l+'</div></div>';}).join('');
+}catch(e){console.error('Donut',e);}
+
+/* Attendance bar */
+try{
+  var adays=[{d:'Mon',v:24},{d:'Tue',v:26},{d:'Wed',v:29},{d:'Thu',v:30},{d:'Fri',v:28},{d:'Mon',v:29},{d:'Tue',v:28,today:true}];
+  var amx=32,aW=320,aH=110,apL=22,apB=24,apT=12,abw=28,agap=10,acH=aH-apB-apT;
+  var atY=(apT+acH-(30/amx)*acH).toFixed(1),abars='',axlbls='';
+  adays.forEach(function(day,i){
+    var bh=Math.max(((day.v/amx)*acH),2).toFixed(1),ax=apL+i*(abw+agap),ay=(apT+acH-bh).toFixed(1);
+    var ac=day.today?'#7C3AED':(day.v>=30?'#16A34A':'#C4B5FD');
+    abars+='<rect x="'+ax+'" y="'+ay+'" width="'+abw+'" height="'+bh+'" rx="5" fill="'+ac+'"/>';
+    if(day.today||day.v>=30) abars+='<text x="'+(ax+abw/2)+'" y="'+(+ay-4)+'" text-anchor="middle" font-size="8.5" fill="'+ac+'" font-weight="800">'+day.v+'</text>';
+    axlbls+='<text x="'+(ax+abw/2)+'" y="'+(aH-5)+'" text-anchor="middle" font-size="8" fill="'+(day.today?'var(--accent)':'var(--t4)')+'" font-weight="'+(day.today?700:400)+'">'+day.d+'</text>';
+  });
+  var atotW=apL+adays.length*(abw+agap)-agap+apL;
+  document.getElementById('attBar').innerHTML='<svg viewBox="0 0 '+atotW+' '+aH+'" style="width:100%;height:auto">'+
+    '<line x1="'+apL+'" y1="'+atY+'" x2="'+(atotW-apL)+'" y2="'+atY+'" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4,3" opacity=".3"/>'+
+    '<text x="'+(apL+4)+'" y="'+(+atY-3)+'" font-size="7.5" fill="var(--accent)" font-weight="700">Target 30</text>'+
+    abars+axlbls+'</svg>';
+}catch(e){console.error('AttBar',e);}
+
+/* Staff on duty */
+try{
+  document.getElementById('staffOnDuty').innerHTML=DC.staff.slice(0,4).map(function(s){
+    var ini=s.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    return '<div class="sf-row"><div class="sf-status" style="background:#16A34A"></div>'+
+      '<div class="av av-sm av--'+CL.avatarColor(s.name)+'">'+ini+'</div>'+
+      '<div style="flex:1"><div style="font-size:.78125rem;font-weight:600;color:var(--t1)">'+s.name+'</div>'+
+      '<div style="font-size:.625rem;color:var(--t3)">'+s.role+'</div></div>'+
+      '<span style="font-size:.625rem;font-weight:700;color:#16A34A">On duty</span></div>';
+  }).join('');
+}catch(e){console.error('StaffDuty',e);}
+
+/* AI Timeline */
+try{
+  var fbg={purple:'#F3F0FF',blue:'#EFF6FF',green:'#F0FDF4',amber:'#FFFBEB',orange:'#FFF7ED',teal:'#F0FDFA',red:'#FEF2F2'};
+  var fic={tour:'📅',message:'💬',report:'📝',whatsapp:'📱',star:'⭐',email:'📧',waitlist:'⏳',attend:'✅'};
+  document.getElementById('aiTL').innerHTML=DC.aiActivity.slice(0,5).map(function(a){
+    return '<div class="ai-tli"><div class="ai-ico" style="background:'+(fbg[a.color]||'#F3F0FF')+'">'+(fic[a.icon]||'⚡')+'</div>'+
+      '<div><div class="ai-msg">'+a.msg+'</div><div class="ai-time">'+a.time+'</div></div></div>';
+  }).join('');
+}catch(e){console.error('AITL',e);}
+
+/* Birthdays */
+try{
+  var bdays=DC.children.filter(function(c){return parseInt((c.dob||'').split('-')[1])===7;});
+  document.getElementById('bdaySection').innerHTML=bdays.length?bdays.map(function(c){
+    var ini=c.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    var age=new Date().getFullYear()-parseInt(c.dob.split('-')[0]);
+    var day=parseInt(c.dob.split('-')[2]);
+    return '<div class="bday-card"><div class="bday-av">'+ini+'</div>'+
+      '<div><div class="bday-nm">'+c.name+'</div><div class="bday-sub">July '+day+' · Turning '+age+' · '+c.room+'</div></div>'+
+      '<div class="bday-bdg">⭐ STAR</div></div>';
+  }).join(''):'<div style="font-size:.78125rem;color:var(--t3)">No birthdays this month</div>';
+}catch(e){console.error('Bdays',e);}
+
+/* Occasions */
+try{
+  document.getElementById('occItems').innerHTML=[
+    {ic:'🇨🇦',nm:'Canada Day',      dt:'Jul 1',  idea:'Red & white crafts'},
+    {ic:'☀️', nm:'Summer Fun Week', dt:'Jul 7',  idea:'Water play & sensory bins'},
+    {ic:'👨‍👩‍👧‍👦',nm:'Parent Showcase',  dt:'Jul 18', idea:'Portfolio display evening'},
+    {ic:'🏖️',nm:'Beach Theme Day',  dt:'Jul 22', idea:'Sand bins & shell sorting'},
+  ].map(function(o){return '<div class="occ-item"><div class="occ-ico">'+o.ic+'</div>'+
+    '<div style="flex:1"><div class="occ-nm">'+o.nm+'</div><div class="occ-idea">'+o.idea+'</div></div>'+
+    '<div class="occ-dt">'+o.dt+'</div></div>';}).join('');
+}catch(e){console.error('Occ',e);}
+
+/* Admissions Funnel */
+try{
+  var fItems=[
+    {l:'Enquiries',    n:DC.kpis.newEnquiries,    c:'#7C3AED'},
+    {l:'Tours Booked', n:DC.kpis.toursBooked||3,  c:'#2563EB'},
+    {l:'Toured',       n:2,                        c:'#0D9488'},
+    {l:'Enrolled',     n:1,                        c:'#16A34A'},
+  ],fMax=DC.kpis.newEnquiries||1;
+  document.getElementById('funnelChart').innerHTML=fItems.map(function(f){
+    return '<div class="fn-row"><div class="fn-lbl">'+f.l+'</div>'+
+      '<div class="fn-trk"><div class="fn-fill" style="width:'+Math.round(f.n/fMax*100)+'%;background:'+f.c+'"></div></div>'+
+      '<div class="fn-n">'+f.n+'</div></div>';}).join('');
+}catch(e){console.error('Funnel',e);}
+
+/* Tours */
+try{
+  document.getElementById('tourRows').innerHTML=DC.tours.filter(function(t){return t.status==='confirmed';}).slice(0,3).map(function(t){
+    return '<div class="tr-row"><div class="tr-tag"><div class="tr-dm">'+(t.date.slice(5,7)==='07'?'JUL':'JUN')+'</div><div class="tr-dt">'+t.date.slice(-2)+'</div></div>'+
+      '<div class="tr-info" style="flex:1"><div class="nm">'+t.parent+'</div><div class="sm">'+t.time+' · '+t.careType+'</div></div>'+
+      '<span class="badge badge--green" style="font-size:.5625rem">Confirmed</span></div>';
+  }).join('');
+}catch(e){console.error('Tours',e);}
+
+/* Messages */
+try{
+  document.getElementById('msgRows').innerHTML=DC.parentMessages.slice(0,3).map(function(c){
+    var ini=c.parentName.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    return '<div class="mg-row" onclick="window.location=\'/client/daycare/parent-messages\'">'+
+      '<div class="av av-sm av--'+CL.avatarColor(c.parentName)+'">'+ini+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="mg-name">'+c.parentName+'</div><div class="mg-prev">'+c.preview+'</div></div>'+
+      (c.unread?'<div class="mg-dot"></div>':'')+'</div>';
+  }).join('');
+}catch(e){console.error('Messages',e);}
+
+/* Quick Actions */
+try{
+  document.getElementById('qaGrid').innerHTML=[
+    {ic:'📝',lb:'Daily Reports',hr:'/client/daycare/daily-reports'},
+    {ic:'✅',lb:'Attendance',   hr:'/client/daycare/attendance'},
+    {ic:'📋',lb:'Admissions',  hr:'/client/daycare/admissions'},
+    {ic:'📅',lb:'Book Tour',   hr:'/client/daycare/tours'},
+    {ic:'💬',lb:'Messages',    hr:'/client/daycare/parent-messages'},
+    {ic:'⭐',lb:'Reviews',     hr:'/client/daycare/reviews'},
+    {ic:'💰',lb:'Billing',     hr:'/client/daycare/billing'},
+    {ic:'🎨',lb:'Activities',  hr:'/client/daycare/activities'},
+    {ic:'⚙️',lb:'Settings',   hr:'/client/daycare/settings'},
+  ].map(function(q){return '<a href="'+q.hr+'" class="qa-i"><div class="ic">'+q.ic+'</div><div class="lb">'+q.lb+'</div></a>';}).join('');
+}catch(e){console.error('QA',e);}
+
+} /* end _renderOverview */
+
+/* ══ REVENUE TAB ══ */
+function _renderRevenue(){
+try{
+  var rmonths=['Jan','Feb','Mar','Apr','May','Jun'];
+  var rData=[31200,33400,32800,35600,34200,36800],rtData=[33000,33000,33000,34000,34000,35000];
+  document.getElementById('revKpis').innerHTML=[
+    {l:'Total YTD',   v:'$204,000',sub:'Jan–Jun 2026',  bg:'#F3F0FF',c:'#7C3AED'},
+    {l:'Monthly Avg', v:'$34,000', sub:'6-month average',bg:'#F0FDFA',c:'#0D9488'},
+    {l:'Best Month',  v:'$36,800', sub:'June 2026',      bg:'#F0FDF4',c:'#16A34A'},
+  ].map(function(s){
+    return '<div class="cc" style="text-align:center"><div style="font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);margin-bottom:8px">'+s.l+'</div>'+
+      '<div style="font-size:1.75rem;font-weight:900;color:'+s.c+';letter-spacing:-.04em">'+s.v+'</div>'+
+      '<div style="font-size:.6875rem;color:var(--t3);margin-top:4px">'+s.sub+'</div></div>';
+  }).join('');
+  buildAreaChart(document.getElementById('revChart2'),{data:rData,targetData:rtData,labels:rmonths,min:29000,max:38500,color:'#7C3AED'});
+  document.getElementById('revMonths').innerHTML=rData.map(function(v,i){
+    return '<div style="text-align:center"><div style="font-size:.875rem;font-weight:800;color:var(--t1)">$'+(v/1000).toFixed(1)+'k</div>'+
+      '<div style="font-size:.625rem;color:var(--t3);margin-top:2px">'+rmonths[i]+'</div>'+
+      '<div style="font-size:.5625rem;font-weight:700;color:'+(v>=rtData[i]?'#16A34A':'#DC2626')+'">'+(v>=rtData[i]?'▲ Met':'▼ Below')+'</div></div>';
+  }).join('');
+  document.getElementById('revBreakdown').innerHTML=[
+    {l:'Full-time (22 children)',v:22*1150,pct:75,c:'#7C3AED'},
+    {l:'Part-time (10 children)',v:10*820, pct:21,c:'#2563EB'},
+    {l:'Drop-in / Holiday',      v:1400,   pct:4, c:'#0D9488'},
+  ].map(function(r){
+    return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:.78125rem;margin-bottom:5px">'+
+      '<span style="color:var(--t2)">'+r.l+'</span><span style="font-weight:700;color:var(--t1)">$'+r.v.toLocaleString()+'</span></div>'+
+      '<div style="height:8px;background:var(--s2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+r.pct+'%;background:'+r.c+';border-radius:99px"></div></div></div>';
+  }).join('');
+  document.getElementById('revOutstanding').innerHTML=[
+    {l:'Pending (3 invoices)',v:'$3,450',c:'#D97706'},
+    {l:'Overdue (1 invoice)', v:'$1,150',c:'#DC2626'},
+  ].map(function(o){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--s2)">'+
+      '<span style="font-size:.8125rem;color:var(--t2)">'+o.l+'</span>'+
+      '<span style="font-size:.9375rem;font-weight:800;color:'+o.c+'">'+o.v+'</span></div>';
+  }).join('');
+  document.getElementById('revInvoices').innerHTML=DC.billing.invoices.slice(0,5).map(function(inv){
+    var ini=inv.parent.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    var sc=inv.status==='paid'?'badge--green':inv.status==='overdue'?'badge--red':'badge--amber';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--s2)">'+
+      '<div class="av av-sm av--'+CL.avatarColor(inv.parent)+'">'+ini+'</div>'+
+      '<div style="flex:1"><div style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+inv.parent+'</div>'+
+      '<div style="font-size:.6875rem;color:var(--t3)">'+inv.child+' · Jul 2026</div></div>'+
+      '<div style="text-align:right"><div style="font-size:.875rem;font-weight:700;color:var(--t1)">$'+inv.amount.toLocaleString()+'</div>'+
+      '<span class="badge '+sc+'">'+inv.status+'</span></div></div>';
+  }).join('');
+}catch(e){console.error('Revenue tab',e);}
+}
+
+/* ══ CHILDREN TAB ══ */
+function _renderChildren(){
+try{
+  var ctotal=DC.rooms.reduce(function(s,r){return s+r.enrolled;},0);
+  var cpresent=DC.children.filter(function(c){return c.attendanceStatus==='present';}).length;
+  var callergic=DC.children.filter(function(c){return c.allergies&&c.allergies!=='None';}).length;
+  document.getElementById('childKpis').innerHTML=[
+    {l:'Total Enrolled',v:ctotal,              c:'var(--accent)'},
+    {l:'Present Today', v:cpresent,            c:'#16A34A'},
+    {l:'Absent Today',  v:DC.kpis.todayAbsent, c:'#DC2626'},
+    {l:'With Allergies',v:callergic,           c:'#D97706'},
+  ].map(function(s){
+    return '<div class="cc" style="text-align:center"><div style="font-size:1.875rem;font-weight:900;color:'+s.c+';letter-spacing:-.04em">'+s.v+'</div>'+
+      '<div style="font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);margin-top:5px">'+s.l+'</div></div>';
+  }).join('');
+  var csc={present:'badge--green',absent:'badge--red',late:'badge--amber'};
+  document.getElementById('childrenList').innerHTML=DC.children.map(function(c){
+    var ini=c.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--s2)">'+
+      '<div class="av av-md av--'+CL.avatarColor(c.name)+'">'+ini+'</div>'+
+      '<div style="flex:1"><div style="font-size:.875rem;font-weight:600;color:var(--t1)">'+c.name+'</div>'+
+      '<div style="font-size:.75rem;color:var(--t3)">'+c.room+' · '+c.parentName+'</div></div>'+
+      (c.allergies&&c.allergies!=='None'?'<span title="'+c.allergies+'" style="font-size:.875rem">⚠️</span>':'')+
+      '<span class="badge '+(csc[c.attendanceStatus]||'badge--gray')+'">'+c.attendanceStatus+'</span>'+
+      '<a href="/client/daycare/children" class="card-action" style="font-size:.6875rem">View →</a></div>';
+  }).join('');
+  var rcols=['#7C3AED','#2563EB','#16A34A','#D97706'];
+  document.getElementById('roomCards').innerHTML=DC.rooms.map(function(rm,i){
+    var pct=rm.capacity>0?Math.round(rm.enrolled/rm.capacity*100):0;
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--s2)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'+
+      '<div><div style="font-size:.875rem;font-weight:700;color:var(--t1)">'+rm.name+'</div>'+
+      '<div style="font-size:.6875rem;color:var(--t3)">'+rm.ageRange+' · '+rm.teacher+'</div></div>'+
+      '<div style="text-align:right"><span style="font-size:1.125rem;font-weight:800;color:'+rcols[i]+'">'+rm.enrolled+'</span>'+
+      '<span style="font-size:.75rem;color:var(--t3)">/'+rm.capacity+'</span></div></div>'+
+      '<div style="height:6px;background:var(--s2);border-radius:99px;overflow:hidden">'+
+      '<div style="height:100%;width:'+pct+'%;background:'+rcols[i]+';border-radius:99px"></div></div></div>';
+  }).join('');
+  document.getElementById('allergyAlerts').innerHTML=DC.children.filter(function(c){return c.allergies&&c.allergies!=='None';}).map(function(c){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--s2)">'+
+      '<span style="font-size:1rem">⚠️</span><div style="flex:1">'+
+      '<div style="font-size:.78125rem;font-weight:600;color:var(--t1)">'+c.name+'</div>'+
+      '<div style="font-size:.625rem;color:#D97706">'+c.allergies+'</div></div></div>';
+  }).join('');
+}catch(e){console.error('Children tab',e);}
+}
+
+/* ══ STAFF TAB ══ */
+function _renderStaff(){
+try{
+  document.getElementById('staffKpis').innerHTML=[
+    {l:'Staff On Duty',   v:DC.kpis.staffOnDuty,       c:'#16A34A'},
+    {l:'Avg Response',    v:DC.kpis.avgResponseTime,    c:'var(--accent)'},
+    {l:'Reports Pending', v:DC.kpis.napReportsPending,  c:'#D97706'},
+  ].map(function(s){
+    return '<div class="cc" style="text-align:center"><div style="font-size:1.75rem;font-weight:900;color:'+s.c+';letter-spacing:-.04em">'+s.v+'</div>'+
+      '<div style="font-size:.5625rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);margin-top:5px">'+s.l+'</div></div>';
+  }).join('');
+  document.getElementById('staffList').innerHTML=DC.staff.map(function(s){
+    var ini=s.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+    var qual=(s.qualifications||'').split(',')[0];
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--s2)">'+
+      '<div class="av av-md av--'+CL.avatarColor(s.name)+'">'+ini+'</div>'+
+      '<div style="flex:1"><div style="font-size:.875rem;font-weight:700;color:var(--t1)">'+s.name+'</div>'+
+      '<div style="font-size:.75rem;color:var(--t3)">'+s.role+' · '+s.room+'</div></div>'+
+      '<div style="text-align:right"><div style="font-size:.6875rem;color:var(--t3)">'+qual+'</div>'+
+      '<span class="badge badge--green" style="margin-top:3px">On duty</span></div></div>';
+  }).join('');
+  document.getElementById('staffTasks').innerHTML=[
+    {t:'Complete nap time report — Preschool',      d:'Due 2 PM',  done:false},
+    {t:'Send July newsletter to parents',            d:'Due today', done:false},
+    {t:'Staff health & safety training registration',d:'Due Jul 5', done:true},
+    {t:'Update emergency contact list',              d:'Due Jul 8', done:false},
+    {t:'Canada Day craft supplies ordered',          d:'Done',      done:true},
+  ].map(function(tk){
+    return '<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--s2)">'+
+      '<input type="checkbox" '+(tk.done?'checked':'')+' style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer" onchange="CL.showToast(this.checked?\'Task marked complete\':\'Task reopened\',\'success\')">'+
+      '<div style="flex:1"><div style="font-size:.78125rem;color:var(--t1);'+(tk.done?'text-decoration:line-through;color:var(--t4)':'')+'">'+tk.t+'</div>'+
+      '<div style="font-size:.625rem;color:var(--t3);margin-top:1px">'+tk.d+'</div></div></div>';
+  }).join('');
+  document.getElementById('staffRatios').innerHTML=DC.rooms.map(function(rm){
+    var ratio=rm.name==='Infants'?'1:3':rm.name==='Toddlers'?'1:4':'1:8';
+    var staffNeeded=Math.ceil(rm.enrolled/parseInt(ratio.split(':')[1]));
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--s2)">'+
+      '<span style="font-size:.78125rem;color:var(--t2)">'+rm.name+' ('+rm.enrolled+' children)</span>'+
+      '<span style="font-size:.78125rem;font-weight:700;color:var(--t1)">'+staffNeeded+' staff · '+ratio+'</span></div>';
+  }).join('');
+}catch(e){console.error('Staff tab',e);}
+}
+</script>
+</body>
+</html>

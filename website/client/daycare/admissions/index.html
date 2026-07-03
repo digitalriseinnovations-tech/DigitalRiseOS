@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admissions — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .pipeline-tabs { display:flex;gap:6px;padding:0 0 20px;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap; }
+    .pipeline-tab { padding:6px 14px;border-radius:8px;font-size:.8125rem;font-weight:500;cursor:pointer;border:1.5px solid transparent;color:var(--t3);transition:all .15s; }
+    .pipeline-tab.is-active { background:var(--accent-bg);color:var(--accent);border-color:var(--accent); }
+    .pipeline-tab:hover:not(.is-active) { background:var(--s2);color:var(--t2); }
+    .pipeline-count { display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:99px;font-size:.6875rem;font-weight:700;margin-left:5px; }
+    .pipeline-tab.is-active .pipeline-count { background:var(--accent);color:#fff; }
+    .pipeline-tab:not(.is-active) .pipeline-count { background:var(--s3);color:var(--t2); }
+
+    .leads-table-wrap { overflow-x:auto; }
+    .leads-table { width:100%;border-collapse:collapse; }
+    .leads-table th { text-align:left;font-size:.6875rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap; }
+    .leads-table td { padding:12px;border-bottom:1px solid var(--s2);vertical-align:middle; }
+    .leads-table tr:last-child td { border-bottom:none; }
+    .leads-table tr:hover td { background:var(--s1);cursor:pointer; }
+    .lead-name { font-weight:600;font-size:.875rem;color:var(--t1); }
+    .lead-sub  { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .ai-action-chip { display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-size:.75rem;font-weight:500;background:var(--purple-bg,#F3F0FF);color:#7C3AED;margin:2px; }
+    .ai-action-chip svg { width:10px;height:10px; }
+
+    .side-panel { position:fixed;top:0;right:-440px;width:440px;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column; }
+    .side-panel.is-open { right:0; }
+    .panel-head { display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:2; }
+    .panel-head-title { font-size:1rem;font-weight:700;color:var(--t1); }
+    .panel-close { width:32px;height:32px;border-radius:8px;border:none;background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:background .15s; }
+    .panel-close:hover { background:var(--s3); }
+    .panel-close svg { width:16px;height:16px; }
+    .panel-body { padding:24px;flex:1; }
+    .panel-section { margin-bottom:24px; }
+    .panel-section-title { font-size:.75rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px; }
+    .panel-row { display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s2);font-size:.875rem; }
+    .panel-row:last-child { border-bottom:none; }
+    .panel-row-key { color:var(--t3);font-weight:500; }
+    .panel-row-val { color:var(--t1);font-weight:600;text-align:right; }
+
+    .timeline { display:flex;flex-direction:column;gap:0; }
+    .tl-item { display:flex;gap:12px;padding-bottom:16px;position:relative; }
+    .tl-item:not(:last-child)::before { content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--s3); }
+    .tl-dot { width:32px;height:32px;border-radius:50%;border:2.5px solid var(--s3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;background:var(--card-bg); }
+    .tl-dot.is-done { border-color:var(--accent);background:var(--accent);color:#fff; }
+    .tl-dot.is-current { border-color:var(--accent); }
+    .tl-body { flex:1;padding-top:5px; }
+    .tl-label { font-size:.8125rem;font-weight:600;color:var(--t1); }
+    .tl-date { font-size:.75rem;color:var(--t3); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Admissions</h1>
+            <p class="page-sub">Lead pipeline · AI-powered follow-up & booking</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost">Export CSV</button>
+            <button class="btn btn--primary">+ Add Lead</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid" style="--kpi-cols:5" id="admKpis"></div>
+
+        <!-- Tabs -->
+        <div class="card" style="margin-top:20px">
+          <div class="pipeline-tabs" id="pipelineTabs"></div>
+          <div class="leads-table-wrap">
+            <table class="leads-table">
+              <thead>
+                <tr>
+                  <th>Parent / Child</th>
+                  <th>Stage</th>
+                  <th>Source</th>
+                  <th>Enquiry Date</th>
+                  <th>AI Actions Taken</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="leadsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI helper -->
+        <div class="card" style="margin-top:20px;border:1.5px solid var(--accent);background:var(--accent-bg)">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div>
+              <div style="font-size:.875rem;font-weight:700;color:var(--accent)">Ava — Admissions AI Employee</div>
+              <div style="font-size:.8125rem;color:var(--t2);margin-top:2px">This week: <strong>3 tours booked</strong>, <strong>14 enquiries answered</strong>, <strong>2 follow-ups sent</strong> — all without manual intervention.</div>
+            </div>
+            <a href="/client/daycare/ai-employee" class="btn btn--ghost" style="margin-left:auto;white-space:nowrap">Configure Ava</a>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="side-panel" id="leadPanel">
+    <div class="panel-head">
+      <div class="panel-head-title" id="panelLeadName">Lead Details</div>
+      <button class="panel-close" onclick="CL.closePanel('leadPanel')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panelLeadBody"></div>
+  </div>
+  <div id="panelOverlay"></div>
+
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'admissions' });
+
+    const stageOrder = ['New','Contacted','Tour Booked','Tour Attended','Enrolled'];
+    const stageColors = { 'New':'amber','Contacted':'blue','Tour Booked':'purple','Tour Attended':'teal','Enrolled':'green' };
+
+    /* KPIs */
+    const stageCounts = {};
+    stageOrder.forEach(s => stageCounts[s] = 0);
+    DC.admissions.forEach(a => { if(stageCounts[a.stage]!==undefined) stageCounts[a.stage]++; });
+
+    document.getElementById('admKpis').innerHTML = [
+      { label:'Total Leads',   value: DC.admissions.length,          color:'purple' },
+      { label:'Tours Booked',  value: stageCounts['Tour Booked'],     color:'blue' },
+      { label:'Attended',      value: stageCounts['Tour Attended'],   color:'teal' },
+      { label:'Enrolled',      value: stageCounts['Enrolled'],        color:'green' },
+      { label:'Conversion',    value: Math.round(stageCounts['Enrolled']/DC.admissions.length*100)+'%', color:'amber' },
+    ].map(k => `
+      <div class="kpi-card">
+        <div class="kpi-top"><div class="kpi-ico kpi-ico--${k.color}">📊</div></div>
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>`).join('');
+
+    /* Tabs */
+    let activeTab = 'All';
+    const tabs = ['All', ...stageOrder];
+    function renderTabs() {
+      document.getElementById('pipelineTabs').innerHTML = tabs.map(t => {
+        const cnt = t==='All' ? DC.admissions.length : DC.admissions.filter(a=>a.stage===t).length;
+        return `<button class="pipeline-tab ${activeTab===t?'is-active':''}" onclick="setTab('${t}')">
+          ${t}<span class="pipeline-count">${cnt}</span>
+        </button>`;
+      }).join('');
+    }
+    window.setTab = (t) => { activeTab=t; renderTabs(); renderLeads(); };
+
+    /* Leads table */
+    function renderLeads() {
+      const filtered = activeTab==='All' ? DC.admissions : DC.admissions.filter(a=>a.stage===activeTab);
+      document.getElementById('leadsBody').innerHTML = filtered.map(lead => `
+        <tr onclick="openLead('${lead.id}')">
+          <td>
+            <div class="lead-name">${lead.parentName}</div>
+            <div class="lead-sub">${lead.childName}, ${lead.childAge}</div>
+          </td>
+          <td><span class="badge badge--${stageColors[lead.stage]}">${lead.stage}</span></td>
+          <td><span style="font-size:.8125rem;color:var(--t2)">${lead.source}</span></td>
+          <td><span style="font-size:.8125rem;color:var(--t3)">${lead.lastActivity}</span></td>
+          <td>
+            ${lead.aiActions.map(a=>`<span class="ai-action-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${a}</span>`).join('')}
+          </td>
+          <td><span class="badge badge--${stageColors[lead.stage]}">${lead.stage}</span></td>
+        </tr>`).join('');
+    }
+
+    renderTabs(); renderLeads();
+
+    /* Open panel */
+    window.openLead = (id) => {
+      const lead = DC.admissions.find(a=>a.id===id);
+      if(!lead) return;
+      document.getElementById('panelLeadName').textContent = lead.parentName;
+      const stageIdx = stageOrder.indexOf(lead.stage);
+      document.getElementById('panelLeadBody').innerHTML = `
+        <div class="panel-section">
+          <div class="panel-section-title">Contact Info</div>
+          ${[
+            ['Parent', lead.parentName],
+            ['Child', `${lead.childName}, ${lead.childAge}`],
+            ['Phone', lead.phone || '+1 780 555 0123'],
+            ['Email', lead.email || 'parent@email.com'],
+            ['Source', lead.source],
+            ['Enquiry Date', lead.lastActivity],
+          ].map(([k,v])=>`<div class="panel-row"><span class="panel-row-key">${k}</span><span class="panel-row-val">${v}</span></div>`).join('')}
+        </div>
+        <div class="panel-section">
+          <div class="panel-section-title">Journey</div>
+          <div class="timeline">
+            ${stageOrder.map((s,i)=>`
+              <div class="tl-item">
+                <div class="tl-dot ${i<stageIdx?'is-done':i===stageIdx?'is-current':''}">${i<stageIdx?'✓':i+1}</div>
+                <div class="tl-body">
+                  <div class="tl-label">${s}</div>
+                  <div class="tl-date">${i<=stageIdx?'Completed':'Pending'}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-section-title">AI Actions</div>
+          ${lead.aiActions.map(a=>`<div class="ai-action-chip" style="display:flex;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>${a}</div>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn--primary" style="flex:1">Book Tour</button>
+          <button class="btn btn--ghost" style="flex:1">Send Message</button>
+        </div>`;
+      CL.openPanel('leadPanel');
+    };
+  </script>
+</body>
+</html>

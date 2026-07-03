@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automations — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .auto-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px; }
+    .auto-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px;transition:border-color .2s,box-shadow .2s; }
+    .auto-card:hover { border-color:var(--accent);box-shadow:0 4px 20px rgba(124,58,237,.07); }
+    .auto-card.is-active { border-color:var(--accent); }
+
+    .auto-card-head { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
+    .auto-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0; }
+    .auto-title { font-size:.9375rem;font-weight:700;color:var(--t1);margin-bottom:3px; }
+    .auto-sub { font-size:.75rem;color:var(--t3); }
+
+    .toggle { position:relative;width:44px;height:24px;border-radius:99px;background:var(--s3);cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
+    .toggle.is-on { background:var(--accent); }
+    .toggle::after { content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s; }
+    .toggle.is-on::after { left:23px; }
+
+    .flow-chain { display:flex;flex-direction:column;gap:8px;margin:14px 0; }
+    .flow-step { display:flex;align-items:flex-start;gap:8px;font-size:.8125rem; }
+    .flow-step-badge { padding:2px 7px;border-radius:5px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;margin-top:1px; }
+    .flow-step-text { color:var(--t2);line-height:1.4; }
+    .flow-arrow { color:var(--t4);font-size:.625rem;padding-left:20px;margin:-2px 0; }
+
+    .auto-stats { display:flex;gap:12px;padding:12px;background:var(--s1);border-radius:9px;margin-top:12px; }
+    .auto-stat { flex:1;text-align:center; }
+    .auto-stat-val { font-size:1rem;font-weight:700;color:var(--t1); }
+    .auto-stat-lbl { font-size:.625rem;color:var(--t4); }
+
+    .summary-cards { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px; }
+    @media(max-width:720px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Automations</h1>
+            <p class="page-sub">AI-powered workflows that run while you focus on the children</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--primary" onclick="CL.showToast('Workflow builder coming soon','info')">+ New Automation</button>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-cards" id="autoSummary"></div>
+
+        <!-- Grid -->
+        <div class="auto-grid" id="autoGrid"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'automations' });
+
+    const activeAutos = DC.automations.filter(a=>a.status==='active');
+    const totalRuns   = DC.automations.reduce((s,a)=>s+a.runsToday,0);
+    const totalAll    = DC.automations.reduce((s,a)=>s+a.total,0);
+
+    /* Summary */
+    document.getElementById('autoSummary').innerHTML = [
+      { label:'Active Workflows', value:activeAutos.length+'/'+DC.automations.length, color:'purple' },
+      { label:'Runs Today',       value:totalRuns,                                    color:'blue' },
+      { label:'All-Time Runs',    value:totalAll.toLocaleString(),                    color:'teal' },
+      { label:'Hours Saved',      value:'~'+Math.round(totalAll*.04)+'h',             color:'green' },
+    ].map(k=>`
+      <div class="kpi-card">
+        <div class="kpi-top"><div class="kpi-ico kpi-ico--${k.color}">⚡</div></div>
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>`).join('');
+
+    /* Automation cards */
+    const colorHex = { purple:'#7C3AED', blue:'#2563EB', green:'#16A34A', amber:'#D97706', orange:'#EA580C', teal:'#0D9488', red:'#DC2626' };
+    const autoIcons = { purple:'🎯', blue:'📅', green:'📝', amber:'⚡', orange:'📋', teal:'💰', red:'🚨' };
+    document.getElementById('autoGrid').innerHTML = DC.automations.map(a => {
+      const isOn = a.status === true;
+      const aColorHex = colorHex[a.color] || '#7C3AED';
+      const badgeColors = {
+        trigger:  { bg:'#EFF6FF', color:'#2563EB' },
+        ai:       { bg:'#F3F0FF', color:'#7C3AED' },
+        biz:      { bg:'#F0FDF4', color:'#16A34A' },
+        followup: { bg:'#FFFBEB', color:'#D97706' },
+      };
+      const steps = [
+        { type:'trigger',  label:'Trigger',    text:a.trigger },
+        { type:'ai',       label:'AI Action',  text:a.aiAction },
+        { type:'biz',      label:'Biz Action', text:a.bizAction },
+        ...(a.followUp?[{ type:'followup', label:'Follow Up', text:a.followUp }]:[]),
+      ];
+      return `
+        <div class="auto-card ${isOn?'is-active':''}" id="auto-${a.id}">
+          <div class="auto-card-head">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div class="auto-icon" style="background:${aColorHex}18;color:${aColorHex}">${autoIcons[a.color]||'⚡'}</div>
+              <div>
+                <div class="auto-title">${a.name}</div>
+                <div class="auto-sub">${isOn?'<span style="color:#16A34A;font-weight:600">● Running</span>':'<span style="color:#94A3B8">○ Paused</span>'}</div>
+              </div>
+            </div>
+            <button class="toggle ${isOn?'is-on':''}" id="toggle-${a.id}" onclick="toggleAuto('${a.id}')"></button>
+          </div>
+          <div class="flow-chain">
+            ${steps.map((s,i) => {
+              const bc = badgeColors[s.type];
+              return `
+                ${i>0?'<div class="flow-arrow">↓</div>':''}
+                <div class="flow-step">
+                  <span class="flow-step-badge" style="background:${bc.bg};color:${bc.color}">${s.label}</span>
+                  <span class="flow-step-text">${s.text}</span>
+                </div>`;
+            }).join('')}
+          </div>
+          <div class="auto-stats">
+            <div class="auto-stat"><div class="auto-stat-val">${a.runsToday}</div><div class="auto-stat-lbl">Today</div></div>
+            <div class="auto-stat"><div class="auto-stat-val">${a.total.toLocaleString()}</div><div class="auto-stat-lbl">Total Runs</div></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    window.toggleAuto = (id) => {
+      const a = DC.automations.find(x=>x.id===id);
+      if(!a) return;
+      a.status = !a.status;
+      const card   = document.getElementById(`auto-${id}`);
+      const toggle = document.getElementById(`toggle-${id}`);
+      const isOn   = a.status === true;
+      card?.classList.toggle('is-active', isOn);
+      toggle?.classList.toggle('is-on', isOn);
+      CL.showToast(isOn?`${a.name} enabled`:`${a.name} paused`, 'success');
+    };
+  </script>
+</body>
+</html>

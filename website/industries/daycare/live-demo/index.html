@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daycare AI Employee Live Demo | Digital Rise OS</title>
+  <meta name="description" content="Experience your Daycare AI Employee live. Enter your name, choose a service, and watch the AI answer parents, book tours, update your CRM, and follow up automatically.">
+  <meta property="og:title" content="Daycare AI Employee Live Demo — Digital Rise OS">
+  <meta property="og:description" content="Personalised AI Employee demo for daycare providers. Real business actions: tour booking, CRM updates, WhatsApp confirmations and review management.">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://digitalrise.io/industries/daycare/live-demo">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../shared/reset.css">
+  <link rel="stylesheet" href="../../../shared/tokens.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="live-demo">
+
+  <!-- ═══ NAV ═══════════════════════════════════════════ -->
+  <nav class="nav" id="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav__inner">
+      <a class="nav__logo" href="/" aria-label="Digital Rise home">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="url(#lg)"/>
+          <path d="M10 22L16 10L22 22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12.5 17.5H19.5" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs>
+        </svg>
+        <span class="nav__logo-text">Digital Rise<span class="nav__logo-accent"> OS</span></span>
+      </a>
+      <div class="nav__links">
+        <a href="/industries/daycare" class="nav__link">← Back to Daycare Page</a>
+        <a href="/industries" class="nav__link">All Industries</a>
+      </div>
+      <div class="nav__actions">
+        <a href="https://wa.me/447700900000" class="btn btn--ghost btn--sm" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+        <a href="/book-demo" class="btn btn--primary btn--sm">Book Free Demo</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ SCREEN 1 — FORM ══════════════════════════════ -->
+  <div class="screen screen--form" id="screenForm">
+
+    <!-- Hero -->
+    <section class="lh">
+      <div class="lh__container">
+        <div class="lh__eyebrow">
+          <span class="lh__live-dot" aria-hidden="true"></span>
+          Live Interactive Demo
+        </div>
+        <h1 class="lh__title">Experience Your<br><span class="lh__title-grad">Daycare AI Employee</span></h1>
+        <p class="lh__sub">Enter your name, choose a daycare service, and watch how the AI answers parents, books tours, manages enquiries, updates your CRM, and follows up automatically.</p>
+        <div class="lh__badges" role="list">
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--green"></span>24/7 Parent Replies</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--blue"></span>Tour Booking</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--purple"></span>Availability Check</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--amber"></span>Review Management</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--blue"></span>CRM Updates</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--green"></span>WhatsApp Follow-up</span>
+          <span role="listitem" class="lh__badge"><span class="lh__badge-dot lh__badge-dot--purple"></span>Voice AI</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Card -->
+    <section class="lf" aria-label="Demo setup form">
+      <div class="lf__container">
+        <div class="lf__card">
+
+          <div class="lf__card-hdr">
+            <div class="lf__step-num">1</div>
+            <div>
+              <div class="lf__card-title">Set up your personalised demo</div>
+              <div class="lf__card-sub">This takes 10 seconds. No sign-up required.</div>
+            </div>
+          </div>
+
+          <!-- Row 1: Name + Role -->
+          <div class="lf__row">
+            <div class="lf__field">
+              <label class="lf__label" for="demoName">Your first name</label>
+              <input class="lf__input" id="demoName" type="text" placeholder="e.g. Sarah" maxlength="40" autocomplete="given-name" required>
+            </div>
+            <div class="lf__field">
+              <label class="lf__label" for="demoRole">Your role</label>
+              <div class="lf__role-group" role="group" aria-label="Select your role">
+                <button type="button" class="lf__role-btn is-active" data-role="Parent" aria-pressed="true">Parent</button>
+                <button type="button" class="lf__role-btn" data-role="Daycare Owner" aria-pressed="false">Daycare Owner</button>
+                <button type="button" class="lf__role-btn" data-role="Manager" aria-pressed="false">Manager</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Service -->
+          <div class="lf__svc-hdr">
+            <div class="lf__step-num">2</div>
+            <div>
+              <div class="lf__card-title">Choose a daycare service to demo</div>
+              <div class="lf__card-sub">Each service runs a different AI conversation and business workflow.</div>
+            </div>
+          </div>
+
+          <div class="lf__svc-grid" role="group" aria-label="Select demo service" id="svcGrid">
+            <!-- Tour -->
+            <button type="button" class="lf__svc-card" data-service="book-tour" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="lf__svc-name">Book a Daycare Tour</div>
+              <div class="lf__svc-out">Tour booked + 9 actions</div>
+            </button>
+            <!-- Availability -->
+            <button type="button" class="lf__svc-card" data-service="availability" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div class="lf__svc-name">Check Availability</div>
+              <div class="lf__svc-out">High-intent lead + 5 actions</div>
+            </button>
+            <!-- Fees -->
+            <button type="button" class="lf__svc-card" data-service="fees" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div class="lf__svc-name">Ask About Fees</div>
+              <div class="lf__svc-out">Brochure sent + 4 actions</div>
+            </button>
+            <!-- Waitlist -->
+            <button type="button" class="lf__svc-card" data-service="waitlist" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="lf__svc-name">Join Waiting List</div>
+              <div class="lf__svc-out">Waitlist created + 4 actions</div>
+            </button>
+            <!-- FAQ -->
+            <button type="button" class="lf__svc-card" data-service="faq" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.96-3 2.5 2.5 0 0 1-1.32-4.24 3 3 0 0 1 .34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.96-3 2.5 2.5 0 0 0 1.32-4.24 3 3 0 0 0-.34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></svg>
+              </div>
+              <div class="lf__svc-name">Parent FAQ</div>
+              <div class="lf__svc-out">KB answers + 4 actions</div>
+            </button>
+            <!-- Callback -->
+            <button type="button" class="lf__svc-card" data-service="callback" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--indigo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.49 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div class="lf__svc-name">Request Callback</div>
+              <div class="lf__svc-out">Staff task created + 5 actions</div>
+            </button>
+            <!-- Review -->
+            <button type="button" class="lf__svc-card" data-service="review" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--yellow">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="lf__svc-name">Review Management</div>
+              <div class="lf__svc-out">Google review sent + 4 actions</div>
+            </button>
+            <!-- Support -->
+            <button type="button" class="lf__svc-card" data-service="support" aria-pressed="false">
+              <div class="lf__svc-ico lf__svc-ico--teal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="lf__svc-name">Existing Parent Support</div>
+              <div class="lf__svc-out">Query resolved + 4 actions</div>
+            </button>
+          </div>
+
+          <div class="lf__form-err" id="formErr" role="alert" aria-live="polite" hidden>Please enter your name and choose a service to continue.</div>
+
+          <div class="lf__actions">
+            <button type="button" class="btn btn--primary btn--lg btn--full" id="btnStartDemo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Start Live Demo
+            </button>
+            <p class="lf__hint">Free. No sign-up. Takes about 2 minutes.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /screenForm -->
+
+  <!-- ═══ SCREEN 2 — DEMO ══════════════════════════════ -->
+  <div class="screen screen--demo is-hidden" id="screenDemo" aria-live="polite">
+    <div class="ld-wrap">
+
+      <!-- Personalised greeting bar -->
+      <div class="ld-greeting" id="ldGreeting">
+        <div class="ld-greeting__avatar" aria-hidden="true">AI</div>
+        <div class="ld-greeting__text">
+          Hi <strong id="ldGreetName">there</strong> 👋 I'm your <span class="ld-greeting__svc" id="ldGreetSvc">Daycare AI Employee</span>. Watch me complete real business actions — not just chat.
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm" id="btnChangeSvc">Change Service</button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="ld-progress" role="progressbar" aria-label="Demo progress">
+        <div class="ld-progress__track">
+          <div class="ld-progress__steps">
+            <div class="ld-progress__step" data-step="1">
+              <div class="ld-progress__dot"></div>
+              <div class="ld-progress__label">Enquiry</div>
+            </div>
+            <div class="ld-progress__line"></div>
+            <div class="ld-progress__step" data-step="2">
+              <div class="ld-progress__dot"></div>
+              <div class="ld-progress__label">Qualification</div>
+            </div>
+            <div class="ld-progress__line"></div>
+            <div class="ld-progress__step" data-step="3">
+              <div class="ld-progress__dot"></div>
+              <div class="ld-progress__label">Action</div>
+            </div>
+            <div class="ld-progress__line"></div>
+            <div class="ld-progress__step" data-step="4">
+              <div class="ld-progress__dot"></div>
+              <div class="ld-progress__label">CRM</div>
+            </div>
+            <div class="ld-progress__line"></div>
+            <div class="ld-progress__step" data-step="5">
+              <div class="ld-progress__dot"></div>
+              <div class="ld-progress__label">Follow-up</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split layout: Chat + Actions -->
+      <div class="ld-split">
+
+        <!-- LEFT: Chat / Voice panel -->
+        <div class="ld-panel">
+
+          <!-- Channel selector -->
+          <div class="ld-channels" role="tablist" aria-label="Communication channel">
+            <button type="button" class="ld-ch-tab is-active" data-channel="chat" role="tab" aria-selected="true" aria-controls="viewChat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Website Chat
+            </button>
+            <button type="button" class="ld-ch-tab" data-channel="voice" role="tab" aria-selected="false" aria-controls="viewVoice">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.49 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Voice AI
+              <span class="ld-ch-tag">NEW</span>
+            </button>
+            <button type="button" class="ld-ch-tab" data-channel="whatsapp" role="tab" aria-selected="false" aria-controls="viewWhatsApp">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
+            </button>
+          </div>
+
+          <!-- CHAT VIEW -->
+          <div class="ld-view ld-view--chat" id="viewChat" role="tabpanel">
+            <div class="ld-chat-hdr">
+              <div class="ld-chat-avatar" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div class="ld-chat-info">
+                <div class="ld-chat-name">Sunshine Nursery AI</div>
+                <div class="ld-chat-status"><span class="ld-chat-status-dot"></span>Online · Replies instantly</div>
+              </div>
+              <div class="ld-chat-badge">AI Employee</div>
+            </div>
+            <div class="ld-chat-msgs" id="ldMsgs" aria-live="polite" aria-relevant="additions"></div>
+            <div class="ld-quick-replies" id="ldReplies" aria-label="Quick reply options"></div>
+          </div>
+
+          <!-- VOICE VIEW -->
+          <div class="ld-view ld-view--voice is-hidden" id="viewVoice" role="tabpanel">
+            <div class="ld-voice-card">
+              <div class="ld-voice-top">
+                <div class="ld-voice-status">
+                  <span class="ld-voice-rec" aria-hidden="true"></span>
+                  <span id="voiceStatus">Connecting…</span>
+                </div>
+                <div class="ld-voice-timer" id="voiceTimer">00:00</div>
+              </div>
+              <div class="ld-voice-avatar" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div class="ld-voice-name">Sunshine Nursery AI</div>
+              <div class="ld-voice-sub">AI Employee — Voice Channel</div>
+              <div class="ld-voice-wave" id="voiceWave" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="ld-voice-transcript" id="voiceTranscript" aria-live="polite" aria-label="Call transcript"></div>
+            <div class="ld-quick-replies" id="ldRepliesVoice" aria-label="Quick reply options"></div>
+          </div>
+
+          <!-- WHATSAPP VIEW -->
+          <div class="ld-view ld-view--wa is-hidden" id="viewWhatsApp" role="tabpanel">
+            <div class="ld-wa-hdr">
+              <div class="ld-wa-avatar">SN</div>
+              <div class="ld-wa-info">
+                <div class="ld-wa-name">Sunshine Nursery</div>
+                <div class="ld-wa-status">online</div>
+              </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </div>
+            <div class="ld-wa-msgs" id="ldWaMsgs" aria-live="polite"></div>
+            <div class="ld-quick-replies" id="ldRepliesWa" aria-label="Quick reply options"></div>
+          </div>
+
+        </div><!-- /ld-panel -->
+
+        <!-- RIGHT: Live Actions -->
+        <div class="ld-actions">
+          <div class="ld-actions__hdr">
+            <div class="ld-actions__hdr-left">
+              <span class="ld-act-pulse" aria-hidden="true"></span>
+              Live Actions
+            </div>
+            <div class="ld-actions__count" id="ldActCount">0 / 0</div>
+          </div>
+          <div class="ld-actions__list" id="ldActList" aria-live="polite" aria-label="Live AI actions">
+            <div class="ld-act-empty" id="ldActEmpty">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <p>Actions will appear here as the AI works</p>
+            </div>
+          </div>
+          <div class="ld-complete" id="ldComplete" hidden>
+            <div class="ld-complete__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="ld-complete__title" id="ldCompleteTitle">Demo Complete</div>
+            <div class="ld-complete__sub">Your AI Employee completed this service successfully</div>
+            <div class="ld-complete__ctas">
+              <a href="/book-demo" class="btn btn--primary btn--sm">Book Free Demo</a>
+              <a href="https://wa.me/447700900000" class="btn btn--ghost btn--sm" target="_blank" rel="noopener">Talk on WhatsApp</a>
+            </div>
+            <button type="button" class="ld-try-another" id="btnTryAnother">Try Another Service →</button>
+          </div>
+        </div>
+
+      </div><!-- /ld-split -->
+
+      <!-- Admissions Dashboard -->
+      <div class="ld-dash">
+        <div class="ld-dash__hdr">
+          <div class="ld-dash__hdr-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Admissions Dashboard
+          </div>
+          <div class="ld-dash__badge" id="ldDashBadge">Awaiting Demo</div>
+        </div>
+        <div class="ld-dash__grid" id="ldDashGrid" aria-label="CRM dashboard fields"></div>
+      </div>
+
+    </div><!-- /ld-wrap -->
+  </div><!-- /screenDemo -->
+
+  <!-- ═══ WHAT THIS DEMO PROVES ═══════════════════════ -->
+  <section class="lp-proves" aria-labelledby="provesTitle">
+    <div class="lp-proves__container">
+      <div class="lp-proves__hdr">
+        <h2 class="lp-proves__title" id="provesTitle">What this demo proves</h2>
+        <p class="lp-proves__sub">Four things every daycare owner should know about AI Employees</p>
+      </div>
+      <div class="lp-proves__grid">
+        <div class="lp-proves__card">
+          <div class="lp-proves__card-ico lp-proves__card-ico--green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3 class="lp-proves__card-title">Instant Parent Response</h3>
+          <p class="lp-proves__card-body">The AI replies within seconds, even at midnight, on weekends, and during bank holidays. No parent enquiry is ever missed or left waiting.</p>
+        </div>
+        <div class="lp-proves__card">
+          <div class="lp-proves__card-ico lp-proves__card-ico--purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <h3 class="lp-proves__card-title">Real Business Actions</h3>
+          <p class="lp-proves__card-body">It books tours, updates CRM, sends WhatsApp confirmations, schedules reminders, and prepares review requests — all without a single staff member.</p>
+        </div>
+        <div class="lp-proves__card">
+          <div class="lp-proves__card-ico lp-proves__card-ico--blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.96-3 2.5 2.5 0 0 1-1.32-4.24 3 3 0 0 1 .34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.96-3 2.5 2.5 0 0 0 1.32-4.24 3 3 0 0 0-.34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></svg>
+          </div>
+          <h3 class="lp-proves__card-title">Trained on Your Daycare</h3>
+          <p class="lp-proves__card-body">Answers are based on your specific fees, policies, opening hours, curriculum, safety protocols, meal plans, and availability — not generic templates.</p>
+        </div>
+        <div class="lp-proves__card">
+          <div class="lp-proves__card-ico lp-proves__card-ico--amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <h3 class="lp-proves__card-title">Built for Growth</h3>
+          <p class="lp-proves__card-body">Captures more enquiries, fills more tour slots, grows Google reviews, reduces admin workload by 70%, and helps you enrol more children every month.</p>
+        </div>
+      </div>
+      <div class="lp-proves__cta">
+        <a href="/book-demo" class="btn btn--primary btn--lg">Book Your Free Demo</a>
+        <a href="https://wa.me/447700900000" class="btn btn--ghost btn--lg" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Talk on WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ════════════════════════════════════════ -->
+  <footer class="ld-footer">
+    <div class="ld-footer__inner">
+      <a href="/" class="ld-footer__logo">Digital Rise OS</a>
+      <div class="ld-footer__links">
+        <a href="/industries/daycare">Daycare AI Employee</a>
+        <a href="/industries">All Industries</a>
+        <a href="/book-demo">Book Free Demo</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <div class="ld-footer__copy">© 2026 Digital Rise OS. This is a scripted product demo.</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

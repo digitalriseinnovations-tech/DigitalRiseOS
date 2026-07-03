@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Base — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .kb-layout { display:grid;grid-template-columns:260px 1fr;gap:16px; }
+    @media(max-width:800px){.kb-layout{grid-template-columns:1fr}}
+    .kb-biz-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .1s; }
+    .kb-biz-item:hover { background:var(--accent-bg); }
+    .kb-biz-item.is-active { background:var(--accent-bg);border:1.5px solid var(--accent-light,#C7D2FE); }
+    .kb-field-group { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px; }
+    .kb-field-title { font-size:.75rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px; }
+    .train-bar { display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--accent-bg);border:1.5px solid var(--accent-light,#C7D2FE);border-radius:10px;margin-bottom:16px; }
+    .completeness-bar { background:var(--border-s);height:6px;border-radius:99px;overflow:hidden;flex:1; }
+    .completeness-fill { height:100%;border-radius:99px;background:var(--accent);transition:width .3s; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Knowledge Base</div>
+          <div class="ag-ph-sub">Train AI employees with accurate business information</div>
+        </div>
+        <div class="ag-ph-actions">
+          <button class="btn btn--primary" id="trainBtn" onclick="trainAI()">🧠 Train AI</button>
+        </div>
+      </div>
+
+      <div class="kb-layout">
+        <!-- Business selector -->
+        <div>
+          <div class="ag-card">
+            <div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Select Business</div>
+            <div id="kbBizList"></div>
+          </div>
+        </div>
+
+        <!-- KB editor -->
+        <div id="kbEditor">
+          <div class="ag-empty" style="min-height:300px">
+            <div class="ag-empty-ico">🧠</div>
+            <div class="ag-empty-title">Select a business</div>
+            <div class="ag-empty-sub">Choose a business on the left to view and edit its knowledge base</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'knowledge-base' });
+
+var _activeBiz = null;
+var _kbData = {};
+
+var KB_DEFAULTS = {
+  b1: { hours:'Mon–Fri 7:30am–6pm, Sat 9am–1pm', services:'Infant Care (6wk–12m), Toddler Care (12m–3yrs), Preschool (3–5yrs), After School (5–12yrs)', pricing:'Infant Room from $1,800/mo. Toddler/Preschool from $1,200/mo. Subsidy accepted. Sibling discount available.', faqs:'Q: Do you accept subsidies? A: Yes, CWELCC and CARE subsidies accepted.\nQ: What is the ratio? A: 1:3 infants, 1:8 toddlers, 1:12 preschool.', booking:'Tours available Mon–Fri at 10am and 2pm. Book via website chat or WhatsApp.', escalation:'Director: Sarah Chen — 905-555-0199', review:'https://g.page/r/sunshinenursery/review' },
+  b2: { hours:'Mon–Fri 8am–6pm, Sat 8am–2pm (emergency only)', services:'Check-up & Clean, Teeth Whitening, Invisalign, Dental Implants, Veneers, Emergency Dental, Root Canal, Orthodontics', pricing:'Check-up & Clean from $180 (covered by most insurance). Whitening from $450. Invisalign from $4,200. Payment plans available.', faqs:'Q: Do you accept insurance? A: Yes, we direct bill most major providers.\nQ: Do you take emergency patients? A: Yes, call us for same-day emergency slots.', booking:'New patient consultations are complimentary. Book online or call. Appointments Mon–Sat.', escalation:'Office Manager: Tom Bradley — 416-555-0299', review:'https://g.page/r/smiledentalstudio/review' },
+  b3: { hours:'Tue–Sun 11:30am–10pm. Closed Mondays.', services:'À la carte dining, Private event bookings (up to 50 guests), Catering, Corporate lunch packages, Wine pairings', pricing:'Dinner mains $28–$52. Private room from $500/event. Corporate lunch package from $38/person.', faqs:'Q: Do you take reservations? A: Yes, online and via WhatsApp.\nQ: Is there a dress code? A: Smart casual.', booking:'Reservations for 6+ recommended. Private event enquiries via email or WhatsApp.', escalation:"Events Manager: Rosa Bella — 647-555-0399", review:"https://g.page/r/bellasrestaurant/review" },
+  b4: { hours:'Mon–Fri 7am–6pm. Sat by appointment.', services:'Deck & Fence, Basement Renovation, Kitchen Remodel, Additions, Garage Conversion, Commercial Fit-out', pricing:'Deck builds from $15,000. Basement reno from $35,000. Free quote within 48hrs.', faqs:'Q: Are you licensed and insured? A: Yes, fully licensed in Ontario, $5M liability insurance.\nQ: How long does a quote take? A: Free quote within 48hrs of site visit.', booking:'Site visit and quote: Mon–Fri, book via website or phone. 2hr window guaranteed.', escalation:'Owner: Mike D. — 905-555-0404', review:'https://g.page/r/probuildcontractors/review' },
+  b5: { hours:'Tue–Sat 9am–7pm, Sun 10am–5pm. Closed Mondays.', services:'Hair Cut & Colour, Balayage, Keratin Treatment, Gel Manicure & Pedicure, Lash Lift & Tint, Brow Lamination, Facials, Bridal Packages', pricing:'Haircut from $65. Colour from $120. Gel Mani from $55. Bridal package from $450.', faqs:'Q: Do you take walk-ins? A: We recommend booking. Walk-ins welcome if space allows.\nQ: How far in advance for bridal? A: 6–8 weeks recommended for bridal packages.', booking:'Book via website, WhatsApp, or Instagram DMs. 24hr cancellation policy applies.', escalation:'Manager: Luna — 416-555-0505', review:'https://g.page/r/glowbeautylounge/review' },
+};
+
+var kbSaved = AD.store.get('kb', {});
+AD.businesses.forEach(function(b){
+  _kbData[b.id] = Object.assign({}, KB_DEFAULTS[b.id]||{}, kbSaved[b.id]||{});
+});
+
+document.getElementById('kbBizList').innerHTML = AD.businesses.map(function(b){
+  var filled = Object.values(_kbData[b.id]||{}).filter(function(v){return v&&v.trim();}).length;
+  var total = 7;
+  return '<div class="kb-biz-item" id="kbBiz_'+b.id+'" onclick="selectBiz(\''+b.id+'\')">' +
+    '<div class="av av-sm" style="background:'+b.color+'">'+b.initial+'</div>' +
+    '<div style="flex:1;min-width:0">' +
+      '<div style="font-size:.8125rem;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+b.name+'</div>' +
+      '<div style="font-size:.5625rem;color:var(--t4)">'+filled+'/'+total+' fields</div>' +
+    '</div>' +
+  '</div>';
+}).join('');
+
+window.selectBiz = function(id) {
+  _activeBiz = id;
+  document.querySelectorAll('.kb-biz-item').forEach(function(el){el.classList.remove('is-active');});
+  var el = document.getElementById('kbBiz_'+id);
+  if(el) el.classList.add('is-active');
+  renderEditor(id);
+};
+
+function calcCompleteness(id) {
+  var d = _kbData[id]||{};
+  var fields = ['hours','services','pricing','faqs','booking','escalation','review'];
+  var filled = fields.filter(function(k){return d[k]&&d[k].trim();}).length;
+  return Math.round((filled/fields.length)*100);
+}
+
+function renderEditor(id) {
+  var b = AD.businesses.find(function(x){return x.id===id;})||{};
+  var d = _kbData[id]||{};
+  var pct = calcCompleteness(id);
+  document.getElementById('kbEditor').innerHTML =
+    '<div class="train-bar">' +
+      '<div style="font-size:1rem">🧠</div>' +
+      '<div style="flex:1"><div style="font-size:.875rem;font-weight:700;color:var(--t1)">Knowledge Base — '+b.name+'</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">' +
+          '<div class="completeness-bar"><div class="completeness-fill" id="complFill" style="width:'+pct+'%"></div></div>' +
+          '<div style="font-size:.75rem;font-weight:700;color:var(--accent)" id="complPct">'+pct+'% complete</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">⏰ Business Hours</div><input class="ag-input" id="kb_hours" value="'+esc(d.hours||'')+'" oninput="liveUpdate(\''+id+'\')"></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">🛎 Services Offered</div><textarea class="ag-textarea" id="kb_services" oninput="liveUpdate(\''+id+'\')">'+esc(d.services||'')+'</textarea></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">💰 Pricing Notes</div><textarea class="ag-textarea" id="kb_pricing" style="min-height:60px" oninput="liveUpdate(\''+id+'\')">'+esc(d.pricing||'')+'</textarea></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">❓ FAQs (Q: … A: … format)</div><textarea class="ag-textarea" id="kb_faqs" oninput="liveUpdate(\''+id+'\')">'+esc(d.faqs||'')+'</textarea></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">📅 Booking Rules</div><input class="ag-input" id="kb_booking" value="'+esc(d.booking||'')+'" oninput="liveUpdate(\''+id+'\')"></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">📞 Escalation Contact</div><input class="ag-input" id="kb_escalation" value="'+esc(d.escalation||'')+'" oninput="liveUpdate(\''+id+'\')"></div>' +
+    '<div class="kb-field-group"><div class="kb-field-title">⭐ Google Review Link</div><input class="ag-input" id="kb_review" value="'+esc(d.review||'')+'" oninput="liveUpdate(\''+id+'\')"></div>';
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+window.liveUpdate = function(id) {
+  var fields = ['hours','services','pricing','faqs','booking','escalation','review'];
+  fields.forEach(function(f){
+    var el=document.getElementById('kb_'+f);
+    if(el) _kbData[id][f]=el.value;
+  });
+  var pct = calcCompleteness(id);
+  var fill=document.getElementById('complFill');
+  var pctEl=document.getElementById('complPct');
+  if(fill){fill.style.width=pct+'%';}
+  if(pctEl){pctEl.textContent=pct+'% complete';}
+};
+
+window.trainAI = function() {
+  if(!_activeBiz){AG.toast('Select a business first','error');return;}
+  var b = AD.businesses.find(function(x){return x.id===_activeBiz;})||{};
+  var fields=['hours','services','pricing','faqs','booking','escalation','review'];
+  fields.forEach(function(f){
+    var el=document.getElementById('kb_'+f);
+    if(el)_kbData[_activeBiz][f]=el.value;
+  });
+  var saved = AD.store.get('kb',{});
+  saved[_activeBiz]=_kbData[_activeBiz];
+  AD.store.set('kb',saved);
+  var btn=document.getElementById('trainBtn');
+  btn.textContent='Training…';btn.disabled=true;
+  setTimeout(function(){
+    btn.textContent='✅ Trained!';
+    AG.toast(b.name+' AI employees have been trained with the latest KB','success');
+    setTimeout(function(){btn.textContent='🧠 Train AI';btn.disabled=false;},2000);
+  },1500);
+};
+
+selectBiz(AD.businesses[0].id);
+</script>
+</body>
+</html>

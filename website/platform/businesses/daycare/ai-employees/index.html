@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Employees — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+.emp-detail { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); padding: 28px; }
+.emp-detail-hdr { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.emp-detail-av { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; color: #fff; }
+.emp-detail-name { font-size: 1.125rem; font-weight: 800; color: var(--t1); }
+.emp-detail-role { font-size: .8125rem; color: var(--t3); margin-top: 3px; }
+.services-list { display: flex; flex-direction: column; gap: 6px; }
+.svc-item { display: flex; align-items: center; gap: 8px; font-size: .8125rem; color: var(--t2); }
+.svc-item::before { content: '●'; font-size: .5rem; color: var(--c-blue); flex-shrink: 0; }
+@media (max-width: 900px) { .ai-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">AI Employees</h1>
+          <p class="page-sub">Manage your 3 active AI employees — Ava, Maya and Nova</p>
+        </div>
+        <div class="page-hdr-right">
+          <button class="btn btn--secondary" onclick="DR.showToast('Coming soon: Add custom AI employee')">+ Add Employee</button>
+          <button class="btn btn--primary" onclick="DR.showToast('All AI employees retrained with latest knowledge base')">Retrain All</button>
+        </div>
+      </div>
+
+      <!-- AI Employee Cards -->
+      <div class="ai-grid" id="aiGrid"></div>
+
+      <!-- Escalation Settings -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Escalation & Handover Rules</div><div class="card-sub">When AI employees escalate to your human team</div></div>
+          <button class="btn btn--primary btn--sm" onclick="DR.showToast('Escalation rules saved')">Save Changes</button>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Escalation Trigger</label>
+              <select class="form-select">
+                <option selected>Any of the following</option>
+                <option>Customer appears upset</option>
+                <option>After 2 failed answers</option>
+                <option>Customer requests human</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notification Email</label>
+              <input class="form-input" type="email" value="manager@sunshinenursery.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Handover Message</label>
+            <textarea class="form-textarea" rows="2">I'm connecting you to one of our team now. They'll be with you shortly — thank you for your patience!</textarea>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-title">24/7 AI Coverage</div><div class="toggle-sub">AI responds outside business hours; team follows up next working day</div></div>
+            <input type="checkbox" class="toggle-switch" checked>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-title">Instant Staff Notification</div><div class="toggle-sub">Email and WhatsApp alert when AI escalates to human</div></div>
+            <input type="checkbox" class="toggle-switch" checked>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-title">Safeguarding Auto-Escalation</div><div class="toggle-sub">Immediate escalation if safeguarding or emergency keywords detected</div></div>
+            <input type="checkbox" class="toggle-switch" checked>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit AI Modal -->
+      <div class="modal" id="editEmpModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-box">
+          <div class="modal-hdr">
+            <div class="modal-title" id="editEmpTitle">Edit AI Employee</div>
+            <button class="modal-close-btn" onclick="DR.closeModal('editEmpModal')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group"><label class="form-label">AI Name</label><input class="form-input" id="editEmpName" type="text"></div>
+            <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="editEmpRole" type="text"></div>
+            <div class="form-group"><label class="form-label">Greeting Message</label><textarea class="form-textarea" id="editEmpGreeting" rows="3"></textarea></div>
+            <div class="form-group">
+              <label class="form-label">Personality</label>
+              <select class="form-select" id="editEmpPersonality">
+                <option>Warm</option>
+                <option>Professional</option>
+                <option>Energetic</option>
+                <option>Empathetic</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Escalation Rule</label><textarea class="form-textarea" id="editEmpEsc" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn--ghost" onclick="DR.closeModal('editEmpModal')">Cancel</button>
+            <button class="btn btn--primary" onclick="saveEmp()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div class="panel-overlay"></div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Dashboard', href: '/platform/dashboard' },
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'AI Employees' }
+  ]
+});
+
+const D = window.DR_DATA;
+const COLORS = { ava: ['#7C3AED', '#4F46E5', 'purple'], maya: ['#2563EB', '#0EA5E9', 'blue'], nova: ['#059669', '#10B981', 'teal'] };
+
+document.getElementById('aiGrid').innerHTML = D.aiEmployees.map(a => {
+  const [c1, c2, col] = COLORS[a.id] || ['#374151', '#374151', 'gray'];
+  return `<div class="ai-emp-card">
+    <div class="ai-emp-hdr">
+      <div class="ai-emp-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${a.name.charAt(0)}</div>
+      <div>
+        <div class="ai-emp-name">${a.name}</div>
+        <div class="ai-emp-role">${a.role}</div>
+      </div>
+      <span class="badge badge--green" style="margin-left:auto">Active</span>
+    </div>
+    <div class="ai-emp-stats">
+      <div class="ai-emp-stat"><div class="ai-emp-stat-val">${a.stats.tasksCompleted}</div><div class="ai-emp-stat-lbl">Tasks Done</div></div>
+      <div class="ai-emp-stat"><div class="ai-emp-stat-val">${a.stats.accuracy}%</div><div class="ai-emp-stat-lbl">Accuracy</div></div>
+      <div class="ai-emp-stat"><div class="ai-emp-stat-val">${a.stats.avgResponseTime}</div><div class="ai-emp-stat-lbl">Avg Response</div></div>
+      <div class="ai-emp-stat"><div class="ai-emp-stat-val">${a.stats.leadsCreated}</div><div class="ai-emp-stat-lbl">Leads Created</div></div>
+    </div>
+    <div class="ai-emp-channels">
+      ${a.channels.map(c => `<span class="badge badge--${col}">${c}</span>`).join('')}
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:.71875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Services</div>
+      <div class="services-list">${a.services.map(s => `<div class="svc-item">${s}</div>`).join('')}</div>
+    </div>
+    <div style="font-size:.71875rem;color:var(--t3);margin-bottom:14px;background:var(--bg-3);border-radius:6px;padding:8px 10px;font-style:italic">
+      "${a.greeting}"
+    </div>
+    <div class="ai-emp-actions">
+      <button class="btn btn--secondary btn--sm" style="flex:1" onclick="editEmp('${a.id}')">Edit</button>
+      <button class="btn btn--ghost btn--sm" onclick="DR.showToast('${a.name} retraining scheduled')">Retrain</button>
+    </div>
+  </div>`;
+}).join('');
+
+function editEmp(id) {
+  const a = D.aiEmployees.find(e => e.id === id);
+  if (!a) return;
+  document.getElementById('editEmpTitle').textContent = `Edit ${a.name}`;
+  document.getElementById('editEmpName').value = a.name;
+  document.getElementById('editEmpRole').value = a.role;
+  document.getElementById('editEmpGreeting').value = a.greeting;
+  document.getElementById('editEmpPersonality').value = a.personality;
+  document.getElementById('editEmpEsc').value = a.escalationRule;
+  DR.openModal('editEmpModal');
+}
+
+function saveEmp() {
+  DR.closeModal('editEmpModal');
+  DR.showToast('AI employee updated successfully');
+}
+</script>
+</body>
+</html>

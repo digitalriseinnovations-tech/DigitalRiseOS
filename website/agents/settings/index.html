@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .settings-layout { display:grid;grid-template-columns:220px 1fr;gap:20px; }
+    @media(max-width:800px){.settings-layout{grid-template-columns:1fr}}
+    .settings-nav { display:flex;flex-direction:column;gap:2px; }
+    .s-nav-item { display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.875rem;font-weight:500;color:var(--t2);transition:all .1s; }
+    .s-nav-item:hover { background:var(--accent-bg);color:var(--accent); }
+    .s-nav-item.is-active { background:var(--accent-bg);color:var(--accent);font-weight:700; }
+    .s-section { display:none; }
+    .s-section.is-active { display:block; }
+    .settings-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px; }
+    .settings-card-title { font-size:.9375rem;font-weight:700;color:var(--t1);margin-bottom:4px; }
+    .settings-card-sub { font-size:.8125rem;color:var(--t3);margin-bottom:20px; }
+    .color-picker { width:40px;height:40px;border-radius:8px;border:2px solid var(--border);cursor:pointer;padding:0; }
+    .notification-row { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-s); }
+    .notification-row:last-child { border:none; }
+    .danger-zone { background:#FFF5F5;border:1.5px solid #FCA5A5;border-radius:var(--radius-lg);padding:20px; }
+    .plan-badge { display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),#818CF8);color:#fff;font-weight:700;font-size:.875rem;padding:8px 16px;border-radius:99px; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Settings</div>
+          <div class="ag-ph-sub">Manage your Digital Rise agency account and preferences</div>
+        </div>
+      </div>
+
+      <div class="settings-layout">
+        <!-- Nav -->
+        <div>
+          <div class="ag-card" style="padding:12px">
+            <div class="settings-nav">
+              <div class="s-nav-item is-active" data-sn="profile"  onclick="switchSection('profile',this)">👤 Agency Profile</div>
+              <div class="s-nav-item" data-sn="branding" onclick="switchSection('branding',this)">🎨 Branding</div>
+              <div class="s-nav-item" data-sn="billing"  onclick="switchSection('billing',this)">💳 Billing</div>
+              <div class="s-nav-item" data-sn="notifs"   onclick="switchSection('notifs',this)">🔔 Notifications</div>
+              <div class="s-nav-item" data-sn="security" onclick="switchSection('security',this)">🔒 Security</div>
+              <div class="s-nav-item" data-sn="demo"     onclick="switchSection('demo',this)">🔄 Demo & Reset</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections -->
+        <div>
+
+          <!-- Profile -->
+          <div class="s-section is-active" id="s_profile">
+            <div class="settings-card">
+              <div class="settings-card-title">Agency Profile</div>
+              <div class="settings-card-sub">Your agency information as shown to clients and on reports</div>
+              <div class="ag-form-row">
+                <div class="ag-form-group"><label class="ag-label">Agency Name</label><input class="ag-input" value="Digital Rise Agency"></div>
+                <div class="ag-form-group"><label class="ag-label">Owner Name</label><input class="ag-input" value="Alex Thompson"></div>
+              </div>
+              <div class="ag-form-row">
+                <div class="ag-form-group"><label class="ag-label">Email</label><input class="ag-input" type="email" value="alex@digitalrise.ca"></div>
+                <div class="ag-form-group"><label class="ag-label">Phone</label><input class="ag-input" value="+1 416-555-0100"></div>
+              </div>
+              <div class="ag-form-row">
+                <div class="ag-form-group"><label class="ag-label">Website</label><input class="ag-input" value="www.digitalrise.ca"></div>
+                <div class="ag-form-group"><label class="ag-label">Location</label><input class="ag-input" value="Toronto, ON, Canada"></div>
+              </div>
+              <div style="margin-top:4px;display:flex;justify-content:flex-end">
+                <button class="btn btn--primary" onclick="AG.toast('Profile saved!','success')">Save Changes</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Branding -->
+          <div class="s-section" id="s_branding">
+            <div class="settings-card">
+              <div class="settings-card-title">Branding</div>
+              <div class="settings-card-sub">Customise the platform colours and logo for a white-label experience</div>
+              <div class="ag-form-group">
+                <label class="ag-label">Primary Accent Colour</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+                  <input type="color" class="color-picker" id="accentPicker" value="#6366F1" onchange="previewAccent(this.value)">
+                  <input class="ag-input" id="accentHex" value="#6366F1" style="max-width:140px" oninput="previewAccent(this.value)">
+                  <button class="btn btn--ghost btn--sm" onclick="resetAccent()">Reset</button>
+                </div>
+              </div>
+              <div class="ag-form-group">
+                <label class="ag-label">Agency Logo</label>
+                <div style="width:100%;border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;color:var(--t4);font-size:.875rem;cursor:pointer" onclick="AG.toast('Logo upload coming soon','info')">
+                  <div style="font-size:2rem;margin-bottom:8px">🖼</div>
+                  Click to upload logo (PNG or SVG recommended)
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end">
+                <button class="btn btn--primary" onclick="saveBranding()">Save Branding</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Billing -->
+          <div class="s-section" id="s_billing">
+            <div class="settings-card">
+              <div class="settings-card-title">Billing & Plan</div>
+              <div class="settings-card-sub">Your current subscription and payment details</div>
+              <div style="display:flex;align-items:center;gap:16px;padding:20px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:12px;margin-bottom:16px">
+                <div class="plan-badge">⚡ Agency Pro</div>
+                <div>
+                  <div style="font-size:1.25rem;font-weight:800;color:var(--t1)">$497<span style="font-size:.875rem;font-weight:400;color:var(--t3)">/month</span></div>
+                  <div style="font-size:.75rem;color:var(--t3);margin-top:2px">Next billing: August 1, 2026</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;text-align:center">
+                <div style="padding:12px;background:var(--border-s);border-radius:10px"><div style="font-size:1.25rem;font-weight:800;color:var(--t1)">5</div><div style="font-size:.6875rem;color:var(--t3);margin-top:2px">Businesses</div></div>
+                <div style="padding:12px;background:var(--border-s);border-radius:10px"><div style="font-size:1.25rem;font-weight:800;color:var(--t1)">10</div><div style="font-size:.6875rem;color:var(--t3);margin-top:2px">AI Employees</div></div>
+                <div style="padding:12px;background:var(--border-s);border-radius:10px"><div style="font-size:1.25rem;font-weight:800;color:var(--t1)">Unlimited</div><div style="font-size:.6875rem;color:var(--t3);margin-top:2px">Conversations</div></div>
+              </div>
+              <div class="ag-divider"></div>
+              <div style="display:flex;gap:10px">
+                <button class="btn btn--ghost" onclick="AG.toast('Opening billing portal…','info')">📄 View Invoices</button>
+                <button class="btn btn--ghost" onclick="AG.toast('Opening payment settings…','info')">💳 Update Payment</button>
+                <button class="btn btn--primary" onclick="AG.toast('Upgrade options coming soon','info')">⬆ Upgrade Plan</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div class="s-section" id="s_notifs">
+            <div class="settings-card">
+              <div class="settings-card-title">Notifications</div>
+              <div class="settings-card-sub">Choose which events trigger alerts</div>
+              <div id="notifList"></div>
+              <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                <button class="btn btn--primary" onclick="AG.toast('Notification preferences saved!','success')">Save Preferences</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="s-section" id="s_security">
+            <div class="settings-card">
+              <div class="settings-card-title">Security</div>
+              <div class="settings-card-sub">Manage login credentials and access</div>
+              <div class="ag-form-group"><label class="ag-label">Current Password</label><input class="ag-input" type="password" placeholder="Enter current password"></div>
+              <div class="ag-form-group"><label class="ag-label">New Password</label><input class="ag-input" type="password" placeholder="New password"></div>
+              <div class="ag-form-group"><label class="ag-label">Confirm New Password</label><input class="ag-input" type="password" placeholder="Confirm new password"></div>
+              <div style="display:flex;justify-content:flex-end">
+                <button class="btn btn--primary" onclick="AG.toast('Password updated!','success')">Update Password</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Demo -->
+          <div class="s-section" id="s_demo">
+            <div class="settings-card">
+              <div class="settings-card-title">Demo Mode</div>
+              <div class="settings-card-sub">This is a demo deployment. Toggle dark mode or reset all demo data below.</div>
+              <div class="notification-row">
+                <div><div style="font-size:.875rem;font-weight:600;color:var(--t1)">Dark Mode</div><div style="font-size:.75rem;color:var(--t3)">Toggle light/dark theme</div></div>
+                <label class="ag-toggle"><input type="checkbox" id="darkToggle" onchange="AG.toggleTheme()"><span class="ag-toggle-slider"></span></label>
+              </div>
+            </div>
+            <div class="danger-zone">
+              <div style="font-size:.875rem;font-weight:700;color:#DC2626;margin-bottom:6px">Danger Zone</div>
+              <div style="font-size:.8125rem;color:#991B1B;margin-bottom:16px">These actions reset demo data. Use for client presentations or demos only.</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn--sm" style="background:#DC2626;color:#fff;border-color:#DC2626" onclick="resetDemo()">🔄 Reset All Demo Data</button>
+                <button class="btn btn--ghost btn--sm" onclick="AG.toast('localStorage cleared','info')">🗑 Clear Local Storage</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'settings' });
+
+/* section switcher */
+window.switchSection = function(id, btn) {
+  document.querySelectorAll('.s-section').forEach(function(el){el.classList.remove('is-active');});
+  document.querySelectorAll('.s-nav-item').forEach(function(el){el.classList.remove('is-active');});
+  var sec = document.getElementById('s_'+id);
+  if(sec) sec.classList.add('is-active');
+  if(btn) btn.classList.add('is-active');
+};
+
+/* notifications */
+var NOTIFS = [
+  {id:'n1', label:'New Lead Captured',      sub:'When AI captures a new lead',          on:true},
+  {id:'n2', label:'Booking Confirmed',       sub:'When a booking is confirmed',          on:true},
+  {id:'n3', label:'Negative Feedback Alert', sub:'When a customer rating is 3 or below', on:true},
+  {id:'n4', label:'Review Received',         sub:'When a Google review comes in',        on:false},
+  {id:'n5', label:'Automation Failed',       sub:'When an automation run encounters error',on:true},
+  {id:'n6', label:'Weekly Summary',          sub:'Monday morning performance digest',    on:true},
+];
+var _notifStates = {};
+NOTIFS.forEach(function(n){_notifStates[n.id]=n.on;});
+
+document.getElementById('notifList').innerHTML = NOTIFS.map(function(n){
+  return '<div class="notification-row">' +
+    '<div><div style="font-size:.875rem;font-weight:600;color:var(--t1)">'+n.label+'</div><div style="font-size:.75rem;color:var(--t3)">'+n.sub+'</div></div>' +
+    '<label class="ag-toggle"><input type="checkbox" '+(n.on?'checked':'')+' onchange="_notifStates[\''+n.id+'\']=this.checked"><span class="ag-toggle-slider"></span></label>' +
+  '</div>';
+}).join('');
+
+/* branding */
+window.previewAccent = function(val) {
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    document.documentElement.style.setProperty('--accent',val);
+    document.getElementById('accentPicker').value=val;
+    document.getElementById('accentHex').value=val;
+  }
+};
+window.resetAccent = function() { previewAccent('#6366F1'); };
+window.saveBranding = function() { AG.toast('Branding saved!','success'); };
+
+/* dark toggle */
+var isDark = AG.getTheme()==='dark';
+var dt = document.getElementById('darkToggle');
+if(dt) dt.checked = isDark;
+
+/* demo reset */
+window.resetDemo = function() {
+  if(confirm('Reset all demo data? This will clear localStorage and reload.')) {
+    ['businesses','employees','kb'].forEach(function(k){AD.store.set(k,null);});
+    localStorage.clear();
+    AG.toast('Demo data reset!','success');
+    setTimeout(function(){window.location.reload();},1000);
+  }
+};
+</script>
+</body>
+</html>

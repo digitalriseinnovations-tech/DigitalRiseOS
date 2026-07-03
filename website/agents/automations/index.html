@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automations — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .auto-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;transition:all .15s; }
+    .auto-card:hover { border-color:var(--accent-light,#C7D2FE); }
+    .auto-card.is-paused { opacity:.6; }
+    .trigger-label { font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4);margin-bottom:3px; }
+    .trigger-val { font-size:.8125rem;color:var(--t2); }
+    .ch-chips { display:flex;gap:4px;flex-wrap:wrap;margin-top:8px; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Automations</div>
+          <div class="ag-ph-sub">10 workflows — managing lead capture, follow-ups, bookings, and reviews</div>
+        </div>
+        <div class="ag-ph-actions">
+          <button class="btn btn--primary" onclick="AG.toast('Opening workflow builder…','info')">+ New Workflow</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="autoStats"></div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm is-active" data-af="all"    onclick="filterAuto('all',this)">All (10)</button>
+        <button class="btn btn--ghost btn--sm" data-af="active"  onclick="filterAuto('active',this)">Active (9)</button>
+        <button class="btn btn--ghost btn--sm" data-af="paused"  onclick="filterAuto('paused',this)">Paused (1)</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px" id="autoList"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Workflow detail modal -->
+<div class="ag-modal" id="autoModal">
+  <div class="ag-modal-box" style="max-width:520px">
+    <div class="ag-modal-hd">
+      <div class="ag-modal-title" id="autoModalTitle">Workflow</div>
+      <button class="ag-modal-close" onclick="AG.closeModal('autoModal')">✕</button>
+    </div>
+    <div class="ag-modal-body" id="autoModalBody"></div>
+    <div class="ag-modal-ft">
+      <button class="btn btn--ghost" onclick="AG.closeModal('autoModal')">Close</button>
+      <button class="btn btn--primary" onclick="AG.toast('Opening editor…','info')">✏ Edit Workflow</button>
+    </div>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'automations' });
+
+var totalRuns = AD.automations.reduce(function(s,a){return s+a.runs;},0);
+document.getElementById('autoStats').innerHTML = [
+  {label:'Total Automations', val:AD.automations.length,                                                     col:'var(--accent)', ico:'⚡'},
+  {label:'Active',            val:AD.automations.filter(function(a){return a.status==='active';}).length,    col:'var(--green)',  ico:'✅'},
+  {label:'Total Runs',        val:totalRuns,                                                                 col:'var(--blue)',   ico:'🔄'},
+  {label:'Paused',            val:AD.automations.filter(function(a){return a.status==='paused';}).length,   col:'var(--amber)',  ico:'⏸'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+var _af = 'all';
+var _autoStates = {};
+AD.automations.forEach(function(a){ _autoStates[a.id] = a.status; });
+
+function filterAuto(f, btn) {
+  if(btn){ document.querySelectorAll('[data-af]').forEach(function(b){b.classList.remove('is-active');}); btn.classList.add('is-active'); }
+  _af = f||_af;
+  renderAutos();
+}
+window.filterAuto = filterAuto;
+
+function renderAutos() {
+  var list = AD.automations.filter(function(a){ return _af==='all'||_autoStates[a.id]===_af; });
+  document.getElementById('autoList').innerHTML = list.map(function(a){
+    var isActive = _autoStates[a.id]==='active';
+    var chHtml = a.channels.map(function(c){return AG.chBadge(c);}).join(' ');
+    return '<div class="auto-card'+(isActive?'':' is-paused')+'">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">' +
+        '<div style="flex:1;cursor:pointer" onclick="openAutoModal(\''+a.id+'\')">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+            '<div style="width:32px;height:32px;border-radius:8px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0">⚡</div>' +
+            '<div style="font-size:.9375rem;font-weight:700;color:var(--t1)">'+a.name+'</div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">' +
+            '<div><div class="trigger-label">Trigger</div><div class="trigger-val">'+a.trigger+'</div></div>' +
+            '<div><div class="trigger-label">Action</div><div class="trigger-val">'+a.action+'</div></div>' +
+          '</div>' +
+          '<div class="ch-chips">'+chHtml+'</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">' +
+          '<label class="ag-toggle" title="'+(isActive?'Pause':'Activate')+' automation">' +
+            '<input type="checkbox" '+(isActive?'checked':'')+' onchange="toggleAuto(\''+a.id+'\',this.checked)">' +
+            '<span class="ag-toggle-slider"></span>' +
+          '</label>' +
+          '<div style="text-align:right">' +
+            '<div style="font-size:1rem;font-weight:800;color:var(--t1)">'+a.runs+'</div>' +
+            '<div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">total runs</div>' +
+          '</div>' +
+          '<div style="font-size:.6875rem;color:var(--t4)">Last: '+a.lastRun+'</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  if(!list.length) document.getElementById('autoList').innerHTML='<div class="ag-empty"><div class="ag-empty-ico">⚡</div><div class="ag-empty-title">No automations found</div></div>';
+}
+renderAutos();
+
+window.toggleAuto = function(id, on) {
+  _autoStates[id] = on ? 'active' : 'paused';
+  var a = AD.automations.find(function(x){return x.id===id;});
+  AG.toast((a?a.name:'Automation')+' '+(on?'activated':'paused'), on?'success':'info');
+  renderAutos();
+};
+
+window.openAutoModal = function(id) {
+  var a = AD.automations.find(function(x){return x.id===id;});
+  if(!a) return;
+  document.getElementById('autoModalTitle').textContent = a.name;
+  document.getElementById('autoModalBody').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">' +
+      [['Status',_autoStates[a.id]],['Total Runs',a.runs],['Last Run',a.lastRun],['Channels',a.channels.join(', ')]].map(function(kv){
+        return '<div><div style="font-size:.625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">'+kv[0]+'</div><div style="font-size:.875rem;color:var(--t1);margin-top:2px">'+kv[1]+'</div></div>';
+      }).join('') +
+    '</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:6px">TRIGGER</div>' +
+    '<div style="padding:12px;background:#EEF2FF;border-radius:8px;font-size:.875rem;color:var(--t1);margin-bottom:12px">🎯 '+a.trigger+'</div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:6px">ACTION</div>' +
+    '<div style="padding:12px;background:#D1FAE5;border-radius:8px;font-size:.875rem;color:var(--t1)">⚡ '+a.action+'</div>';
+  AG.openModal('autoModal');
+};
+</script>
+</body>
+</html>

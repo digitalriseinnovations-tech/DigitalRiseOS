@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .staff-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px; }
+    .staff-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px;transition:border-color .15s,box-shadow .15s; }
+    .staff-card:hover { border-color:var(--accent);box-shadow:0 4px 20px rgba(124,58,237,.08); }
+    .staff-card-head { display:flex;align-items:center;gap:12px;margin-bottom:16px; }
+    .staff-name { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .staff-role { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .staff-room-badge { display:inline-block;padding:3px 8px;border-radius:6px;font-size:.6875rem;font-weight:600;background:var(--accent-bg);color:var(--accent);margin-top:4px; }
+    .staff-stat-row { display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--s2);font-size:.8125rem; }
+    .staff-stat-row:last-child { border-bottom:none; }
+    .task-list { display:flex;flex-direction:column;gap:8px;margin-top:12px; }
+    .task-item { display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--s1);border-radius:8px;font-size:.8125rem; }
+    .task-check { width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s; }
+    .task-check.is-done { background:var(--accent);border-color:var(--accent); }
+    .task-check.is-done svg { color:#fff; }
+    .task-check svg { width:11px;height:11px;color:transparent; }
+    .task-text { flex:1;color:var(--t2); }
+    .task-text.is-done { text-decoration:line-through;color:var(--t4); }
+
+    .rooms-section { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px; }
+    .room-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px; }
+    .room-card { border:1.5px solid var(--border);border-radius:10px;padding:14px; }
+    .room-name { font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:6px; }
+    .room-occupancy { display:flex;align-items:center;gap:8px;margin-bottom:10px; }
+    .room-occ-bar { flex:1;height:6px;background:var(--s3);border-radius:99px;overflow:hidden; }
+    .room-occ-fill { height:100%;border-radius:99px;background:var(--accent); }
+    .room-staff { font-size:.75rem;color:var(--t3); }
+    .side-panel { position:fixed;top:0;right:-500px;width:480px;max-width:100vw;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column; }
+    #panelOverlay { position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:199;opacity:0;pointer-events:none;transition:opacity .25s; }
+    .form-label { display:block;font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em; }
+    .form-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--card-bg);color:var(--t1);outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .form-input:focus { border-color:var(--accent); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Staff</h1>
+            <p class="page-sub">6 staff members · 4 rooms</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Schedule view coming soon','info')">Schedule View</button>
+            <button class="btn btn--primary" onclick="openAddStaff()">+ Add Staff</button>
+          </div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="kpi-grid" style="--kpi-cols:4;margin-bottom:24px" id="staffKpis"></div>
+
+        <!-- Room Assignments -->
+        <div class="rooms-section" style="margin-bottom:24px">
+          <div class="card-header" style="padding:0 0 16px">
+            <div class="card-title">Room Assignments</div>
+          </div>
+          <div class="room-grid" id="roomGrid"></div>
+        </div>
+
+        <!-- Staff Cards -->
+        <div class="staff-grid" id="staffGrid"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Staff Detail Panel -->
+  <div class="side-panel" id="staffDetailPanel" style="position:fixed;top:0;right:-500px;width:480px;max-width:100vw;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:2;">
+      <div style="font-size:1rem;font-weight:700;color:var(--t1)" id="sdpName">Staff Profile</div>
+      <button style="width:32px;height:32px;border-radius:8px;border:none;background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3)" onclick="closePanel('staffDetailPanel')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:24px;flex:1" id="sdpBody"></div>
+  </div>
+
+  <!-- Add Staff Panel -->
+  <div class="side-panel" id="addStaffPanel" style="position:fixed;top:0;right:-500px;width:480px;max-width:100vw;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:2;">
+      <div style="font-size:1rem;font-weight:700;color:var(--t1)">Add New Staff Member</div>
+      <button style="width:32px;height:32px;border-radius:8px;border:none;background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3)" onclick="closePanel('addStaffPanel')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:24px;flex:1">
+      <div id="addStaffForm">
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" id="sf-name" type="text" placeholder="e.g. Jane Smith">
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Role *</label>
+          <select class="form-input" id="sf-role">
+            <option value="">Select role…</option>
+            <option>Early Years Educator</option>
+            <option>Room Lead</option>
+            <option>Nursery Manager</option>
+            <option>Deputy Manager</option>
+            <option>SENCO</option>
+            <option>Infant Specialist</option>
+            <option>Toddler Teacher</option>
+            <option>Preschool Teacher</option>
+            <option>Teaching Assistant</option>
+            <option>Cook</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Assigned Room *</label>
+          <select class="form-input" id="sf-room">
+            <option value="">Select room…</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="form-group">
+            <label class="form-label">Hours / Week</label>
+            <input class="form-input" id="sf-hours" type="number" min="1" max="60" value="40">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input class="form-input" id="sf-start" type="date">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Qualifications</label>
+          <input class="form-input" id="sf-qual" type="text" placeholder="e.g. ECE Level 3, First Aid Trained">
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="sf-phone" type="tel" placeholder="e.g. +1 780 555 0200">
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="sf-email" type="email" placeholder="jane@sunshinenursery.com">
+        </div>
+        <div class="form-group" style="margin-bottom:24px">
+          <label class="form-label">Notes</label>
+          <textarea class="form-input" id="sf-notes" rows="3" placeholder="Any additional notes…" style="resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn--primary" style="flex:1" onclick="submitAddStaff()">Add Staff Member</button>
+          <button class="btn btn--ghost" onclick="closePanel('addStaffPanel')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panelOverlay" onclick="closePanel()"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'staff' });
+
+    var _staffList = DC.staff.slice();
+    var _activePanel = null;
+
+    function openPanel(id) {
+      closePanel();
+      _activePanel = id;
+      var el = document.getElementById(id);
+      if(el) { el.style.right = '0'; document.getElementById('panelOverlay').style.opacity='1'; document.getElementById('panelOverlay').style.pointerEvents='all'; }
+    }
+    function closePanel(id) {
+      var targets = id ? [id] : ['staffDetailPanel','addStaffPanel'];
+      targets.forEach(function(t){ var el=document.getElementById(t); if(el) el.style.right='-500px'; });
+      var ov=document.getElementById('panelOverlay'); ov.style.opacity='0'; ov.style.pointerEvents='none';
+      _activePanel=null;
+    }
+
+    function renderAll() {
+      renderKpis(); renderRooms(); renderStaffGrid();
+    }
+
+    function renderKpis() {
+      document.getElementById('staffKpis').innerHTML = [
+        { label:'Total Staff',   value:_staffList.length,                              color:'purple' },
+        { label:'On Duty Today', value:DC.kpis.staffOnDuty,                            color:'green'  },
+        { label:'Tasks Today',   value:_staffList.reduce(function(s,m){return s+(m.tasks?m.tasks.length:0);},0), color:'blue' },
+        { label:'Avg Ratio',     value:'1:'+Math.ceil(DC.kpis.enrolled/_staffList.length), color:'teal' },
+      ].map(function(k){
+        return '<div class="kpi-card"><div class="kpi-top"><div class="kpi-ico kpi-ico--'+k.color+'">&#128105;&#8205;&#127979;</div></div><div class="kpi-value">'+k.value+'</div><div class="kpi-label">'+k.label+'</div></div>';
+      }).join('');
+    }
+
+    function renderRooms() {
+      document.getElementById('roomGrid').innerHTML = DC.rooms.map(function(r){
+        var pct = Math.round((r.enrolled/r.capacity)*100);
+        var roomStaff = _staffList.filter(function(s){return s.room===r.name;});
+        return '<div class="room-card">'+
+          '<div class="room-name">'+r.name+' <span style="font-size:.75rem;font-weight:400;color:var(--t3)">(Ages '+r.ageRange+')</span></div>'+
+          '<div class="room-occupancy"><div class="room-occ-bar"><div class="room-occ-fill" style="width:'+pct+'%"></div></div>'+
+          '<span style="font-size:.75rem;font-weight:600;color:var(--t2)">'+r.enrolled+'/'+r.capacity+'</span></div>'+
+          '<div class="room-staff">'+(roomStaff.map(function(s){return '&#128105;&#8205;&#127979; '+s.name;}).join(' &middot; ') || 'No staff assigned')+'</div></div>';
+      }).join('');
+    }
+
+    var _taskDone = {};
+    function renderStaffGrid() {
+      document.getElementById('staffGrid').innerHTML = _staffList.map(function(s){
+        var ini = s.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+        var qual = (s.qualifications||'').split(',')[0];
+        return '<div class="staff-card" onclick="openStaffDetail(\''+s.id+'\')" style="cursor:pointer">'+
+          '<div class="staff-card-head">'+
+            '<div class="av av-lg av--'+CL.avatarColor(s.name)+'">'+ini+'</div>'+
+            '<div><div class="staff-name">'+s.name+'</div><div class="staff-role">'+s.role+'</div>'+
+            '<span class="staff-room-badge">'+s.room+'</span></div>'+
+          '</div>'+
+          '<div class="staff-stat-row"><span style="color:var(--t3)">Qualification</span><span style="font-weight:600;color:var(--t1)">'+qual+'</span></div>'+
+          '<div class="staff-stat-row"><span style="color:var(--t3)">Hours/Week</span><span style="font-weight:600;color:var(--t1)">'+(s.hoursPerWeek||40)+'h</span></div>'+
+          '<div class="staff-stat-row"><span style="color:var(--t3)">Start Date</span><span style="font-weight:600;color:var(--t1)">'+(s.startDate||'—')+'</span></div>'+
+          '<div style="font-size:.75rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-top:14px;margin-bottom:6px">Today\'s Tasks</div>'+
+          '<div class="task-list">'+
+          (s.tasks||[]).map(function(task,i){
+            var key=s.id+'-'+i;
+            return '<div class="task-item">'+
+              '<div class="task-check'+(_taskDone[key]?' is-done':'')+'" id="chk-'+key+'" onclick="event.stopPropagation();toggleTask(\''+s.id+'\','+i+')">'+
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+
+              '</div>'+
+              '<span class="task-text'+(_taskDone[key]?' is-done':'')+'" id="task-'+key+'">'+task+'</span>'+
+            '</div>';
+          }).join('')+
+          '</div></div>';
+      }).join('');
+    }
+
+    window.toggleTask = function(staffId, taskIdx) {
+      var key = staffId+'-'+taskIdx;
+      _taskDone[key] = !_taskDone[key];
+      var done = _taskDone[key];
+      var chk = document.getElementById('chk-'+key);
+      var txt = document.getElementById('task-'+key);
+      if(chk) chk.classList.toggle('is-done',done);
+      if(txt) txt.classList.toggle('is-done',done);
+      CL.showToast(done ? 'Task marked complete' : 'Task unmarked', 'success');
+    };
+
+    window.openStaffDetail = function(id) {
+      var s = _staffList.find(function(x){return x.id===id;});
+      if(!s) return;
+      var ini = s.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+      document.getElementById('sdpName').textContent = s.name;
+      document.getElementById('sdpBody').innerHTML =
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">'+
+          '<div class="av" style="width:64px;height:64px;border-radius:16px;font-size:1.5rem;font-weight:700;background:var(--accent-bg);color:var(--accent)">'+ini+'</div>'+
+          '<div><div style="font-size:1.125rem;font-weight:700;color:var(--t1)">'+s.name+'</div>'+
+          '<div style="font-size:.875rem;color:var(--t3)">'+s.role+' &middot; '+s.room+'</div></div>'+
+        '</div>'+
+        '<div style="margin-bottom:20px">'+
+          [['Assigned Room',s.room],['Qualifications',s.qualifications||'—'],['Hours / Week',(s.hoursPerWeek||40)+'h'],
+           ['Start Date',s.startDate||'—'],['Phone',s.phone||'—'],['Email',s.email||'—']].map(function(row){
+            return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s2);font-size:.875rem">'+
+              '<span style="color:var(--t3);font-weight:500">'+row[0]+'</span>'+
+              '<span style="color:var(--t1);font-weight:600;text-align:right;max-width:60%">'+row[1]+'</span></div>';
+          }).join('')+
+        '</div>'+
+        '<div style="font-size:.75rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Today\'s Tasks</div>'+
+        '<div>'+(s.tasks||[]).map(function(t,i){
+          return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--s2);font-size:.8125rem;color:var(--t2)">'+
+            '<input type="checkbox" style="accent-color:var(--accent);width:15px;height:15px" onchange="CL.showToast(this.checked?\'Complete\':\'Reopened\',\'success\')">'+
+            '<span>'+t+'</span></div>';
+        }).join('')+'</div>'+
+        '<div style="margin-top:20px;display:flex;gap:8px">'+
+          '<button class="btn btn--primary" style="flex:1" onclick="CL.showToast(\'Message sent to '+s.name.split(' ')[0]+'\',\'success\')">Message</button>'+
+          '<button class="btn btn--ghost" onclick="CL.showToast(\'Coming soon\',\'info\')">Edit Profile</button>'+
+        '</div>';
+      openPanel('staffDetailPanel');
+    };
+
+    window.openAddStaff = function() {
+      var roomSel = document.getElementById('sf-room');
+      roomSel.innerHTML = '<option value="">Select room…</option>';
+      DC.rooms.forEach(function(r){ roomSel.innerHTML += '<option>'+r.name+'</option>'; });
+      document.getElementById('sf-name').value='';
+      document.getElementById('sf-role').value='';
+      document.getElementById('sf-qual').value='';
+      document.getElementById('sf-phone').value='';
+      document.getElementById('sf-email').value='';
+      document.getElementById('sf-notes').value='';
+      document.getElementById('sf-hours').value='40';
+      document.getElementById('sf-start').value=new Date().toISOString().split('T')[0];
+      openPanel('addStaffPanel');
+    };
+
+    window.submitAddStaff = function() {
+      var name  = document.getElementById('sf-name').value.trim();
+      var role  = document.getElementById('sf-role').value;
+      var room  = document.getElementById('sf-room').value;
+      if(!name) { CL.showToast('Please enter the staff member\'s name','error'); return; }
+      if(!role) { CL.showToast('Please select a role','error'); return; }
+      if(!room) { CL.showToast('Please assign a room','error'); return; }
+      var newStaff = {
+        id: 's'+(Date.now()),
+        name: name,
+        role: role,
+        room: room,
+        qualifications: document.getElementById('sf-qual').value.trim() || 'To be confirmed',
+        hoursPerWeek: parseInt(document.getElementById('sf-hours').value)||40,
+        startDate: document.getElementById('sf-start').value || new Date().toISOString().split('T')[0],
+        phone: document.getElementById('sf-phone').value.trim(),
+        email: document.getElementById('sf-email').value.trim(),
+        tasks: ['Complete daily register','Review room risk assessment','Update learning journals'],
+      };
+      _staffList.push(newStaff);
+      renderAll();
+      closePanel('addStaffPanel');
+      CL.showToast(name+' added to the team!', 'success');
+    };
+
+    renderAll();
+  </script>
+</body>
+</html>

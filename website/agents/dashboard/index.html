@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Digital Rise AI Agents</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px; }
+    @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
+    .act-row { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-s); }
+    .act-row:last-child { border:none }
+    .act-ico { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0; }
+    .act-msg { font-size:.8125rem;color:var(--t2);flex:1;line-height:1.4; }
+    .act-time { font-size:.6875rem;color:var(--t4);white-space:nowrap; }
+    .act-biz { font-size:.5625rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 6px;border-radius:4px;white-space:nowrap; }
+    .biz-row { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-s); }
+    .biz-row:last-child { border:none }
+    .qa-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
+    @media(max-width:700px){.qa-grid{grid-template-columns:repeat(2,1fr)}}
+    .qa-btn { display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 10px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;transition:all .15s;text-decoration:none;font-size:.6875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;text-align:center; }
+    .qa-btn:hover { border-color:var(--accent);background:var(--accent-bg);color:var(--accent) }
+    .qa-ico { font-size:1.5rem }
+    .q-bar { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-s); }
+    .q-bar:last-child { border:none }
+    .q-fill { height:5px;border-radius:99px;background:var(--accent);transition:width .6s ease }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title" id="dashGreeting">Digital Rise — AI Agent Command Centre</div>
+          <div class="ag-ph-sub">Website Enquiry Agent live across 5 businesses · Real-time activity</div>
+        </div>
+        <div class="ag-ph-actions">
+          <a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost">🧪 Test Agent</a>
+          <a href="/agents/agent-website-enquiry/business-config" class="btn btn--primary">⚙ Configure</a>
+        </div>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <!-- Row 1 -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd">
+            <div><div class="ag-card-title">Recent Agent Activity</div><div class="ag-card-sub">Live feed — all businesses</div></div>
+            <a href="/agents/agent-website-enquiry/leads" class="ag-card-action">View Leads →</a>
+          </div>
+          <div id="actList"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd">
+            <div class="ag-card-title">Top Questions Asked</div>
+            <a href="/agents/agent-website-enquiry/analytics" class="ag-card-action">Analytics →</a>
+          </div>
+          <div id="qList"></div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd">
+            <div><div class="ag-card-title">Top Performing Businesses</div><div class="ag-card-sub">By leads captured this month</div></div>
+          </div>
+          <div id="bizPerf"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd">
+            <div class="ag-card-title">Agent Status</div>
+          </div>
+          <div id="agentStatus"></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="ag-card ag-section">
+        <div class="ag-card-title" style="margin-bottom:14px">Quick Actions</div>
+        <div class="qa-grid">
+          <a href="/agents/agent-website-enquiry/business-config" class="qa-btn"><span class="qa-ico">⚙</span>Configure Business</a>
+          <a href="/agents/agent-website-enquiry/tester" class="qa-btn"><span class="qa-ico">🧪</span>Open Agent Tester</a>
+          <a href="/agents/agent-website-enquiry/leads" class="qa-btn"><span class="qa-ico">👤</span>View Leads</a>
+          <a href="/agents/agent-website-enquiry/knowledge-base" class="qa-btn"><span class="qa-ico">🧠</span>Edit Knowledge Base</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page:'dashboard' });
+
+var h=new Date().getHours();
+document.getElementById('dashGreeting').textContent=(h<12?'Good morning':'h<17?Good afternoon':'Good evening').replace('h<17?','')+(', Digital Rise — AI Agent Command Centre');
+/* simple greeting */
+var gr=document.getElementById('dashGreeting');
+gr.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', Digital Rise — AI Agent Command Centre';
+
+/* KPIs */
+var KPIS=[
+  {label:'Active Businesses',       val:AD.kpis.activeBusinesses,       delta:'↑ +1 this month',           ico:'🏢', col:'var(--accent)'},
+  {label:'Enquiry Agents Live',     val:AD.kpis.agentsLive,             delta:'All 5 businesses live',      ico:'🤖', col:'var(--green)'},
+  {label:'Conversations Handled',   val:AD.kpis.conversationsHandled,   delta:'↑ +47 this week',           ico:'💬', col:'var(--blue)'},
+  {label:'Leads Captured',          val:AD.kpis.leadsCaptured,          delta:'↑ +12 this week',           ico:'👤', col:'#7C3AED'},
+  {label:'Qualified Leads',         val:AD.kpis.qualifiedLeads,         delta:'63% qualification rate',     ico:'🎯', col:'var(--green)'},
+  {label:'Avg Response Time',       val:AD.kpis.avgResponseTime,        delta:'vs 4–8hrs industry average', ico:'⚡', col:'var(--accent)'},
+  {label:'Conversion to Booking',   val:AD.kpis.conversionToBooking,    delta:'Enquiry → booked action',   ico:'📅', col:'var(--amber)'},
+  {label:'Needs Setup',             val:AD.kpis.needsSetup,             delta:'1 business at 55% setup',   ico:'⚠', col:'var(--red)'},
+];
+document.getElementById('kpiGrid').innerHTML=KPIS.map(function(k){
+  return '<div class="ag-stat" style="border-left:3px solid '+k.col+'">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+    '<div class="ag-stat-label">'+k.label+'</div><div style="font-size:1.25rem">'+k.ico+'</div></div>'+
+    '<div class="ag-stat-val">'+k.val+'</div>'+
+    '<div style="font-size:.6875rem;color:var(--t3);margin-top:5px">'+k.delta+'</div>'+
+    '</div>';
+}).join('');
+
+/* Activity */
+var actBg={lead:'var(--accent-bg)',faq:'var(--green-bg)',booking:'#EDE9FE',callback:'var(--amber-bg)',training:'var(--border-s)'};
+document.getElementById('actList').innerHTML=AD.recentActivity.map(function(a){
+  return '<div class="act-row"><div class="act-ico" style="background:'+(actBg[a.type]||'var(--border-s)')+'">'+a.ico+'</div>'+
+    '<div class="act-msg">'+a.msg+'</div>'+
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'+
+    '<div class="act-time">'+a.time+'</div><div class="act-biz">'+a.biz+'</div></div></div>';
+}).join('');
+
+/* Top questions */
+document.getElementById('qList').innerHTML=AD.topQuestions.map(function(q){
+  return '<div class="q-bar"><div style="flex:1;min-width:0">'+
+    '<div style="font-size:.8125rem;color:var(--t1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+q.q+'</div>'+
+    '<div style="background:var(--border-s);height:5px;border-radius:99px;overflow:hidden">'+
+    '<div class="q-fill" style="width:'+q.pct+'%"></div></div></div>'+
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);flex-shrink:0;margin-left:8px">'+q.count+'</div></div>';
+}).join('');
+
+/* Top businesses */
+var sorted=AD.businesses.map(function(b){
+  return Object.assign({},b,{stats:AD.agentStats[b.id]||{}});
+}).sort(function(a,b){return (b.stats.leads||0)-(a.stats.leads||0);});
+document.getElementById('bizPerf').innerHTML=sorted.map(function(b,i){
+  var st=b.stats;
+  return '<div class="biz-row">'+
+    '<div style="width:20px;text-align:center;font-size:.75rem;font-weight:700;color:var(--t4)">'+(i+1)+'</div>'+
+    '<div class="av av-sm" style="background:'+b.color+'">'+b.initial+'</div>'+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-size:.875rem;font-weight:600;color:var(--t1)">'+b.name+'</div>'+
+      '<div style="font-size:.6875rem;color:var(--t3)">'+b.industry+' · '+st.conversations+' conversations</div>'+
+    '</div>'+
+    '<div style="text-align:right">'+
+      '<div style="font-size:.9375rem;font-weight:800;color:var(--t1)">'+st.leads+'</div>'+
+      '<div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">leads</div>'+
+    '</div>'+
+    '<div style="text-align:right;margin-left:12px">'+
+      '<div style="font-size:.875rem;font-weight:700;color:var(--green)">'+st.conversion+'%</div>'+
+      '<div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">convert</div>'+
+    '</div>'+
+  '</div>';
+}).join('');
+
+/* Agent status */
+document.getElementById('agentStatus').innerHTML=
+  '<div style="text-align:center;padding:20px 0 10px">'+
+    '<div style="font-size:2.5rem;margin-bottom:8px">🤖</div>'+
+    '<div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px">Website Enquiry Agent</div>'+
+    '<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px">'+
+      '<div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div>'+
+      '<span style="font-size:.8125rem;font-weight:700;color:var(--green)">Live across 5 businesses</span>'+
+    '</div>'+
+  '</div>'+
+  '<div class="ag-divider" style="margin:0 0 14px"></div>'+
+  [
+    ['Conversations today','47','💬'],['Leads today','8','👤'],['FAQ resolution','78%','✅'],['Avg response','9s','⚡'],
+  ].map(function(s){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-s)">'+
+      '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:.875rem">'+s[2]+'</span><span style="font-size:.8125rem;color:var(--t2)">'+s[0]+'</span></div>'+
+      '<span style="font-size:.875rem;font-weight:700;color:var(--t1)">'+s[1]+'</span></div>';
+  }).join('')+
+  '<div class="ag-divider" style="margin:14px 0 10px"></div>'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    '<a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost btn--sm btn--full">🧪 Test Agent</a>'+
+    '<a href="/agents/agent-website-enquiry/overview" class="btn btn--primary btn--sm btn--full">View Details →</a>'+
+  '</div>';
+</script>
+</body>
+</html>

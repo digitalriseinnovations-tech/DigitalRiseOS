@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Enquiry Agent — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .hero-agent { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:var(--radius-lg);padding:32px;margin-bottom:24px;display:flex;align-items:center;gap:24px; }
+    @media(max-width:700px){.hero-agent{flex-direction:column;text-align:center}}
+    .agent-avatar { width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0; }
+    .flow-step { display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-s); }
+    .flow-step:last-child { border:none }
+    .flow-num { width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px; }
+    .action-item { display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--border-s);border-radius:8px;margin-bottom:6px;font-size:.8125rem;color:var(--t2); }
+    .ind-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .15s; }
+    .ind-card:hover { border-color:var(--accent);box-shadow:var(--shadow-md) }
+    .stat-pair { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-s); }
+    .stat-pair:last-child { border:none }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <!-- Hero -->
+      <div class="hero-agent">
+        <div class="agent-avatar">💻</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+            <div style="font-size:1.5rem;font-weight:800;color:var(--t1)">Website Enquiry AI Agent</div>
+            <span class="badge badge--green">● Live — 5 Businesses</span>
+          </div>
+          <div style="font-size:.9375rem;color:var(--t2);line-height:1.6;margin-bottom:16px;max-width:600px">
+            Captures every website enquiry instantly, answers FAQs, qualifies leads, collects contact details, and moves visitors to the right next step — without any human involvement.
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="/agents/agent-website-enquiry/tester" class="btn btn--primary">🧪 Test the Agent</a>
+            <a href="/agents/agent-website-enquiry/business-config" class="btn btn--ghost">⚙ Configure</a>
+            <a href="/agents/agent-website-enquiry/leads" class="btn btn--ghost">👤 View Leads</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="ag-grid-4 ag-section" id="overviewStats"></div>
+
+      <!-- How it works + Actions -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd"><div><div class="ag-card-title">How the Agent Works</div><div class="ag-card-sub">Automated flow from enquiry to action</div></div></div>
+          <div id="flowSteps"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Supported Actions</div></div>
+          <div id="actionsList"></div>
+          <div class="ag-divider"></div>
+          <div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">Channels</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="ch-badge ch-badge--website">💻 Website Chat</span>
+            <span style="font-size:.6875rem;color:var(--t3);align-self:center">— WhatsApp & Email handoff coming soon</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Industry examples + Per-business stats -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Industry Configurations</div><div style="font-size:.6875rem;color:var(--t3);margin-top:2px">Click to configure for that business</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="indExamples"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Performance by Business</div><a href="/agents/agent-website-enquiry/analytics" class="ag-card-action">Full Analytics →</a></div>
+          <div id="bizPerfStats"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+/* Stats */
+var totConv=Object.values(AD.agentStats).reduce(function(s,x){return s+x.conversations;},0);
+var totLeads=Object.values(AD.agentStats).reduce(function(s,x){return s+x.leads;},0);
+var totQual=Object.values(AD.agentStats).reduce(function(s,x){return s+x.qualified;},0);
+document.getElementById('overviewStats').innerHTML=[
+  {label:'Businesses Using Agent',  val:AD.businesses.length,       col:'var(--accent)', ico:'🏢'},
+  {label:'Conversations Handled',   val:totConv,                    col:'var(--blue)',   ico:'💬'},
+  {label:'Leads Captured',          val:totLeads,                   col:'#7C3AED',       ico:'👤'},
+  {label:'FAQ Resolution Rate',     val:'78%',                      col:'var(--green)',  ico:'✅'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+/* Flow */
+var FLOW=[
+  {ico:'🙋',title:'Visitor asks a question',       desc:'Someone lands on the website and types a message — the agent responds instantly (avg 9 seconds).'},
+  {ico:'💬',title:'AI answers the FAQ',             desc:'The agent checks the business knowledge base and gives an accurate, friendly answer.'},
+  {ico:'🎯',title:'AI qualifies the visitor',       desc:'Asks the right follow-up questions to understand intent, urgency, and fit.'},
+  {ico:'👤',title:'Contact details captured',       desc:'Collects name, phone, and email naturally within the conversation.'},
+  {ico:'🔀',title:'Routes to the right next step',  desc:'Offers booking, tour, callback, WhatsApp handoff, or staff escalation based on the lead.'},
+  {ico:'📋',title:'Lead created & summary saved',   desc:'A qualified lead record is created with conversation summary, intent, and recommended action.'},
+];
+document.getElementById('flowSteps').innerHTML=FLOW.map(function(s,i){
+  return '<div class="flow-step"><div class="flow-num">'+(i+1)+'</div><div><div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:2px">'+s.ico+' '+s.title+'</div><div style="font-size:.8125rem;color:var(--t3);line-height:1.5">'+s.desc+'</div></div></div>';
+}).join('');
+
+/* Actions */
+var ACTIONS=[
+  ['💬','Answer FAQ questions from knowledge base'],
+  ['🎯','Ask targeted qualification questions'],
+  ['👤','Collect name, phone, email'],
+  ['🏷','Tag enquiry intent and type'],
+  ['📋','Create qualified lead record'],
+  ['📅','Suggest booking or tour'],
+  ['📞','Capture callback requests'],
+  ['🚨','Escalate urgent enquiries to staff'],
+];
+document.getElementById('actionsList').innerHTML=ACTIONS.map(function(a){
+  return '<div class="action-item"><span>'+a[0]+'</span><span>'+a[1]+'</span></div>';
+}).join('');
+
+/* Industry examples */
+var INDS=[
+  {ico:'🧸',name:'Daycare',          desc:'Tours, fees, availability, subsidy, age groups',  biz:'b1', col:'#7C3AED',col2:'#F3F0FF'},
+  {ico:'🦷',name:'Dental Clinic',    desc:'New patients, treatments, insurance, bookings',   biz:'b2', col:'#0891B2',col2:'#E0F2FE'},
+  {ico:'🍽',name:'Restaurant',       desc:'Reservations, menus, events, private bookings',   biz:'b3', col:'#D97706',col2:'#FEF3C7'},
+  {ico:'🔨',name:'Contractor',       desc:'Quotes, site visits, project types, budgets',     biz:'b4', col:'#16A34A',col2:'#DCFCE7'},
+  {ico:'💅',name:'Beauty Salon',     desc:'Appointments, services, bridal, availability',    biz:'b5', col:'#EC4899',col2:'#FCE7F3'},
+];
+document.getElementById('indExamples').innerHTML=INDS.map(function(n){
+  return '<div class="ind-card" onclick="window.location=\'/agents/agent-website-enquiry/business-config\'" style="border-left:3px solid '+n.col+'">'+
+    '<div style="font-size:1.25rem;margin-bottom:6px">'+n.ico+'</div>'+
+    '<div style="font-size:.8125rem;font-weight:700;color:var(--t1);margin-bottom:3px">'+n.name+'</div>'+
+    '<div style="font-size:.6875rem;color:var(--t3);line-height:1.4">'+n.desc+'</div>'+
+  '</div>';
+}).join('');
+
+/* Per-business stats */
+document.getElementById('bizPerfStats').innerHTML=AD.businesses.map(function(b){
+  var st=AD.agentStats[b.id]||{};
+  return '<div class="stat-pair">'+
+    '<div style="display:flex;align-items:center;gap:8px">'+
+      '<div class="av av-sm" style="background:'+b.color+'">'+b.initial+'</div>'+
+      '<div><div style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+b.name+'</div>'+
+        '<div style="font-size:.625rem;color:var(--t3)">'+st.conversations+' convs · '+st.avgResponse+' avg</div></div>'+
+    '</div>'+
+    '<div style="text-align:right">'+
+      '<span class="badge badge--purple">'+st.leads+' leads</span>'+
+      ' <span class="badge badge--green">'+st.faqRate+'% FAQ</span>'+
+    '</div>'+
+  '</div>';
+}).join('');
+</script>
+</body>
+</html>

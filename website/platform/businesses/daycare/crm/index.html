@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.crm-layout { display: flex; gap: 0; height: calc(100vh - 140px); min-height: 600px; border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
+.crm-table-wrap { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.crm-toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg-2); flex-shrink: 0; }
+.crm-search { flex: 1; max-width: 260px; position: relative; }
+.crm-search input { padding-left: 32px; }
+.crm-search-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--t3); }
+.crm-search-ico svg { width: 14px; height: 14px; }
+.crm-table-scroll { flex: 1; overflow-y: auto; }
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .6875rem;
+  font-weight: 700;
+  color: var(--bdg-purple-t);
+  background: var(--bdg-purple-bg);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+/* Panel */
+.crm-panel {
+  width: 380px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  transform: translateX(100%);
+  transition: transform .25s ease;
+  position: relative;
+}
+.crm-panel.is-open { transform: translateX(0); }
+.crm-panel-hdr { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.crm-panel-body { flex: 1; overflow-y: auto; padding: 20px; }
+.crm-ai-log { background: var(--bg-3); border-radius: var(--radius); padding: 14px; margin-top: 6px; }
+.crm-ai-log-item { display: flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--t2); padding: 4px 0; }
+.crm-ai-log-item::before { content: '✓'; color: var(--c-green); font-weight: 700; flex-shrink: 0; }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">CRM</h1>
+          <p class="page-sub">Every lead captured and qualified by your AI employees</p>
+        </div>
+        <div class="page-hdr-right">
+          <button class="btn btn--secondary" onclick="DR.showToast('Exporting CRM data...')">Export CSV</button>
+          <button class="btn btn--primary" onclick="DR.showToast('Opening manual lead form')">+ Add Lead</button>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <button class="filter-btn is-active" onclick="filterLeads(this,'all')">All Leads (5)</button>
+        <button class="filter-btn" onclick="filterLeads(this,'tour')">Tour Booked</button>
+        <button class="filter-btn" onclick="filterLeads(this,'waitlist')">Waitlist</button>
+        <button class="filter-btn" onclick="filterLeads(this,'callback')">Callback</button>
+        <button class="filter-btn" onclick="filterLeads(this,'review')">Review</button>
+      </div>
+
+      <!-- CRM table + panel -->
+      <div class="crm-layout">
+        <div class="crm-table-wrap">
+          <div class="crm-toolbar">
+            <div class="crm-search">
+              <div class="crm-search-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <input class="form-input crm-search" type="text" placeholder="Search leads..." id="crmSearch" style="padding-left:32px" oninput="filterSearch(this.value)">
+            </div>
+            <span style="font-size:.78125rem;color:var(--t3);margin-left:auto" id="crmCount">5 leads</span>
+          </div>
+          <div class="crm-table-scroll">
+            <table class="p-table" style="border-radius:0">
+              <thead>
+                <tr>
+                  <th>Parent</th>
+                  <th>Child</th>
+                  <th>Service</th>
+                  <th>Status</th>
+                  <th>Source</th>
+                  <th>Next Action</th>
+                  <th>Assigned</th>
+                  <th>Activity</th>
+                </tr>
+              </thead>
+              <tbody id="crmTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Lead detail panel -->
+        <div class="crm-panel" id="crmPanel">
+          <div class="crm-panel-hdr">
+            <div class="card-title" id="panelLeadName">Lead Details</div>
+            <button onclick="closePanel()" style="background:none;border:none;cursor:pointer;color:var(--t3);padding:4px;border-radius:var(--radius-sm)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="crm-panel-body" id="panelBody"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'CRM' }
+  ]
+});
+
+const D = window.DR_DATA;
+let activeLead = null;
+let filteredLeads = [...D.leads];
+
+const COLOR = { green: 'green', blue: 'blue', purple: 'purple', orange: 'orange', amber: 'amber', red: 'red' };
+
+function renderTable() {
+  document.getElementById('crmCount').textContent = `${filteredLeads.length} lead${filteredLeads.length !== 1 ? 's' : ''}`;
+  document.getElementById('crmTbody').innerHTML = filteredLeads.map(l =>
+    `<tr class="is-clickable${activeLead === l.id ? ' is-selected' : ''}" onclick="openLead('${l.id}')">
+      <td><strong>${l.parentName}</strong><br><span style="font-size:.71875rem;color:var(--t3)">${l.email || ''}</span></td>
+      <td style="font-size:.8125rem">${l.childAge}</td>
+      <td style="font-size:.78125rem;color:var(--t2)">${l.service}</td>
+      <td><span class="badge badge--${COLOR[l.statusColor] || 'gray'}">${l.status}</span></td>
+      <td style="font-size:.78125rem;color:var(--t3)">${l.source}</td>
+      <td style="font-size:.78125rem;color:var(--t2)">${l.nextAction}</td>
+      <td><span class="ai-badge">⚡ ${l.assignedTo}</span></td>
+      <td style="font-size:.71875rem;color:var(--t3)">${l.lastActivity}</td>
+    </tr>`
+  ).join('');
+}
+renderTable();
+
+function openLead(id) {
+  const l = D.leads.find(x => x.id === id);
+  if (!l) return;
+  activeLead = id;
+  renderTable();
+  document.getElementById('panelLeadName').textContent = l.parentName;
+  document.getElementById('panelBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div class="av av--purple" style="width:44px;height:44px;font-size:.875rem">${l.parentName.charAt(0)}</div>
+      <div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t1)">${l.parentName}</div>
+        <div style="font-size:.75rem;color:var(--t3)">${l.email}</div>
+      </div>
+      <span class="badge badge--${COLOR[l.statusColor] || 'gray'}" style="margin-left:auto">${l.status}</span>
+    </div>
+
+    <div class="info-row"><div class="info-lbl">Phone</div><div class="info-val">${l.phone}</div></div>
+    <div class="info-row"><div class="info-lbl">Child Age</div><div class="info-val">${l.childAge}</div></div>
+    <div class="info-row"><div class="info-lbl">Care Type</div><div class="info-val">${l.careType}</div></div>
+    <div class="info-row"><div class="info-lbl">Start Date</div><div class="info-val">${l.startDate}</div></div>
+    <div class="info-row"><div class="info-lbl">Service</div><div class="info-val">${l.service}</div></div>
+    ${l.tourDate ? `<div class="info-row"><div class="info-lbl">Tour Date</div><div class="info-val">${l.tourDate}</div></div>` : ''}
+    <div class="info-row"><div class="info-lbl">Source</div><div class="info-val">${l.source}</div></div>
+    <div class="info-row"><div class="info-lbl">Assigned</div><div class="info-val"><span class="ai-badge">⚡ ${l.assignedTo}</span></div></div>
+    <div class="info-row"><div class="info-lbl">Next Action</div><div class="info-val">${l.nextAction}</div></div>
+    <div class="info-row"><div class="info-lbl">Last Activity</div><div class="info-val">${l.lastActivity}</div></div>
+
+    ${l.notes ? `<div style="margin-top:14px"><div style="font-size:.71875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Notes</div><div style="font-size:.8125rem;color:var(--t2);background:var(--bg-3);border-radius:8px;padding:10px">${l.notes}</div></div>` : ''}
+
+    <div style="margin-top:14px">
+      <div style="font-size:.71875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">AI Actions Completed</div>
+      <div class="crm-ai-log">
+        ${l.aiActions.map(a => `<div class="crm-ai-log-item">${a}</div>`).join('')}
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <a href="/platform/businesses/daycare/conversations" class="btn btn--secondary btn--sm" style="flex:1">View Conversation</a>
+      <button class="btn btn--primary btn--sm" style="flex:1" onclick="DR.showToast('Lead updated')">Update Lead</button>
+    </div>
+  `;
+  document.getElementById('crmPanel').classList.add('is-open');
+}
+
+function closePanel() {
+  activeLead = null;
+  document.getElementById('crmPanel').classList.remove('is-open');
+  renderTable();
+}
+
+function filterLeads(btn, type) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('is-active'));
+  btn.classList.add('is-active');
+  if (type === 'all') { filteredLeads = [...D.leads]; }
+  else if (type === 'tour')     { filteredLeads = D.leads.filter(l => l.status.toLowerCase().includes('tour')); }
+  else if (type === 'waitlist') { filteredLeads = D.leads.filter(l => l.status.toLowerCase().includes('wait')); }
+  else if (type === 'callback') { filteredLeads = D.leads.filter(l => l.status.toLowerCase().includes('callback')); }
+  else if (type === 'review')   { filteredLeads = D.leads.filter(l => l.service.toLowerCase().includes('review')); }
+  renderTable();
+}
+
+function filterSearch(q) {
+  const lq = q.toLowerCase();
+  filteredLeads = D.leads.filter(l =>
+    l.parentName.toLowerCase().includes(lq) ||
+    l.service.toLowerCase().includes(lq) ||
+    l.status.toLowerCase().includes(lq)
+  );
+  renderTable();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Templates — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .tmpl-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px; }
+    @media(max-width:1000px){.tmpl-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.tmpl-grid{grid-template-columns:1fr}}
+    .tmpl-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:24px;display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:all .15s; }
+    .tmpl-card:hover{border-color:var(--accent);box-shadow:var(--shadow-md);}
+    .tmpl-ico { width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.75rem;flex-shrink:0; }
+    .tmpl-workflow { font-size:.75rem;color:var(--t3);padding:6px 10px;background:var(--border-s);border-radius:6px;margin-bottom:4px; }
+    .chip { display:inline-flex;align-items:center;gap:4px;font-size:.6875rem;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--border-s);color:var(--t2); }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">AI Packs & Templates</div>
+          <div class="ag-ph-sub">Pre-built AI employee bundles by industry — deploy in minutes</div>
+        </div>
+      </div>
+
+      <div class="tmpl-grid" id="tmplGrid"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Template detail modal -->
+<div class="ag-modal" id="tmplModal">
+  <div class="ag-modal-box" style="max-width:560px">
+    <div class="ag-modal-hd">
+      <div class="ag-modal-title" id="tmplModalTitle">Template</div>
+      <button class="ag-modal-close" onclick="AG.closeModal('tmplModal')">✕</button>
+    </div>
+    <div class="ag-modal-body" id="tmplModalBody"></div>
+    <div class="ag-modal-ft">
+      <button class="btn btn--ghost" onclick="AG.closeModal('tmplModal')">Close</button>
+      <button class="btn btn--primary" id="tmplApplyBtn">🚀 Apply to Business</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply to business modal -->
+<div class="ag-modal" id="applyModal">
+  <div class="ag-modal-box" style="max-width:400px">
+    <div class="ag-modal-hd">
+      <div class="ag-modal-title">Apply AI Pack</div>
+      <button class="ag-modal-close" onclick="AG.closeModal('applyModal')">✕</button>
+    </div>
+    <div class="ag-modal-body">
+      <div style="font-size:.875rem;color:var(--t2);margin-bottom:16px">Choose which business to deploy this AI pack to:</div>
+      <div class="ag-form-group"><label class="ag-label">Select Business</label>
+        <select class="ag-select" id="applyBizSelect"></select>
+      </div>
+    </div>
+    <div class="ag-modal-ft">
+      <button class="btn btn--ghost" onclick="AG.closeModal('applyModal')">Cancel</button>
+      <button class="btn btn--primary" onclick="confirmApply()">Deploy Now →</button>
+    </div>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'templates' });
+
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('applyBizSelect').appendChild(o);
+});
+
+document.getElementById('tmplGrid').innerHTML = AD.templates.map(function(t){
+  var chips = t.channels.map(function(c){return '<span class="chip">'+c+'</span>';}).join(' ');
+  return '<div class="tmpl-card" onclick="openTmpl(\''+t.id+'\')">' +
+    '<div style="display:flex;align-items:center;gap:14px">' +
+      '<div class="tmpl-ico" style="background:'+t.colorBg+'">'+t.icon+'</div>' +
+      '<div><div style="font-size:1rem;font-weight:800;color:var(--t1)">'+t.name+'</div>' +
+        '<div style="font-size:.75rem;color:var(--t3);margin-top:2px">'+t.industry+'</div></div>' +
+    '</div>' +
+    '<div style="font-size:.8125rem;color:var(--t2);line-height:1.5">'+t.desc+'</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;padding:12px;background:var(--border-s);border-radius:10px">' +
+      '<div><div style="font-size:1rem;font-weight:800;color:var(--t1)">'+t.employees.length+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">AI Empl.</div></div>' +
+      '<div><div style="font-size:1rem;font-weight:800;color:var(--t1)">'+t.automations+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">Workflows</div></div>' +
+      '<div><div style="font-size:1rem;font-weight:800;color:var(--t1)">'+t.knowledgeFields+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">KB Fields</div></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+chips+'</div>' +
+    '<button class="btn btn--primary btn--sm btn--full" onclick="event.stopPropagation();openApply(\''+t.id+'\')">🚀 Apply to Business</button>' +
+  '</div>';
+}).join('');
+
+var _curTmpl = null;
+window.openTmpl = function(id) {
+  var t = AD.templates.find(function(x){return x.id===id;});
+  if(!t) return;
+  _curTmpl = t;
+  document.getElementById('tmplModalTitle').textContent = t.name;
+  document.getElementById('tmplApplyBtn').onclick = function(){AG.closeModal('tmplModal');openApply(t.id);};
+  document.getElementById('tmplModalBody').innerHTML =
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">' +
+      '<div class="tmpl-ico" style="background:'+t.colorBg+';width:48px;height:48px;font-size:1.5rem">'+t.icon+'</div>' +
+      '<div><div style="font-size:1.125rem;font-weight:800;color:var(--t1)">'+t.name+'</div>' +
+        '<div style="font-size:.8125rem;color:var(--t3)">'+t.industry+'</div></div></div>' +
+    '<p style="font-size:.875rem;color:var(--t2);line-height:1.6;margin-bottom:16px">'+t.desc+'</p>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">AI EMPLOYEES INCLUDED</div>' +
+    t.employees.map(function(em){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-s)"><span style="font-size:1rem">🤖</span><span style="font-size:.8125rem;color:var(--t1)">'+em+'</span></div>';}).join('') +
+    '<div class="ag-divider" style="margin-top:12px"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">SERVICES COVERED</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">'+t.services.map(function(s){return '<span class="chip">'+s+'</span>';}).join('')+'</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">AUTOMATION WORKFLOWS</div>' +
+    t.workflows.map(function(w){return '<div class="tmpl-workflow">⚡ '+w+'</div>';}).join('');
+  AG.openModal('tmplModal');
+};
+
+window.openApply = function(id) {
+  _curTmpl = AD.templates.find(function(x){return x.id===id;});
+  AG.openModal('applyModal');
+};
+
+window.confirmApply = function() {
+  var bizId = document.getElementById('applyBizSelect').value;
+  var biz = AD.businesses.find(function(b){return b.id===bizId;});
+  if(!biz||!_curTmpl) return;
+  AG.toast(_curTmpl.name+' is being applied to '+biz.name+'…','success');
+  setTimeout(function(){AG.closeModal('applyModal');},1200);
+};
+</script>
+</body>
+</html>

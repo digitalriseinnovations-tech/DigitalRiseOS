@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .status-map-new      { background:#DBEAFE;color:#1D4ED8; }
+    .status-map-qualified{ background:#D1FAE5;color:#15803D; }
+    .status-map-booked   { background:#EDE9FE;color:#7C3AED; }
+    .status-map-follow   { background:#FEF3C7;color:#D97706; }
+    .status-map-won      { background:#D1FAE5;color:#166534; }
+    .lead-notes { font-size:.8125rem;color:var(--t2);background:var(--border-s);border-radius:8px;padding:10px 12px;line-height:1.5; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Leads</div>
+          <div class="ag-ph-sub">10 leads captured by AI employees this week</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="leadBizFilter" style="width:180px" onchange="renderLeads()">
+            <option value="">All Businesses</option>
+          </select>
+          <button class="btn btn--primary" onclick="AG.toast('Adding lead…','info')">+ Add Lead</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="leadStats"></div>
+
+      <!-- Status filters -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm is-active" data-lf="all"       onclick="filterLead('all',this)">All (10)</button>
+        <button class="btn btn--ghost btn--sm" data-lf="New"       onclick="filterLead('New',this)">New (2)</button>
+        <button class="btn btn--ghost btn--sm" data-lf="Qualified" onclick="filterLead('Qualified',this)">Qualified (3)</button>
+        <button class="btn btn--ghost btn--sm" data-lf="Booked"    onclick="filterLead('Booked',this)">Booked (2)</button>
+        <button class="btn btn--ghost btn--sm" data-lf="Follow-up" onclick="filterLead('Follow-up',this)">Follow-up (2)</button>
+        <button class="btn btn--ghost btn--sm" data-lf="Won"       onclick="filterLead('Won',this)">Won (1)</button>
+      </div>
+
+      <!-- Table -->
+      <div class="ag-card" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table class="ag-table">
+            <thead><tr>
+              <th>Lead</th><th>Business</th><th>Service</th><th>Source</th>
+              <th>AI Employee</th><th>Status</th><th>Next Action</th><th>Last Activity</th><th></th>
+            </tr></thead>
+            <tbody id="leadTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Lead detail panel -->
+<div class="ag-panel" id="leadPanel">
+  <div class="ag-panel-hd">
+    <span class="ag-panel-title" id="panelLeadName">Lead</span>
+    <button class="ag-panel-close" onclick="AG.closePanel('leadPanel')">✕</button>
+  </div>
+  <div class="ag-panel-body" id="panelLeadBody"></div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'leads' });
+
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('leadBizFilter').appendChild(o);
+});
+
+var statusCls = {'New':'badge--blue','Qualified':'badge--green','Booked':'badge--purple','Follow-up':'badge--amber','Won':'badge--green'};
+
+document.getElementById('leadStats').innerHTML = [
+  {label:'Total Leads',   val:AD.leads.length,                                                           col:'var(--accent)', ico:'👥'},
+  {label:'Qualified',     val:AD.leads.filter(function(l){return l.status==='Qualified';}).length,       col:'var(--green)',  ico:'✅'},
+  {label:'Booked',        val:AD.leads.filter(function(l){return l.status==='Booked';}).length,          col:'#7C3AED',       ico:'📅'},
+  {label:'Won',           val:AD.leads.filter(function(l){return l.status==='Won';}).length,             col:'var(--green)',  ico:'🏆'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+var _lf = 'all';
+function filterLead(f, btn) {
+  if(btn){ document.querySelectorAll('[data-lf]').forEach(function(b){b.classList.remove('is-active');}); btn.classList.add('is-active'); }
+  _lf = f||_lf;
+  renderLeads();
+}
+window.filterLead = filterLead;
+
+function renderLeads() {
+  var bizF = document.getElementById('leadBizFilter').value;
+  var list = AD.leads.filter(function(l){
+    if(_lf!=='all' && l.status!==_lf) return false;
+    if(bizF && l.bizId!==bizF) return false;
+    return true;
+  });
+  document.getElementById('leadTable').innerHTML = list.map(function(l){
+    return '<tr style="cursor:pointer" onclick="openLeadPanel(\''+l.id+'\')">' +
+      '<td><div style="font-weight:600;color:var(--t1)">'+l.name+'</div><div style="font-size:.6875rem;color:var(--t3)">'+l.phone+'</div></td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t2)">'+l.biz+'</div></td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+l.service+'</div></td>' +
+      '<td>'+AG.chBadge(l.source.toLowerCase().replace(' chat',''))+'</td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t2)">'+l.employee+'</div></td>' +
+      '<td><span class="badge '+(statusCls[l.status]||'badge--gray')+'">'+l.status+'</span></td>' +
+      '<td><div style="font-size:.75rem;color:var(--t2)">'+l.nextAction+'</div></td>' +
+      '<td><div style="font-size:.75rem;color:var(--t4)">'+l.lastActivity+'</div></td>' +
+      '<td><button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();AG.toast(\'Following up…\',\'info\')">Follow Up</button></td>' +
+    '</tr>';
+  }).join('');
+  if(!list.length) document.getElementById('leadTable').innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--t4)">No leads found</td></tr>';
+}
+renderLeads();
+
+window.openLeadPanel = function(id) {
+  var l = AD.leads.find(function(x){return x.id===id;});
+  if(!l) return;
+  document.getElementById('panelLeadName').textContent = l.name;
+  document.getElementById('panelLeadBody').innerHTML =
+    '<div style="margin-bottom:20px">' +
+      '<div style="font-size:1.125rem;font-weight:700;color:var(--t1);margin-bottom:4px">'+l.name+'</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<span class="badge '+(statusCls[l.status]||'badge--gray')+'">'+l.status+'</span>' +
+        AG.chBadge(l.source.toLowerCase().replace(' chat','')) +
+      '</div>' +
+    '</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+      [['Business',l.biz],['Industry',l.industry],['Service',l.service],['Employee',l.employee],['Phone',l.phone],['Email',l.email]].map(function(kv){
+        return '<div><div style="font-size:.625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">'+kv[0]+'</div><div style="font-size:.8125rem;color:var(--t1);margin-top:2px">'+kv[1]+'</div></div>';
+      }).join('') +
+    '</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:6px">Next Action</div>' +
+    '<div style="font-size:.875rem;color:var(--t1);margin-bottom:16px;padding:10px;background:var(--accent-bg);border-radius:8px">'+l.nextAction+'</div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:6px">Notes</div>' +
+    '<div class="lead-notes">'+l.notes+'</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Sending follow-up…\',\'info\')">📲 WhatsApp</button>' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Sending email…\',\'info\')">📧 Email</button>' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Booking appointment…\',\'info\')">📅 Book Appt</button>' +
+      '<button class="btn btn--primary btn--sm" onclick="AG.toast(\'Marked as Won!\',\'success\')">🏆 Mark Won</button>' +
+    '</div>';
+  AG.openPanel('leadPanel');
+};
+</script>
+</body>
+</html>

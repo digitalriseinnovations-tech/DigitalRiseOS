@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automations — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.auto-grid { display: flex; flex-direction: column; gap: 14px; }
+.auto-header-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.auto-stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; box-shadow: var(--sh-xs); }
+.auto-stat-val { font-size: 1.5rem; font-weight: 800; color: var(--t1); }
+.auto-stat-lbl { font-size: .71875rem; color: var(--t3); margin-top: 4px; }
+.color-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) { .auto-header-stats { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Automations</h1>
+          <p class="page-sub">AI-powered workflows that run 24/7 without human input</p>
+        </div>
+        <div class="page-hdr-right">
+          <button class="btn btn--secondary" onclick="DR.showToast('Coming soon: Custom automation builder')">+ New Automation</button>
+        </div>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="auto-header-stats">
+        <div class="auto-stat-card">
+          <div class="auto-stat-val">9</div>
+          <div class="auto-stat-lbl">Active automations</div>
+        </div>
+        <div class="auto-stat-card">
+          <div class="auto-stat-val" id="todayRuns">31</div>
+          <div class="auto-stat-lbl">Triggered today</div>
+        </div>
+        <div class="auto-stat-card">
+          <div class="auto-stat-val">912</div>
+          <div class="auto-stat-lbl">Total runs this month</div>
+        </div>
+        <div class="auto-stat-card">
+          <div class="auto-stat-val">~28hr</div>
+          <div class="auto-stat-lbl">Staff time saved</div>
+        </div>
+      </div>
+
+      <!-- Automation cards -->
+      <div class="auto-grid" id="autoGrid"></div>
+
+      <!-- Automation detail modal -->
+      <div class="modal" id="autoModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-box" style="width:min(680px,calc(100vw - 40px))">
+          <div class="modal-hdr">
+            <div class="modal-title" id="autoModalTitle">Automation Details</div>
+            <button class="modal-close-btn" onclick="DR.closeModal('autoModal')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="modal-body" id="autoModalBody"></div>
+          <div class="modal-footer">
+            <button class="btn btn--ghost" onclick="DR.closeModal('autoModal')">Close</button>
+            <button class="btn btn--primary" onclick="DR.closeModal('autoModal');DR.showToast('Automation saved')">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'Automations' }
+  ]
+});
+
+const D = window.DR_DATA;
+
+const COLOR_HEX = {
+  purple: '#7C3AED', green: '#059669', blue: '#2563EB',
+  amber: '#D97706', red: '#DC2626', orange: '#EA580C',
+  teal: '#0D9488', indigo: '#4F46E5'
+};
+
+function renderAutos() {
+  document.getElementById('autoGrid').innerHTML = D.automations.map((a, i) => {
+    const col = COLOR_HEX[a.color] || '#374151';
+    return `<div class="auto-card${a.status ? '' : ' is-off'}" style="border-left:3px solid ${col}">
+      <div>
+        <div class="auto-trigger">🔔 Trigger</div>
+        <div class="auto-name" style="cursor:pointer" onclick="openAuto(${i})">${a.trigger}</div>
+        <div class="auto-flow">
+          <span class="auto-step">🤖 ${a.aiAction}</span>
+          <span class="auto-arr">→</span>
+          <span class="auto-step">⚡ ${a.businessAction}</span>
+          ${a.followUp ? `<span class="auto-arr">→</span><span class="auto-step">📨 ${a.followUp}</span>` : ''}
+        </div>
+        <div class="auto-meta">
+          <div class="auto-stat">Today: <span>${a.runsToday}</span></div>
+          <div class="auto-stat">Total: <span>${a.totalRuns}</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+        <input type="checkbox" class="toggle-switch" ${a.status ? 'checked' : ''} onchange="toggleAuto(${i},this.checked)">
+        <button class="btn btn--ghost btn--sm" onclick="openAuto(${i})">Edit</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+renderAutos();
+
+function toggleAuto(i, on) {
+  D.automations[i].status = on;
+  DR.showToast(`Automation ${on ? 'enabled' : 'disabled'}`);
+}
+
+function openAuto(i) {
+  const a = D.automations[i];
+  document.getElementById('autoModalTitle').textContent = a.trigger;
+  document.getElementById('autoModalBody').innerHTML = `
+    <div class="form-group"><label class="form-label">Trigger</label><input class="form-input" value="${a.trigger}" type="text"></div>
+    <div class="form-group"><label class="form-label">AI Action</label><textarea class="form-textarea" rows="2">${a.aiAction}</textarea></div>
+    <div class="form-group"><label class="form-label">Business Action</label><textarea class="form-textarea" rows="2">${a.businessAction}</textarea></div>
+    <div class="form-group"><label class="form-label">Follow-up Action</label><textarea class="form-textarea" rows="2">${a.followUp || ''}</textarea></div>
+    <div class="form-group"><label class="form-label">Colour Tag</label>
+      <select class="form-select">
+        ${Object.keys(COLOR_HEX).map(c => `<option${a.color===c?' selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;gap:16px;padding:12px;background:var(--bg-3);border-radius:8px">
+      <div><div style="font-size:1.25rem;font-weight:800;color:var(--t1)">${a.runsToday}</div><div style="font-size:.71875rem;color:var(--t3)">Runs today</div></div>
+      <div><div style="font-size:1.25rem;font-weight:800;color:var(--t1)">${a.totalRuns}</div><div style="font-size:.71875rem;color:var(--t3)">Total runs</div></div>
+    </div>
+  `;
+  DR.openModal('autoModal');
+}
+</script>
+</body>
+</html>

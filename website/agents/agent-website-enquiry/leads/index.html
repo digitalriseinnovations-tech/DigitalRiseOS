@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .lead-table { width:100%;border-collapse:collapse;font-size:.8125rem }
+    .lead-table th { padding:10px 12px;text-align:left;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4);border-bottom:2px solid var(--border);white-space:nowrap }
+    .lead-table td { padding:11px 12px;border-bottom:1px solid var(--border-s);color:var(--t2);vertical-align:middle }
+    .lead-table tr.row-clickable { cursor:pointer;transition:background .12s }
+    .lead-table tr.row-clickable:hover td { background:var(--border-s) }
+    .lead-name-cell { display:flex;align-items:center;gap:10px }
+    .filter-row { display:flex;gap:8px;flex-wrap:wrap;align-items:center }
+    .filter-btn { padding:5px 14px;border:1.5px solid var(--border);border-radius:99px;font-size:.75rem;font-weight:600;color:var(--t3);background:var(--card);cursor:pointer;transition:all .15s }
+    .filter-btn.active { border-color:var(--accent);background:var(--accent);color:#fff }
+    /* Side panel */
+    .lead-panel { position:fixed;top:0;right:-460px;width:460px;height:100vh;background:var(--card);border-left:2px solid var(--border);box-shadow:-4px 0 32px rgba(0,0,0,.08);transition:right .25s ease;z-index:200;overflow-y:auto;display:flex;flex-direction:column }
+    .lead-panel.open { right:0 }
+    .panel-hd { padding:20px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0 }
+    .panel-close { width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--border-s);flex-shrink:0;font-size:1rem;color:var(--t3);border:none }
+    .panel-close:hover { background:var(--border) }
+    .panel-section { padding:16px 20px;border-bottom:1px solid var(--border-s) }
+    .panel-section:last-child { border:none }
+    .panel-label { font-size:.5625rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:10px }
+    .panel-row { display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;font-size:.8125rem }
+    .pr-key { color:var(--t3);font-weight:600;flex-shrink:0;margin-right:8px }
+    .pr-val { color:var(--t1);font-weight:600;text-align:right }
+    .qa-item { padding:7px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem }
+    .qa-item:last-child { border:none }
+    .qa-q { color:var(--t3);font-size:.75rem;margin-bottom:2px }
+    .qa-a { color:var(--t1);font-weight:600 }
+    .ai-action { display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.8125rem }
+    .overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199 }
+    .overlay.show { display:block }
+    @media(max-width:700px){.lead-panel{width:100%}}
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Leads</div>
+          <div class="ag-ph-sub">All leads captured by the Website Enquiry Agent</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bizFilter" style="width:180px" onchange="applyFilters()">
+            <option value="">All Businesses</option>
+          </select>
+          <button class="btn btn--ghost" onclick="exportLeads()">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="leadStats"></div>
+
+      <!-- Status filters -->
+      <div class="ag-card ag-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+          <div class="filter-row" id="statusFilters"></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input class="ag-input" id="searchBox" placeholder="Search leads…" oninput="applyFilters()" style="width:200px">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="lead-table" id="leadsTable">
+            <thead><tr>
+              <th>Lead</th><th>Business</th><th>Enquiry Type</th><th>Qual Score</th><th>Status</th><th>Next Action</th><th>Last Activity</th>
+            </tr></thead>
+            <tbody id="leadsBody"></tbody>
+          </table>
+          <div id="emptyState" style="display:none;text-align:center;padding:40px;color:var(--t4)">
+            <div style="font-size:2rem;margin-bottom:8px">🔍</div>
+            <div style="font-weight:700;color:var(--t2);margin-bottom:4px">No leads match your filter</div>
+            <div style="font-size:.8125rem">Try a different status or search term</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Lead detail panel -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="lead-panel" id="leadPanel">
+  <div class="panel-hd">
+    <div id="panelHdInner"></div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div id="panelBody" style="flex:1"></div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+var _allLeads = AD.defaultLeads.slice();
+var _activeStatus = '';
+var _activeBiz = '';
+
+/* ── Build biz dropdown ─────────────────────────────── */
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option'); o.value=b.id; o.textContent=b.name;
+  document.getElementById('bizFilter').appendChild(o);
+});
+
+/* ── Stats ──────────────────────────────────────────── */
+function renderStats() {
+  var total=_allLeads.length;
+  var qual=_allLeads.filter(function(l){return l.status==='Qualified';}).length;
+  var booked=_allLeads.filter(function(l){return l.status==='Booked';}).length;
+  var won=_allLeads.filter(function(l){return l.status==='Won';}).length;
+  document.getElementById('leadStats').innerHTML=[
+    {label:'Total Leads',     val:total, ico:'👤', col:'var(--accent)'},
+    {label:'Qualified',       val:qual,  ico:'🎯', col:'var(--green)'},
+    {label:'Booked',          val:booked,ico:'📅', col:'#7C3AED'},
+    {label:'Won',             val:won,   ico:'🏆', col:'var(--amber)'},
+  ].map(function(s){
+    return '<div class="ag-stat" style="border-left:3px solid '+s.col+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div>'+
+      '<div class="ag-stat-val">'+s.val+'</div></div>';
+  }).join('');
+}
+renderStats();
+
+/* ── Status filter pills ────────────────────────────── */
+var STATUSES = ['New','Qualified','Booked','Follow-up','Won','Escalated'];
+document.getElementById('statusFilters').innerHTML =
+  '<button class="filter-btn active" data-s="" onclick="setStatus(this,\'\')">All</button>' +
+  STATUSES.map(function(s){
+    return '<button class="filter-btn" data-s="'+s+'" onclick="setStatus(this,\''+s+'\')">'+s+'</button>';
+  }).join('');
+
+window.setStatus = function(btn, s) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  _activeStatus = s;
+  applyFilters();
+};
+
+/* ── Table ──────────────────────────────────────────── */
+function getBizName(id){
+  var b=AD.businesses.find(function(x){return x.id===id;}); return b?b.name:id;
+}
+function getColor(id){
+  var b=AD.businesses.find(function(x){return x.id===id;}); return b?b.color:'var(--accent)';
+}
+function getInitial(id){
+  var b=AD.businesses.find(function(x){return x.id===id;}); return b?b.initial:'?';
+}
+
+var STATUS_BADGE={
+  'New':'badge--blue','Qualified':'badge--green','Booked':'badge--purple',
+  'Follow-up':'badge--amber','Won':'badge--green','Escalated':'badge--red'
+};
+
+window.applyFilters = function() {
+  var search = document.getElementById('searchBox').value.toLowerCase();
+  _activeBiz = document.getElementById('bizFilter').value;
+  var filtered = _allLeads.filter(function(l){
+    if(_activeStatus && l.status!==_activeStatus) return false;
+    if(_activeBiz && l.bizId!==_activeBiz) return false;
+    if(search && !(l.name.toLowerCase().includes(search)||l.enquiryType.toLowerCase().includes(search)||(l.notes||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+  var tbody = document.getElementById('leadsBody');
+  document.getElementById('emptyState').style.display = filtered.length?'none':'block';
+  tbody.innerHTML = filtered.map(function(l){
+    var score = l.qualScore||0;
+    var qb = AG.qualBadge(score);
+    var biz = getBizName(l.bizId);
+    return '<tr class="row-clickable" onclick="openLead(\''+l.id+'\')">'+
+      '<td><div class="lead-name-cell">'+
+        '<div class="av av-sm" style="background:'+getColor(l.bizId)+'">'+getInitial(l.bizId)+'</div>'+
+        '<div><div style="font-weight:700;color:var(--t1)">'+l.name+'</div>'+
+          '<div style="font-size:.6875rem;color:var(--t3)">'+l.email+'</div></div>'+
+      '</div></td>'+
+      '<td><span class="badge badge--purple" style="background:'+getColor(l.bizId)+'22;color:'+getColor(l.bizId)+'">'+biz+'</span></td>'+
+      '<td>'+l.enquiryType+'</td>'+
+      '<td><span class="badge '+qb.cls+'" style="background:'+qb.bg+';color:'+qb.color+'">'+score+'%</span></td>'+
+      '<td><span class="badge '+(STATUS_BADGE[l.status]||'')+'">'+l.status+'</span></td>'+
+      '<td style="font-size:.75rem;color:var(--t3)">'+l.nextAction+'</td>'+
+      '<td style="font-size:.75rem;color:var(--t4)">'+l.lastActivity+'</td>'+
+    '</tr>';
+  }).join('');
+};
+applyFilters();
+
+/* ── Side panel ─────────────────────────────────────── */
+window.openLead = function(id){
+  var l=_allLeads.find(function(x){return x.id===id;});
+  if(!l) return;
+  var qb=AG.qualBadge(l.qualScore||0);
+  document.getElementById('panelHdInner').innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'+
+      '<div class="av" style="background:'+getColor(l.bizId)+'">'+l.name[0]+'</div>'+
+      '<div><div style="font-size:1rem;font-weight:800;color:var(--t1)">'+l.name+'</div>'+
+        '<div style="font-size:.75rem;color:var(--t3)">'+l.email+' · '+l.phone+'</div></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      '<span class="badge '+(STATUS_BADGE[l.status]||'')+'">'+l.status+'</span>'+
+      '<span class="badge" style="background:'+qb.bg+';color:'+qb.color+'">Qual: '+l.qualScore+'%</span>'+
+      '<span class="badge badge--purple">'+getBizName(l.bizId)+'</span>'+
+    '</div>';
+
+  var aiActions=[
+    {ico:'💬',label:'FAQ Answered',col:'var(--blue-bg)'},
+    {ico:'🎯',label:'Qualification Completed',col:'#EDE9FE'},
+    {ico:'👤',label:'Lead Created',col:'var(--accent-bg)'},
+    (l.qualScore>=70?{ico:'📅',label:'Booking Offered',col:'var(--green-bg)'}:null),
+    (l.status==='Escalated'?{ico:'🚨',label:'Escalated to Staff',col:'var(--red-bg)'}:null),
+  ].filter(Boolean);
+
+  document.getElementById('panelBody').innerHTML=
+    '<div class="panel-section">'+
+      '<div class="panel-label">Contact Information</div>'+
+      [['Email',l.email],['Phone',l.phone],['Source',l.source||'Website Chat'],['Enquiry',l.enquiryType],['Last Activity',l.lastActivity]].map(function(r){
+        return '<div class="panel-row"><span class="pr-key">'+r[0]+'</span><span class="pr-val">'+r[1]+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="panel-section">'+
+      '<div class="panel-label">Conversation Summary</div>'+
+      '<div style="font-size:.8125rem;color:var(--t2);line-height:1.6;background:var(--border-s);padding:12px;border-radius:8px">'+
+        (l.summary||'Visitor asked about '+l.enquiryType.toLowerCase()+'. Agent answered key questions, collected contact details, and qualified the lead. Recommended next step: '+l.nextAction+'.')+
+      '</div>'+
+    '</div>'+
+    '<div class="panel-section">'+
+      '<div class="panel-label">Qualification Answers</div>'+
+      (l.qualAnswers?Object.entries(l.qualAnswers).map(function(kv){
+        return '<div class="qa-item"><div class="qa-q">'+kv[0]+'</div><div class="qa-a">'+kv[1]+'</div></div>';
+      }).join(''):'<div style="font-size:.8125rem;color:var(--t3)">Not yet collected</div>')+
+    '</div>'+
+    '<div class="panel-section">'+
+      '<div class="panel-label">AI Actions Completed</div>'+
+      aiActions.map(function(a){
+        return '<div class="ai-action" style="background:'+a.col+';padding:8px;border-radius:6px;margin-bottom:4px">'+
+          '<span>'+a.ico+'</span><span style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+a.label+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="panel-section">'+
+      '<div class="panel-label">Suggested Next Step</div>'+
+      '<div style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:8px;padding:12px;font-size:.8125rem;font-weight:700;color:#4338CA">'+
+        '→ '+l.nextAction+
+      '</div>'+
+    '</div>'+
+    '<div class="panel-section">'+
+      '<div class="panel-label">Notes</div>'+
+      '<textarea class="ag-textarea" style="height:80px;resize:vertical" placeholder="Add notes…">'+( l.notes||'')+'</textarea>'+
+      '<button class="btn btn--primary btn--sm btn--full" style="margin-top:8px" onclick="AG.toast(\'Notes saved\',\'success\')">Save Notes</button>'+
+    '</div>';
+
+  document.getElementById('leadPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+};
+
+window.closePanel = function(){
+  document.getElementById('leadPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+};
+
+window.exportLeads = function(){
+  AG.toast('CSV export ready','success');
+};
+</script>
+</body>
+</html>

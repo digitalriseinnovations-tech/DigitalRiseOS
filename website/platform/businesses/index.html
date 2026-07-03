@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Businesses — Digital Rise OS</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.biz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.biz-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--sh-sm);
+  transition: border-color .15s, box-shadow .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.biz-card:hover { border-color: var(--border-2); box-shadow: var(--sh); }
+.biz-card-hdr { display: flex; align-items: center; gap: 12px; }
+.biz-card-logo {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7C3AED, #4F46E5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #fff;
+}
+.biz-card-name  { font-size: 1rem; font-weight: 700; color: var(--t1); }
+.biz-card-industry { font-size: .75rem; color: var(--t3); margin-top: 2px; }
+.biz-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.biz-stat { background: var(--bg-3); border-radius: 8px; padding: 10px 12px; }
+.biz-stat-val { font-size: 1.125rem; font-weight: 800; color: var(--t1); }
+.biz-stat-lbl { font-size: .6875rem; color: var(--t3); margin-top: 2px; }
+.biz-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.add-biz-card {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-decoration: none;
+  min-height: 200px;
+}
+.add-biz-card:hover { border-color: var(--c-blue); background: var(--c-blue-bg); }
+.add-biz-ico { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-3); display: flex; align-items: center; justify-content: center; }
+.add-biz-ico svg { width: 20px; height: 20px; color: var(--t3); }
+.add-biz-lbl { font-size: .875rem; font-weight: 600; color: var(--t2); }
+.add-biz-sub { font-size: .75rem; color: var(--t3); text-align: center; }
+@media (max-width: 900px)  { .biz-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px)  { .biz-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Businesses</h1>
+          <p class="page-sub">Manage all your AI-powered business locations</p>
+        </div>
+        <div class="page-hdr-right">
+          <a href="/platform/businesses/new" class="btn btn--primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Business
+          </a>
+        </div>
+      </div>
+
+      <div class="biz-grid" id="bizGrid"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Dashboard', href: '/platform/dashboard' },
+    { label: 'Businesses' }
+  ]
+});
+
+const businesses = window.DR_DATA.businesses;
+const kpis = window.DR_DATA.kpis;
+
+const grid = document.getElementById('bizGrid');
+grid.innerHTML = businesses.map(b => `
+  <div class="biz-card">
+    <div class="biz-card-hdr">
+      <div class="biz-card-logo">${b.name.charAt(0)}</div>
+      <div>
+        <div class="biz-card-name">${b.name}</div>
+        <div class="biz-card-industry">${b.industry} · ${b.location}</div>
+      </div>
+      <span class="badge badge--green" style="margin-left:auto">Active</span>
+    </div>
+    <div class="biz-card-stats">
+      <div class="biz-stat"><div class="biz-stat-val">${kpis.totalLeads}</div><div class="biz-stat-lbl">Total Leads</div></div>
+      <div class="biz-stat"><div class="biz-stat-val">${kpis.aiConversations}</div><div class="biz-stat-lbl">AI Conversations</div></div>
+      <div class="biz-stat"><div class="biz-stat-val">${kpis.bookings}</div><div class="biz-stat-lbl">Tours Booked</div></div>
+      <div class="biz-stat"><div class="biz-stat-val">${kpis.reviews}</div><div class="biz-stat-lbl">Reviews</div></div>
+    </div>
+    <div class="biz-card-footer">
+      <div style="display:flex;gap:6px">
+        <span class="badge badge--purple">3 AI Employees</span>
+        <span class="badge badge--blue">8 Services</span>
+      </div>
+      <a href="/platform/businesses/${b.id}" class="btn btn--secondary btn--sm">Open →</a>
+    </div>
+  </div>
+`).join('') + `
+  <a href="/platform/businesses/new" class="add-biz-card">
+    <div class="add-biz-ico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div class="add-biz-lbl">Add New Business</div>
+    <div class="add-biz-sub">Set up AI employees, services and automations in minutes</div>
+  </a>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0; url=/platform/dashboard">
+  <title>Digital Rise OS</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0F172A; color: #fff;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .card { text-align: center; padding: 40px; }
+    .logo { width: 48px; height: 48px; border-radius: 12px;
+            background: linear-gradient(135deg, #7C3AED, #4F46E5);
+            margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 8px; }
+    p  { color: #94A3B8; margin: 0 0 24px; font-size: .9rem; }
+    .links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    a { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: .875rem;
+        text-decoration: none; transition: opacity .15s; }
+    .a-primary { background: #7C3AED; color: #fff; }
+    .a-ghost   { border: 1px solid rgba(255,255,255,.15); color: #94A3B8; }
+    a:hover { opacity: .85; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🌟</div>
+    <h1>Digital Rise OS</h1>
+    <p>Redirecting to dashboard…</p>
+    <div class="links">
+      <a href="/platform/dashboard" class="a-primary">Platform Dashboard</a>
+      <a href="/client/daycare/dashboard" class="a-ghost">Daycare OS</a>
+    </div>
+  </div>
+  <script>window.location.replace('/platform/dashboard');</script>
+</body>
+</html>

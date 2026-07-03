@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Children — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .children-toolbar { display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px; }
+    .search-box { position:relative;flex:1;min-width:200px;max-width:340px; }
+    .search-box input { width:100%;padding:8px 12px 8px 36px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;transition:border-color .15s; }
+    .search-box input:focus { border-color:var(--accent); }
+    .search-box svg { position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--t4); }
+
+    .filter-btn { padding:7px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.8125rem;font-weight:500;background:var(--card-bg);color:var(--t2);cursor:pointer;transition:all .15s; }
+    .filter-btn.is-active { border-color:var(--accent);background:var(--accent-bg);color:var(--accent); }
+    .filter-btn:hover:not(.is-active) { border-color:var(--t4); }
+
+    .children-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px; }
+    .child-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:border-color .15s,box-shadow .15s; }
+    .child-card:hover { border-color:var(--accent);box-shadow:0 4px 20px rgba(124,58,237,.08); }
+    .child-card-head { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
+    .child-name { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .child-meta { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .child-room { display:inline-block;padding:3px 8px;border-radius:6px;font-size:.6875rem;font-weight:600;background:var(--accent-bg);color:var(--accent);margin-top:4px; }
+    .child-info-row { display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--s2);font-size:.8rem; }
+    .child-info-row:last-child { border-bottom:none; }
+    .allergy-tag { display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.6875rem;font-weight:600;background:#FEF2F2;color:#DC2626; }
+
+    /* Side panel */
+    .side-panel { position:fixed;top:0;right:-480px;width:480px;height:100vh;background:var(--card-bg);border-left:1px solid var(--border);z-index:200;overflow-y:auto;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column; }
+    .side-panel.is-open { right:0; }
+    .panel-head { display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:2; }
+    .panel-head-title { font-size:1rem;font-weight:700;color:var(--t1); }
+    .panel-close { width:32px;height:32px;border-radius:8px;border:none;background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3); }
+    .panel-close svg { width:16px;height:16px; }
+    .panel-body { padding:24px;flex:1; }
+    .panel-section-title { font-size:.6875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px; }
+    .panel-section { margin-bottom:24px; }
+    .panel-row { display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--s2);gap:12px; }
+    .panel-row:last-child { border-bottom:none; }
+    .panel-key { font-size:.8125rem;color:var(--t3);font-weight:500;flex-shrink:0; }
+    .panel-val { font-size:.8125rem;color:var(--t1);font-weight:600;text-align:right; }
+
+    .att-history { display:flex;gap:4px; }
+    .att-day { width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.5625rem;font-weight:700; }
+    .att-day--P { background:#DCFCE7;color:#16A34A; }
+    .att-day--A { background:#FEE2E2;color:#DC2626; }
+    .att-day--L { background:#FFFBEB;color:#D97706; }
+
+    #panelOverlay { position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:199;opacity:0;pointer-events:none;transition:opacity .25s; }
+    .form-label { display:block;font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em; }
+    .form-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--card-bg);color:var(--t1);outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .form-input:focus { border-color:var(--accent); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Children</h1>
+            <p class="page-sub" id="childCount"></p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Exporting register…','info')">Export</button>
+            <button class="btn btn--primary" onclick="openAddChild()">+ Add Child</button>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="children-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="childSearch" placeholder="Search by name or parent…" oninput="renderGrid()">
+          </div>
+          <div id="roomFilters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Grid -->
+        <div class="children-grid" id="childrenGrid"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Child Detail Panel -->
+  <div class="side-panel" id="childPanel">
+    <div class="panel-head">
+      <div class="panel-head-title" id="panelChildName">Child Profile</div>
+      <button class="panel-close" onclick="closeChildPanels()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body" id="panelChildBody"></div>
+  </div>
+
+  <!-- Add Child Panel -->
+  <div class="side-panel" id="addChildPanel">
+    <div class="panel-head">
+      <div class="panel-head-title">Enrol New Child</div>
+      <button class="panel-close" onclick="closeChildPanels()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="panel-body">
+      <div style="margin-bottom:16px">
+        <label class="form-label">Child's Full Name *</label>
+        <input class="form-input" id="ac-name" type="text" placeholder="e.g. Lily Johnson">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div>
+          <label class="form-label">Date of Birth *</label>
+          <input class="form-input" id="ac-dob" type="date">
+        </div>
+        <div>
+          <label class="form-label">Room *</label>
+          <select class="form-input" id="ac-room">
+            <option value="">Select…</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Parent / Guardian Name *</label>
+        <input class="form-input" id="ac-parent" type="text" placeholder="e.g. Sarah Johnson">
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Parent Phone *</label>
+        <input class="form-input" id="ac-phone" type="tel" placeholder="e.g. +1 780 555 0300">
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Care Type</label>
+        <select class="form-input" id="ac-care">
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time 3 days">Part-time (3 days)</option>
+          <option value="Part-time 2 days">Part-time (2 days)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Monthly Fee ($)</label>
+        <input class="form-input" id="ac-fee" type="number" min="0" value="1150">
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Allergies</label>
+        <input class="form-input" id="ac-allergy" type="text" placeholder="e.g. Peanuts (severe), or None">
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Medical Notes</label>
+        <textarea class="form-input" id="ac-medical" rows="3" style="resize:vertical" placeholder="Any conditions, medications, or care notes…"></textarea>
+      </div>
+      <div style="margin-bottom:24px">
+        <label class="form-label">Key Teacher</label>
+        <select class="form-input" id="ac-teacher">
+          <option value="">Assign later</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--primary" style="flex:1" onclick="submitAddChild()">Enrol Child</button>
+        <button class="btn btn--ghost" onclick="closeChildPanels()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panelOverlay" onclick="closeChildPanels()"></div>
+
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'children' });
+
+    var _children = DC.children.slice();
+    var _activeRoom = 'All';
+
+    function getRooms() {
+      var seen = {All:1}, list = ['All'];
+      _children.forEach(function(c){ if(!seen[c.room]){seen[c.room]=1;list.push(c.room);} });
+      return list;
+    }
+
+    function closeChildPanels() {
+      ['childPanel','addChildPanel'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.classList.remove('is-open');
+      });
+      var ov=document.getElementById('panelOverlay');
+      ov.style.opacity='0'; ov.style.pointerEvents='none';
+    }
+    window.closeChildPanels = closeChildPanels;
+
+    function openSidePanel(id) {
+      closeChildPanels();
+      var el=document.getElementById(id); if(el) el.classList.add('is-open');
+      var ov=document.getElementById('panelOverlay');
+      ov.style.opacity='1'; ov.style.pointerEvents='all';
+    }
+
+    function renderFilters() {
+      document.getElementById('roomFilters').innerHTML = getRooms().map(function(r){
+        return '<button class="filter-btn'+(_activeRoom===r?' is-active':'')+'" onclick="setRoom(\''+r+'\')">'+r+'</button>';
+      }).join('');
+    }
+    window.setRoom = function(r) { _activeRoom=r; renderFilters(); renderGrid(); };
+
+    function renderGrid() {
+      var q = document.getElementById('childSearch').value.toLowerCase();
+      var list = _children;
+      if(_activeRoom!=='All') list = list.filter(function(c){return c.room===_activeRoom;});
+      if(q) list = list.filter(function(c){return c.name.toLowerCase().includes(q)||(c.parentName||'').toLowerCase().includes(q);});
+      document.getElementById('childCount').textContent = list.length+' children · '+DC.rooms.length+' rooms';
+      var statusMap = {present:'badge--green',absent:'badge--red',late:'badge--amber'};
+      document.getElementById('childrenGrid').innerHTML = list.map(function(c){
+        var ini = c.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+        var hasAllergy = c.allergies && c.allergies!=='None';
+        return '<div class="child-card" onclick="openChild(\''+c.id+'\')">'+
+          '<div class="child-card-head">'+
+            '<div class="av av-lg av--'+CL.avatarColor(c.name)+'">'+ini+'</div>'+
+            '<div><div class="child-name">'+c.name+'</div>'+
+            '<div class="child-meta">'+(c.age||'—')+' &middot; DOB '+c.dob+'</div>'+
+            '<span class="child-room">'+c.room+'</span></div>'+
+          '</div>'+
+          (hasAllergy ? '<div class="allergy-tag" style="margin-bottom:10px">&#9888; '+c.allergies.split(' (')[0]+'</div>' : '')+
+          '<div class="child-info-row"><span style="color:var(--t3)">Parent</span><span style="color:var(--t2);font-weight:500">'+(c.parentName||'—')+'</span></div>'+
+          '<div class="child-info-row"><span style="color:var(--t3)">Key Teacher</span><span style="color:var(--t2);font-weight:500">'+(c.keyTeacher||'—')+'</span></div>'+
+          '<div class="child-info-row"><span style="color:var(--t3)">Care Type</span><span style="color:var(--t2);font-weight:500">'+(c.careType||'—')+'</span></div>'+
+          '<div class="child-info-row"><span style="color:var(--t3)">Today</span><span class="badge '+(statusMap[c.attendanceStatus]||'badge--grey')+'">'+(c.attendanceStatus||'Not checked in')+'</span></div>'+
+          '</div>';
+      }).join('') || '<p style="color:var(--t3);font-size:.875rem;grid-column:1/-1">No children match your search.</p>';
+    }
+
+    window.openChild = function(id) {
+      var c = _children.find(function(x){return x.id===id;});
+      if(!c) return;
+      var ini = c.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2);
+      document.getElementById('panelChildName').textContent = c.name;
+      var hist = ['P','P','A','P','P','L','P','P','P','P','P','A','P','P','P'];
+      var allergyBg = (c.allergies&&c.allergies!=='None') ? '#FEF2F2' : 'var(--s1)';
+      var allergyBd = (c.allergies&&c.allergies!=='None') ? '#FCA5A5' : 'var(--border)';
+      var allergyClr = (c.allergies&&c.allergies!=='None') ? '#DC2626' : 'var(--t3)';
+      document.getElementById('panelChildBody').innerHTML =
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">'+
+          '<div class="av" style="width:64px;height:64px;border-radius:16px;font-size:1.5rem;font-weight:700;background:var(--accent-bg);color:var(--accent)">'+ini+'</div>'+
+          '<div><div style="font-size:1.125rem;font-weight:700;color:var(--t1)">'+c.name+'</div>'+
+          '<div style="font-size:.875rem;color:var(--t3)">'+(c.age||'—')+' &middot; '+c.room+'</div></div>'+
+        '</div>'+
+        '<div class="panel-section"><div class="panel-section-title">Basic Info</div>'+
+        [['Date of Birth',c.dob],['Age',c.age||'—'],['Room',c.room],
+         ['Key Teacher',c.keyTeacher||'—'],['Care Type',c.careType||'—'],['Monthly Fee','$'+(c.monthlyFee||'—')]].map(function(row){
+          return '<div class="panel-row"><span class="panel-key">'+row[0]+'</span><span class="panel-val">'+row[1]+'</span></div>';
+        }).join('')+'</div>'+
+        '<div class="panel-section"><div class="panel-section-title">Parent / Guardian</div>'+
+        [['Parent Name',c.parentName||'—'],['Phone',c.parentPhone||'—'],['Emergency Contact',c.emergencyContact||c.parentPhone||'—']].map(function(row){
+          return '<div class="panel-row"><span class="panel-key">'+row[0]+'</span><span class="panel-val">'+row[1]+'</span></div>';
+        }).join('')+'</div>'+
+        '<div class="panel-section"><div class="panel-section-title">Health &amp; Allergies</div>'+
+          '<div style="padding:12px;border-radius:10px;background:'+allergyBg+';border:1px solid '+allergyBd+'">'+
+            '<div style="font-size:.8rem;font-weight:600;color:'+allergyClr+'">Allergies</div>'+
+            '<div style="font-size:.875rem;color:var(--t1);margin-top:4px">'+(c.allergies||'None')+'</div>'+
+          '</div>'+
+          '<div style="padding:12px;border-radius:10px;background:var(--s1);margin-top:8px">'+
+            '<div style="font-size:.8rem;font-weight:600;color:var(--t3)">Medical Notes</div>'+
+            '<div style="font-size:.875rem;color:var(--t1);margin-top:4px">'+(c.medicalNotes||'None')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="panel-section"><div class="panel-section-title">Attendance (Last 15 Days)</div>'+
+          '<div class="att-history">'+
+          hist.map(function(d){return '<div class="att-day att-day--'+d+'">'+d+'</div>';}).join('')+
+          '</div></div>'+
+        '<div style="display:flex;gap:8px;margin-top:8px">'+
+          '<button class="btn btn--primary" style="flex:1" onclick="window.location=\'/client/daycare/daily-reports\'">Send Report</button>'+
+          '<button class="btn btn--ghost" style="flex:1" onclick="window.location=\'/client/daycare/parent-messages\'">Message Parent</button>'+
+        '</div>';
+      openSidePanel('childPanel');
+    };
+
+    window.openAddChild = function() {
+      var roomSel = document.getElementById('ac-room');
+      roomSel.innerHTML = '<option value="">Select room…</option>';
+      DC.rooms.forEach(function(r){ roomSel.innerHTML += '<option>'+r.name+'</option>'; });
+      var tchSel = document.getElementById('ac-teacher');
+      tchSel.innerHTML = '<option value="">Assign later</option>';
+      DC.staff.forEach(function(s){ tchSel.innerHTML += '<option>'+s.name+'</option>'; });
+      ['ac-name','ac-parent','ac-phone','ac-allergy','ac-medical'].forEach(function(id){
+        document.getElementById(id).value='';
+      });
+      document.getElementById('ac-fee').value='1150';
+      document.getElementById('ac-care').value='Full-time';
+      document.getElementById('ac-dob').value='';
+      openSidePanel('addChildPanel');
+    };
+
+    window.submitAddChild = function() {
+      var name   = document.getElementById('ac-name').value.trim();
+      var dob    = document.getElementById('ac-dob').value;
+      var room   = document.getElementById('ac-room').value;
+      var parent = document.getElementById('ac-parent').value.trim();
+      var phone  = document.getElementById('ac-phone').value.trim();
+      if(!name)   { CL.showToast('Please enter the child\'s name','error'); return; }
+      if(!dob)    { CL.showToast('Please enter the date of birth','error'); return; }
+      if(!room)   { CL.showToast('Please select a room','error'); return; }
+      if(!parent) { CL.showToast('Please enter the parent name','error'); return; }
+      if(!phone)  { CL.showToast('Please enter a contact phone number','error'); return; }
+      var birthYear = parseInt(dob.split('-')[0]);
+      var age = (2026 - birthYear);
+      var newChild = {
+        id: 'c'+(Date.now()),
+        name: name,
+        dob: dob,
+        age: age < 1 ? 'Under 1' : age+' yr'+(age===1?'':'s'),
+        room: room,
+        parentName: parent,
+        parentPhone: phone,
+        careType: document.getElementById('ac-care').value,
+        monthlyFee: parseInt(document.getElementById('ac-fee').value)||1150,
+        allergies: document.getElementById('ac-allergy').value.trim()||'None',
+        medicalNotes: document.getElementById('ac-medical').value.trim()||'None',
+        keyTeacher: document.getElementById('ac-teacher').value||'TBC',
+        attendanceStatus: 'present',
+      };
+      _children.push(newChild);
+      renderFilters();
+      renderGrid();
+      closeChildPanels();
+      CL.showToast(name+' enrolled successfully!', 'success');
+    };
+
+    renderFilters();
+    renderGrid();
+  </script>
+</body>
+</html>

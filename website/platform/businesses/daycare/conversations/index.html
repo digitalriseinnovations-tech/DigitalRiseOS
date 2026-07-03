@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversations — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Conversations</h1>
+          <p class="page-sub">Every parent conversation handled by your AI employees</p>
+        </div>
+        <div class="page-hdr-right">
+          <div class="filter-bar" style="margin:0">
+            <button class="filter-btn is-active" id="fAll">All (6)</button>
+            <button class="filter-btn" id="fChat">Chat</button>
+            <button class="filter-btn" id="fWA">WhatsApp</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inbox layout -->
+      <div class="conv-layout" id="convLayout">
+
+        <!-- Left list -->
+        <div class="conv-list" id="convList"></div>
+
+        <!-- Right detail -->
+        <div class="conv-detail" id="convDetail">
+          <div class="conv-detail-hdr" id="convDetailHdr">
+            <div>
+              <div style="font-size:1rem;font-weight:700;color:var(--t1)" id="convDetailName">Select a conversation</div>
+              <div style="font-size:.75rem;color:var(--t3)" id="convDetailMeta">Click a conversation from the list to view details</div>
+            </div>
+            <div id="convDetailActions" style="display:flex;gap:8px"></div>
+          </div>
+          <div class="conv-msgs" id="convMsgs">
+            <div style="margin:auto;text-align:center;color:var(--t3)">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <div style="font-size:.875rem">Select a conversation to read it</div>
+            </div>
+          </div>
+          <div class="conv-actions-footer">
+            <input class="form-input" type="text" placeholder="Add a note or reply..." style="flex:1" disabled id="convReplyInput">
+            <button class="btn btn--primary" disabled id="convReplyBtn" onclick="sendNote()">Send</button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'Conversations' }
+  ]
+});
+
+const D = window.DR_DATA;
+let activeConv = null;
+
+const CHANNEL_BADGE = {
+  'Website Chat': 'badge--blue',
+  'WhatsApp': 'badge--green',
+  'Email': 'badge--gray',
+};
+
+function renderList(convs) {
+  document.getElementById('convList').innerHTML = convs.map(c => {
+    const isActive = activeConv === c.id;
+    return `<div class="conv-list-item${isActive ? ' is-active' : ''}" onclick="openConv('${c.id}')">
+      <div class="av av--purple" style="font-size:.6875rem">${c.parentName.charAt(0)}</div>
+      <div class="conv-list-info">
+        <div class="conv-list-name">${c.parentName}</div>
+        <div class="conv-list-preview">${c.preview}</div>
+        <div class="conv-list-meta">
+          <span class="conv-list-time">${c.time}</span>
+          <span class="badge ${CHANNEL_BADGE[c.channel] || 'badge--gray'}">${c.channel}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+renderList(D.conversations);
+
+function openConv(id) {
+  const c = D.conversations.find(x => x.id === id);
+  if (!c) return;
+  activeConv = id;
+  renderList(D.conversations);
+
+  document.getElementById('convDetailName').textContent = c.parentName;
+  document.getElementById('convDetailMeta').textContent = `${c.service} · ${c.channel} · ${c.aiEmployee} (AI)`;
+  document.getElementById('convDetailActions').innerHTML = `
+    <span class="badge badge--${c.statusColor === 'green' ? 'green' : c.statusColor === 'amber' ? 'amber' : 'blue'}">${c.status}</span>
+    <a href="/platform/businesses/daycare/crm" class="btn btn--ghost btn--sm">View in CRM →</a>
+  `;
+  document.getElementById('convReplyInput').disabled = false;
+  document.getElementById('convReplyBtn').disabled = false;
+
+  const msgsEl = document.getElementById('convMsgs');
+  msgsEl.innerHTML = c.messages.map(m => {
+    if (m.role === 'system') {
+      return `<div class="conv-msg conv-msg--system"><div class="conv-bubble">${m.text}</div></div>`;
+    }
+    const isAI = m.role === 'ai';
+    const isParent = m.role === 'parent';
+    return `<div class="conv-msg conv-msg--${isAI ? 'ai' : 'parent'}">
+      ${isAI ? `<div style="font-size:.6875rem;font-weight:700;color:var(--t3);margin-bottom:4px;padding-left:4px">${c.aiEmployee} · AI</div>` : ''}
+      <div class="conv-bubble">${m.text}</div>
+      <div class="conv-meta">
+        ${m.time}${m.meta ? ` · ${m.meta}` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function sendNote() {
+  const inp = document.getElementById('convReplyInput');
+  if (!inp.value.trim()) return;
+  DR.showToast('Note added to conversation');
+  inp.value = '';
+}
+
+/* Filter buttons */
+document.getElementById('fAll').onclick = function() {
+  setFilter(this); renderList(D.conversations);
+};
+document.getElementById('fChat').onclick = function() {
+  setFilter(this); renderList(D.conversations.filter(c => c.channel === 'Website Chat'));
+};
+document.getElementById('fWA').onclick = function() {
+  setFilter(this); renderList(D.conversations.filter(c => c.channel === 'WhatsApp'));
+};
+function setFilter(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('is-active'));
+  btn.classList.add('is-active');
+}
+
+/* Auto-open first conversation */
+if (D.conversations.length) openConv(D.conversations[0].id);
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .reviews-layout { display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start; }
+    @media(max-width:900px){ .reviews-layout{grid-template-columns:1fr} }
+
+    .rating-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:24px;text-align:center; }
+    .rating-big { font-size:3.5rem;font-weight:800;color:var(--t1);line-height:1; }
+    .rating-stars { display:flex;justify-content:center;gap:4px;margin:8px 0;font-size:1.5rem; }
+    .rating-count { font-size:.875rem;color:var(--t3); }
+    .rating-bar { display:flex;align-items:center;gap:8px;margin-bottom:6px; }
+    .rating-bar-label { font-size:.75rem;font-weight:600;color:var(--t2);min-width:30px; }
+    .rating-bar-track { flex:1;height:6px;background:var(--s3);border-radius:99px;overflow:hidden; }
+    .rating-bar-fill { height:100%;border-radius:99px;background:#D97706; }
+    .rating-bar-count { font-size:.75rem;color:var(--t4);min-width:24px;text-align:right; }
+
+    .sentiment-chips { display:flex;gap:8px;flex-wrap:wrap;margin-top:14px; }
+    .sent-chip { flex:1;min-width:80px;padding:10px;border-radius:10px;text-align:center; }
+    .sent-chip .n { font-size:1.25rem;font-weight:700; }
+    .sent-chip .l { font-size:.6875rem;font-weight:500;margin-top:2px; }
+
+    .review-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px;transition:border-color .15s; }
+    .review-card:hover { border-color:var(--accent); }
+    .review-head { display:flex;align-items:center;gap:10px;margin-bottom:10px; }
+    .reviewer-name { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .review-date { font-size:.75rem;color:var(--t4);margin-top:1px; }
+    .review-source { font-size:.625rem;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--s2);color:var(--t4); }
+    .review-stars { display:flex;gap:2px;font-size:.875rem;margin-left:auto; }
+    .review-text { font-size:.875rem;color:var(--t2);line-height:1.6;margin-bottom:10px; }
+    .review-reply { padding:10px 12px;border-radius:8px;font-size:.8125rem;color:var(--t2);line-height:1.5;background:var(--s1);border-left:3px solid var(--accent); }
+    .review-reply-label { font-size:.6875rem;font-weight:700;color:var(--accent);margin-bottom:4px; }
+    .ai-reply-bar { display:flex;gap:8px;margin-top:10px;align-items:center; }
+    .ai-reply-input { flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.8125rem;background:var(--s1);color:var(--t1);outline:none;transition:border-color .15s; }
+    .ai-reply-input:focus { border-color:var(--accent); }
+
+    .ai-settings-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px;margin-top:16px; }
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--s2); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle { position:relative;width:40px;height:22px;border-radius:99px;background:var(--s3);cursor:pointer;transition:background .2s;border:none; }
+    .toggle.is-on { background:var(--accent); }
+    .toggle::after { content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s; }
+    .toggle.is-on::after { left:21px; }
+
+    .review-request-btn { display:flex;align-items:center;gap:10px;padding:14px 18px;border:1.5px solid var(--border);border-radius:12px;background:var(--card-bg);cursor:pointer;width:100%;text-align:left;transition:all .15s;margin-top:12px; }
+    .review-request-btn:hover { border-color:var(--accent);background:var(--accent-bg); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Reviews</h1>
+            <p class="page-sub">Google Reviews · AI-powered replies · Sentiment analysis</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--ghost" onclick="CL.showToast('Opening Google Business…','info')">Open Google</button>
+            <button class="btn btn--primary" onclick="requestReviews()">Request Reviews</button>
+          </div>
+        </div>
+
+        <div class="reviews-layout">
+
+          <!-- Left: Rating + AI settings -->
+          <div>
+            <!-- Rating card -->
+            <div class="rating-card">
+              <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px">
+                <span style="font-size:1rem">🔍</span>
+                <span style="font-size:.8125rem;font-weight:600;color:var(--t3)">Google Reviews</span>
+              </div>
+              <div class="rating-big" id="ratingBig"></div>
+              <div class="rating-stars" id="ratingStars"></div>
+              <div class="rating-count" id="ratingCount"></div>
+              <div style="margin-top:16px" id="ratingBars"></div>
+
+              <!-- Sentiment -->
+              <div class="sentiment-chips" id="sentimentChips"></div>
+            </div>
+
+            <!-- AI settings -->
+            <div class="ai-settings-card">
+              <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:12px">AI Reply Settings</div>
+              <div class="toggle-row">
+                <span style="font-size:.875rem;color:var(--t2)">Auto-reply to 5★ reviews</span>
+                <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+              </div>
+              <div class="toggle-row">
+                <span style="font-size:.875rem;color:var(--t2)">Flag negative reviews</span>
+                <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+              </div>
+              <div class="toggle-row">
+                <span style="font-size:.875rem;color:var(--t2)">Monthly review digest</span>
+                <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+              </div>
+              <div class="toggle-row">
+                <span style="font-size:.875rem;color:var(--t2)">Review request via WhatsApp</span>
+                <button class="toggle is-on" onclick="this.classList.toggle('is-on')"></button>
+              </div>
+              <button class="btn btn--ghost" style="width:100%;margin-top:14px" onclick="CL.showToast('AI tone settings saved','success')">Save AI Settings</button>
+            </div>
+
+            <!-- Review request -->
+            <button class="review-request-btn" onclick="requestReviews()">
+              <div style="width:36px;height:36px;border-radius:9px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;font-size:1rem">⭐</div>
+              <div>
+                <div style="font-size:.875rem;font-weight:700;color:var(--t1)">Send Review Requests</div>
+                <div style="font-size:.75rem;color:var(--t3)">WhatsApp & Email to all parents</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Right: review inbox -->
+          <div>
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:14px" id="reviewsTitle"></div>
+            <div id="reviewsList"></div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'reviews' });
+
+    const r = DC.reviews;
+
+    /* Rating */
+    document.getElementById('ratingBig').textContent   = r.rating;
+    document.getElementById('ratingStars').innerHTML   = CL.stars(r.rating);
+    document.getElementById('ratingCount').textContent = `${r.total} reviews`;
+
+    const starCounts = { 5:36, 4:7, 3:3, 2:0, 1:1 };
+    document.getElementById('ratingBars').innerHTML = [5,4,3,2,1].map(n => {
+      const cnt = starCounts[n]||0;
+      const pct = Math.round(cnt/r.total*100);
+      return `<div class="rating-bar">
+        <span class="rating-bar-label">${n}★</span>
+        <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
+        <span class="rating-bar-count">${cnt}</span>
+      </div>`;
+    }).join('');
+
+    /* Sentiment */
+    const s = r.sentiment;
+    document.getElementById('sentimentChips').innerHTML = `
+      <div class="sent-chip" style="background:#DCFCE7;color:#16A34A"><div class="n">${s.positive}</div><div class="l">Positive</div></div>
+      <div class="sent-chip" style="background:#F1F5F9;color:#64748B"><div class="n">${s.neutral}</div><div class="l">Neutral</div></div>
+      <div class="sent-chip" style="background:#FEE2E2;color:#DC2626"><div class="n">${s.negative}</div><div class="l">Negative</div></div>`;
+
+    /* Reviews list */
+    document.getElementById('reviewsTitle').textContent = `Recent Reviews (${r.recent.length})`;
+    document.getElementById('reviewsList').innerHTML = r.recent.map((rev,i) => `
+      <div class="review-card">
+        <div class="review-head">
+          <div class="av av-sm av--${CL.avatarColor(rev.author)}">${rev.author.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+          <div>
+            <div class="reviewer-name">${rev.author}</div>
+            <div class="review-date">${rev.time}</div>
+          </div>
+          <span class="review-source">${rev.platform||'Google'}</span>
+          <div class="review-stars">${CL.stars(rev.rating)}</div>
+        </div>
+        <div class="review-text">${rev.text}</div>
+        ${rev.replied
+          ? `<div class="review-reply"><div class="review-reply-label">Your Reply</div>${rev.reply}</div>`
+          : `<div class="ai-reply-bar">
+               <input class="ai-reply-input" id="reply-input-${i}" placeholder="Write a reply…" value="${rev.aiDraft||''}">
+               <button class="btn btn--ghost btn--sm" onclick="aiDraft(${i})">⚡ AI Draft</button>
+               <button class="btn btn--primary btn--sm" onclick="sendReply(${i})">Send</button>
+             </div>`}
+      </div>`).join('');
+
+    window.aiDraft = i => {
+      const rev = r.reviews[i];
+      const draft = `Thank you so much for your kind words, ${rev.name.split(' ')[0]}! We're thrilled to hear about your positive experience at Sunshine Nursery. Our team works hard every day to create a warm, nurturing environment for all the children in our care. We look forward to continuing to support ${rev.child||'your child'}'s growth and development!`;
+      const inp = document.getElementById(`reply-input-${i}`);
+      if(inp){ inp.value=draft; rev.aiDraft=draft; }
+      CL.showToast('AI reply drafted','success');
+    };
+
+    window.sendReply = i => {
+      const rev = r.reviews[i];
+      const inp = document.getElementById(`reply-input-${i}`);
+      rev.reply    = inp?.value || rev.aiDraft || 'Thank you for your review!';
+      rev.replied  = true;
+      document.getElementById('reviewsList').innerHTML = '';
+      document.getElementById('reviewsList').innerHTML = r.reviews.map((rev,i)=>`
+        <div class="review-card">
+          <div class="review-head">
+            <div class="av av-sm av--${CL.avatarColor(rev.name)}">${rev.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+            <div><div class="reviewer-name">${rev.name}</div><div class="review-date">${rev.date}</div></div>
+            <span class="review-source">${rev.source||'Google'}</span>
+            <div class="review-stars">${CL.stars(rev.rating)}</div>
+          </div>
+          <div class="review-text">${rev.text}</div>
+          ${rev.replied
+            ? `<div class="review-reply"><div class="review-reply-label">Your Reply</div>${rev.reply}</div>`
+            : `<div class="ai-reply-bar">
+                 <input class="ai-reply-input" id="reply-input-${i}" placeholder="Write a reply…" value="${rev.aiDraft||''}">
+                 <button class="btn btn--ghost btn--sm" onclick="aiDraft(${i})">⚡ AI Draft</button>
+                 <button class="btn btn--primary btn--sm" onclick="sendReply(${i})">Send</button>
+               </div>`}
+        </div>`).join('');
+      CL.showToast('Reply posted to Google','success');
+    };
+
+    window.requestReviews = () => CL.showToast(`Review request sent to ${DC.children.length} parents via WhatsApp`, 'success');
+  </script>
+</body>
+</html>

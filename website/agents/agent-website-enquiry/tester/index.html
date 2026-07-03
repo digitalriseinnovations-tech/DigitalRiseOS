@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Tester — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .tester-layout { display:grid;grid-template-columns:1fr 360px;gap:16px;height:calc(100vh - 210px);min-height:480px; }
+    @media(max-width:900px){.tester-layout{grid-template-columns:1fr;height:auto}}
+    .chat-panel { display:flex;flex-direction:column;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden; }
+    .chat-hd { padding:14px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0; }
+    .chat-body { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px; }
+    .chat-ft { padding:12px;border-top:1.5px solid var(--border);display:flex;gap:8px;flex-shrink:0; }
+    .msg-wrap { display:flex;flex-direction:column;gap:3px; }
+    .msg-wrap.out { align-items:flex-end }
+    .msg-label { font-size:.5625rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4); }
+    .msg-bubble { max-width:78%;padding:10px 14px;border-radius:12px;font-size:.8125rem;line-height:1.55;white-space:pre-wrap; }
+    .msg-in  { background:var(--border-s);color:var(--t1);border-bottom-left-radius:4px;align-self:flex-start }
+    .msg-out { background:var(--accent);color:#fff;border-bottom-right-radius:4px }
+    .msg-typing { display:flex;align-items:center;gap:3px;padding:10px 14px;background:var(--border-s);border-radius:12px;border-bottom-left-radius:4px;width:fit-content }
+    .typing-dot { width:6px;height:6px;border-radius:50%;background:var(--t4);animation:typingPulse 1.4s infinite both }
+    .typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
+    @keyframes typingPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+    .actions-panel { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column; }
+    .actions-hd { padding:12px 16px;border-bottom:1.5px solid var(--border);flex-shrink:0; }
+    .actions-body { flex:1;overflow-y:auto;padding:14px; }
+    .action-event { display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:8px;margin-bottom:6px;animation:fadeIn .3s ease; }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .action-ico { width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0 }
+    .action-label { font-size:.8125rem;font-weight:700;color:var(--t1);line-height:1.3 }
+    .action-sub { font-size:.6875rem;color:var(--t3);margin-top:2px }
+    .lead-card { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:10px;padding:14px;margin-top:12px; }
+    .lead-field { display:flex;justify-content:space-between;padding:4px 0;font-size:.75rem; }
+    .lf-key { color:var(--t3);font-weight:600 }
+    .lf-val { color:var(--t1);font-weight:700 }
+    .empty-chat { display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--t4);gap:8px;padding:24px;text-align:center }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Agent Tester</div>
+          <div class="ag-ph-sub">Simulate real visitor enquiries and see how the agent responds</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bizPicker" style="width:180px" onchange="changeBiz(this.value)"></select>
+          <select class="ag-select" id="scenarioPicker" style="width:200px">
+            <option value="">— Select scenario —</option>
+          </select>
+          <button class="btn btn--primary" onclick="runScenario()">▶ Run</button>
+          <button class="btn btn--ghost" onclick="clearChat()">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="tester-layout">
+        <!-- Chat -->
+        <div class="chat-panel">
+          <div class="chat-hd">
+            <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:1rem">💻</div>
+            <div>
+              <div style="font-size:.875rem;font-weight:700;color:var(--t1)" id="chatBizName">Sunshine Nursery</div>
+              <div style="display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div><div style="font-size:.6875rem;color:var(--green);font-weight:600">Website Enquiry Agent Online</div></div>
+            </div>
+          </div>
+          <div class="chat-body" id="chatBody">
+            <div class="empty-chat" id="chatEmpty">
+              <div style="font-size:2rem">💬</div>
+              <div style="font-weight:700;color:var(--t2);font-size:.9375rem">Select a scenario and click Run</div>
+              <div style="font-size:.8125rem">Or type your own message below</div>
+            </div>
+          </div>
+          <div class="chat-ft">
+            <input class="ag-input" id="chatInput" placeholder="Type a visitor message…" onkeydown="if(event.key==='Enter')sendCustom()">
+            <button class="btn btn--primary" onclick="sendCustom()">Send</button>
+          </div>
+        </div>
+
+        <!-- Actions panel -->
+        <div class="actions-panel">
+          <div class="actions-hd">
+            <div style="font-size:.8125rem;font-weight:700;color:var(--t1)">Live Agent Actions</div>
+            <div style="font-size:.6875rem;color:var(--t3);margin-top:2px">What the agent is doing in real-time</div>
+          </div>
+          <div class="actions-body" id="actionsBody">
+            <div style="text-align:center;padding:32px 12px;color:var(--t4);font-size:.8125rem">Actions will appear here when a conversation starts</div>
+          </div>
+          <div id="leadPreview" style="display:none;padding:14px;border-top:1.5px solid var(--border)">
+            <div style="font-size:.625rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Lead Created</div>
+            <div class="lead-card" id="leadCardInner"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+/* ── Knowledge base by business ────────────────────────────── */
+var KB = {
+  b1: {
+    fees:'Our fees are:\n\n• Infant Care (6wk–12m): from $1,800/month\n• Toddler Care (12m–3yrs): from $1,200/month\n• Preschool (3–5yrs): from $1,100/month\n• School Age (5–12yrs): from $650/month\n\nWe also accept CWELCC and CARE subsidies, which can reduce fees significantly. Would you like to know if you\'d qualify? 😊',
+    availability:'We have limited availability right now:\n\n• 🔵 Toddler Room (12m–3yrs): a few spots for September 2026\n• 🟢 Preschool (3–5yrs): spots available for September\n• 🔴 Infant Room: Waitlist only\n\nCan I ask — how old is your child and when were you hoping to start? That\'ll help me point you to the right room!',
+    tour:'We\'d love to show you around! 🌟\n\nTours are available Monday to Friday at 10am and 2pm — about 30 minutes. You\'ll meet our educators and see the classrooms.\n\nCould I get your name and a preferred date? We\'re popular for September so I\'d suggest booking soon!',
+    waitlist:'Of course — our waitlist is completely free, no deposit needed.\n\nWhen a spot opens, we contact you straight away. To add your child, I just need:\n• Child\'s name and date of birth\n• Preferred start month\n• Full-time or part-time\n\nShall I get those details from you now?',
+    subsidy:'Great news — we accept both CWELCC and CARE subsidies, which can reduce fees significantly (up to 100% for qualifying families).\n\nI\'d recommend speaking with our Director, Sarah Chen, who can walk you through eligibility and the application. Shall I flag your enquiry as a priority for her? 📋',
+    hours:'We\'re open Monday to Friday, 7:30am to 6:00pm, and Saturday from 9am to 1pm (limited staffing on Saturdays).\n\nIs there anything else you\'d like to know?',
+  },
+  b2: {
+    fees:'Our fees are:\n\n• Check-up & Clean: from $180 (covered by most major insurance plans)\n• Teeth Whitening: from $450\n• Invisalign: from $4,200 — payment plans available\n• Emergency slots: available same-day\n\nWe direct-bill most major insurance providers. Would you like me to check if we accept yours?',
+    availability:'Yes! We\'re currently accepting new patients. 😊\n\nNew patient consultations are complimentary — we\'d love to meet you first.\n\nWe have availability Monday to Friday from 8am–6pm, and Saturday from 8am–2pm. What day works best for you?',
+    tour:'We offer free new patient consultations — just 20 minutes to discuss your dental needs and give you a proper assessment.\n\nAvailable Mon–Fri 8am–6pm, Sat 8am–2pm. What day and time works for you?\n\nCan I get your name to book you in? 😊',
+  },
+  b5: {
+    fees:'Our prices are:\n\n• Haircut from $65\n• Gel Manicure from $55\n• Gel Pedicure from $65\n• Gel Mani + Pedi from $105\n• Lash Lift & Tint from $80\n• Bridal packages from $450\n\nWould you like to book an appointment? 💅',
+    availability:'We have availability this week! 🗓\n\nFor Saturday, we have: 9am, 11am, and 3pm.\nFor Sunday, we have: 10am and 1pm.\n\nWhich service are you looking to book, and which time works for you?',
+    tour:'Book an appointment easily! We\'re open Tue–Sat 9am–7pm, Sun 10am–5pm.\n\nJust let me know:\n• Which service you\'d like\n• Your preferred day and time\n• Your name and best contact number\n\nI\'ll get you confirmed! 💅',
+  },
+};
+
+/* ── Scenarios ───────────────────────────────────────────── */
+var SCENARIOS = {
+  b1:[
+    { id:'fees',        label:'💰 Fees Enquiry',
+      visitor:'Hi! I\'m looking at daycare options for my 2-year-old daughter. Can you tell me about your fees?',
+      kbKey:'fees',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — Fees & Pricing',sub:'Retrieved from knowledge base'},
+      followUp:'To make sure I find the best fit for you — are you looking for full-time or part-time care?',
+      followUpAction:{ico:'🎯',col:'#EDE9FE',label:'Qualification started',sub:'Asked about schedule preference'},
+    },
+    { id:'availability', label:'📅 Availability Enquiry',
+      visitor:'Do you have any spaces available for September? My son will be 18 months.',
+      kbKey:'availability',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — Availability',sub:'Toddler + Preschool spots confirmed'},
+      followUp:'Perfect — 18 months puts him right in our Toddler Room 🌟 Are you looking for full-time or part-time? And would you like to book a tour to come see us?',
+      followUpAction:{ico:'🎯',col:'#EDE9FE',label:'Lead qualified — Toddler Room',sub:'Age confirmed, tour offered'},
+    },
+    { id:'tour',        label:'🗓 Tour Booking',
+      visitor:'We\'d love to come visit the nursery. How do we book a tour?',
+      kbKey:'tour',
+      action:{ico:'📅',col:'var(--green-bg)',label:'Tour booking initiated',sub:'Available slots offered'},
+      followUp:"What's your name, and which date works best — I have Thursday at 10am or Friday at 2pm this week?",
+      followUpAction:{ico:'👤',col:'var(--accent-bg)',label:'Lead created — awaiting contact details',sub:'Name & date collection started'},
+      leadData:{name:'(Collecting...)',service:'Daycare Tour',intent:'Tour booking',status:'Partial — awaiting name',nextAction:'Confirm date & email'},
+    },
+    { id:'subsidy',     label:'📋 Subsidy Question',
+      visitor:'Do you accept government subsidies? We might be eligible for CWELCC.',
+      kbKey:'subsidy',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — Subsidy',sub:'CWELCC & CARE info provided'},
+      followUp:'Would you like me to put you in touch with our Director who can walk you through the eligibility check?',
+      followUpAction:{ico:'🚨',col:'var(--red-bg)',label:'Escalation flagged — Director contact',sub:'High-priority subsidy enquiry'},
+    },
+    { id:'waitlist',    label:'⏳ Waitlist Request',
+      visitor:'We\'d love a spot but I heard there might be a waitlist for infants — can we still apply?',
+      kbKey:'waitlist',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — Waitlist',sub:'Waitlist process explained'},
+      followUp:'Could I get your child\'s name, date of birth, and when you\'re hoping to start?',
+      followUpAction:{ico:'👤',col:'var(--accent-bg)',label:'Waitlist lead created',sub:'Collecting child details'},
+      leadData:{name:'(Collecting...)',service:'Infant Care — Waitlist',intent:'Waitlist application',status:'Partial — awaiting DOB',nextAction:'Capture child details'},
+    },
+    { id:'callback',    label:'📞 Callback Request',
+      visitor:'Could someone call me back? I have a few questions I\'d like to talk through.',
+      reply:'Of course! We\'d love to chat 📞\n\nCould I get your name and the best number to reach you? Our team typically calls back within 2 hours during business hours (Mon–Fri 7:30am–6pm).',
+      action:{ico:'📞',col:'var(--amber-bg)',label:'Callback request captured',sub:'Name & number collection started'},
+      followUp:"And is there a particular topic you'd like to discuss — fees, availability, programs, something else?",
+      followUpAction:{ico:'🏷',col:'var(--border-s)',label:'Enquiry categorised — Callback',sub:'Intent tagged for staff'},
+      leadData:{name:'(Collecting...)',service:'General Enquiry',intent:'Callback request',status:'Callback scheduled',nextAction:'Staff to call within 2hrs'},
+    },
+  ],
+  b2:[
+    { id:'new_patient', label:'🦷 New Patient Enquiry',
+      visitor:"I'm looking for a new dentist. Are you accepting new patients?",
+      kbKey:'availability',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — New Patients',sub:'Availability confirmed'},
+      followUp:'Excellent! What kind of treatment are you looking for — a regular check-up, something specific, or a general assessment first?',
+      followUpAction:{ico:'🎯',col:'#EDE9FE',label:'Qualification started',sub:'Treatment intent captured'},
+    },
+    { id:'whitening',   label:'🤍 Teeth Whitening Price',
+      visitor:'How much does teeth whitening cost?',
+      kbKey:'fees',
+      action:{ico:'💬',col:'var(--blue-bg)',label:'FAQ Answered — Pricing',sub:'Whitening fee provided'},
+      followUp:'Would you like to book a free consultation to find the best whitening option for you?',
+      followUpAction:{ico:'📅',col:'var(--green-bg)',label:'Booking offered',sub:'Free consultation proposed'},
+    },
+  ],
+  b5:[
+    { id:'mani_pedi',   label:'💅 Manicure Booking',
+      visitor:'Hi! I\'d like to book a gel manicure and pedicure for Saturday if possible.',
+      kbKey:'availability',
+      action:{ico:'📅',col:'var(--green-bg)',label:'Availability checked — Saturday',sub:'3 slots confirmed'},
+      followUp:"We have Saturday at 9am, 11am, and 3pm available. Which works for you? And what's your name so I can hold the slot? 💅",
+      followUpAction:{ico:'👤',col:'var(--accent-bg)',label:'Booking lead created',sub:'Name & time collection started'},
+      leadData:{name:'(Collecting...)',service:'Gel Mani + Pedi',intent:'Appointment booking',status:'Partial — awaiting name',nextAction:'Confirm time & contact'},
+    },
+  ],
+};
+
+/* ── State ───────────────────────────────────────────────── */
+var _curBizId = 'b1';
+var _actions = [];
+var _typing = false;
+var _lead = null;
+var _msgCount = 0;
+
+/* ── Populate selectors ──────────────────────────────────── */
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('bizPicker').appendChild(o);
+});
+
+window.changeBiz = function(id) {
+  _curBizId = id;
+  var b = AD.businesses.find(function(x){return x.id===id;})||AD.businesses[0];
+  document.getElementById('chatBizName').textContent = b.name;
+  var sel = document.getElementById('scenarioPicker');
+  sel.innerHTML = '<option value="">— Select scenario —</option>';
+  (SCENARIOS[id]||[]).forEach(function(s){
+    var o=document.createElement('option');o.value=s.id;o.textContent=s.label;sel.appendChild(o);
+  });
+  clearChat();
+};
+changeBiz('b1');
+
+/* ── Chat helpers ────────────────────────────────────────── */
+window.clearChat = function() {
+  _actions=[]; _lead=null; _msgCount=0; _typing=false;
+  document.getElementById('chatBody').innerHTML='<div class="empty-chat" id="chatEmpty"><div style="font-size:2rem">💬</div><div style="font-weight:700;color:var(--t2);font-size:.9375rem">Select a scenario and click Run</div><div style="font-size:.8125rem">Or type your own message below</div></div>';
+  document.getElementById('actionsBody').innerHTML='<div style="text-align:center;padding:32px 12px;color:var(--t4);font-size:.8125rem">Actions will appear here when a conversation starts</div>';
+  document.getElementById('leadPreview').style.display='none';
+  document.getElementById('chatInput').value='';
+};
+
+function removeEmpty() {
+  var e=document.getElementById('chatEmpty');if(e)e.remove();
+}
+
+function addMsg(role, text) {
+  removeEmpty();
+  var wrap=document.createElement('div');
+  wrap.className='msg-wrap'+(role==='out'?' out':'');
+  var lbl=document.createElement('div');
+  lbl.className='msg-label';
+  lbl.textContent=role==='out'?'Visitor':'💻 Website Enquiry Agent';
+  var bub=document.createElement('div');
+  bub.className='msg-bubble '+(role==='out'?'msg-out':'msg-in');
+  bub.textContent=text;
+  wrap.appendChild(lbl);wrap.appendChild(bub);
+  var body=document.getElementById('chatBody');
+  body.appendChild(wrap);
+  body.scrollTop=body.scrollHeight;
+  _msgCount++;
+}
+
+function showTyping() {
+  _typing=true;
+  var el=document.createElement('div');el.id='typingInd';el.className='msg-wrap';
+  el.innerHTML='<div class="msg-label">💻 Website Enquiry Agent</div><div class="msg-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  document.getElementById('chatBody').appendChild(el);
+  document.getElementById('chatBody').scrollTop=99999;
+}
+function hideTyping() {
+  _typing=false;
+  var el=document.getElementById('typingInd');if(el)el.remove();
+}
+
+function addAction(act) {
+  var colMap={lead:'var(--accent-bg)',faq:'var(--blue-bg)',booking:'var(--green-bg)',qualify:'#EDE9FE',callback:'var(--amber-bg)',escalate:'var(--red-bg)',tag:'var(--border-s)'};
+  var el=document.createElement('div');
+  el.className='action-event';
+  el.style.background=act.col||(colMap[act.type]||'var(--border-s)');
+  el.innerHTML='<div class="action-ico" style="background:rgba(255,255,255,.6)">'+act.ico+'</div>'+
+    '<div><div class="action-label">'+act.label+'</div>'+(act.sub?'<div class="action-sub">'+act.sub+'</div>':'')+'</div>';
+  var body=document.getElementById('actionsBody');
+  if(body.querySelector('div[style*="text-align:center"]')) body.innerHTML='';
+  body.appendChild(el);
+  body.scrollTop=body.scrollHeight;
+}
+
+function showLead(data) {
+  _lead=data;
+  document.getElementById('leadPreview').style.display='block';
+  document.getElementById('leadCardInner').innerHTML=
+    ['Name:'+data.name,'Service:'+data.service,'Intent:'+data.intent,'Status:'+data.status,'Next:'+data.nextAction].map(function(kv){
+      var p=kv.indexOf(':');var k=kv.slice(0,p);var v=kv.slice(p+1);
+      return '<div class="lead-field"><span class="lf-key">'+k+'</span><span class="lf-val">'+v+'</span></div>';
+    }).join('');
+}
+
+/* ── Run scenario ────────────────────────────────────────── */
+window.runScenario = function() {
+  var scId = document.getElementById('scenarioPicker').value;
+  var scs = SCENARIOS[_curBizId]||[];
+  var sc = scs.find(function(s){return s.id===scId;});
+  if(!sc){ AG.toast('Select a scenario first','error'); return; }
+  clearChat();
+  setTimeout(function(){
+    addMsg('out', sc.visitor);
+    setTimeout(function(){
+      showTyping();
+      var reply = sc.reply || KB[_curBizId]?.[sc.kbKey] || "I'm happy to help with that! Could you tell me a little more about what you're looking for?";
+      setTimeout(function(){
+        hideTyping();
+        addMsg('in', reply);
+        addAction(sc.action);
+        if(sc.followUp){
+          setTimeout(function(){
+            showTyping();
+            setTimeout(function(){
+              hideTyping();
+              addMsg('in', sc.followUp);
+              if(sc.followUpAction) addAction(sc.followUpAction);
+              if(sc.leadData) showLead(sc.leadData);
+            },1400);
+          },2000);
+        }
+      },1600);
+    },800);
+  },300);
+};
+
+/* ── Custom message ──────────────────────────────────────── */
+window.sendCustom = function() {
+  var inp=document.getElementById('chatInput');
+  var msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addMsg('out', msg);
+  setTimeout(function(){
+    showTyping();
+    setTimeout(function(){
+      hideTyping();
+      var reply = matchKb(msg);
+      addMsg('in', reply);
+      addAction({ico:'💬',col:'var(--blue-bg)',label:'FAQ answered',sub:'Matched from knowledge base'});
+    }, 1400+Math.random()*400);
+  }, 500);
+};
+
+function matchKb(msg) {
+  var m=msg.toLowerCase();
+  var kb=KB[_curBizId]||KB.b1;
+  if(/fee|cost|price|how much|pric/i.test(m)) return kb.fees||"I can share our pricing. Could you tell me a bit more about what you're looking for?";
+  if(/avail|space|spot|opening|room/i.test(m)) return kb.availability||"Let me check availability for you! What age is your child and when are you looking to start?";
+  if(/tour|visit|see|look around|come in/i.test(m)) return kb.tour||"We'd love to show you around! Tours are available Monday to Friday at 10am and 2pm. What day works for you?";
+  if(/subsid|cwelcc|care|fund|government/i.test(m)) return kb.subsidy||"Great question about funding! We can discuss subsidy options — let me connect you with the right person.";
+  if(/waitlist|wait list|waiting/i.test(m)) return kb.waitlist||"Yes, we have a waitlist! It's free to join — no deposit required. Could I get your details to add you?";
+  if(/hour|open|close|time|when/i.test(m)) return kb.hours||"Our hours are Monday to Friday 7:30am–6pm. Is there anything else you'd like to know?";
+  if(/thank|great|perfect|wonderful|awesome/i.test(m)) return "You're very welcome! Is there anything else I can help you with? 😊";
+  if(/hello|hi|hey|good morning|good afternoon/i.test(m)) return "Hi there! 👋 Great to have you here. I'm the virtual assistant for "+((AD.businesses.find(function(b){return b.id===_curBizId;})||{}).name||'us')+". How can I help you today?";
+  return "That's a great question! Let me make sure I give you the right answer. Could you share a little more detail about what you're looking for? I want to make sure I help you properly. 😊";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .settings-layout { display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start; }
+    @media(max-width:900px){.settings-layout{grid-template-columns:1fr}}
+
+    .settings-nav { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:20px; }
+    .settings-nav-item { display:flex;align-items:center;gap:8px;padding:11px 16px;font-size:.8125rem;font-weight:500;color:var(--t3);cursor:pointer;border-bottom:1px solid var(--s2);transition:all .15s; }
+    .settings-nav-item:last-child { border-bottom:none; }
+    .settings-nav-item:hover { background:var(--s1);color:var(--t1); }
+    .settings-nav-item.is-active { background:var(--accent-bg);color:var(--accent);border-left:3px solid var(--accent); }
+
+    .settings-section { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden; }
+    .section-head { padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+    .section-title { font-size:.9375rem;font-weight:700;color:var(--t1); }
+    .section-sub { font-size:.8125rem;color:var(--t3);margin-top:1px; }
+    .section-body { padding:20px; }
+
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px; }
+    @media(max-width:600px){.form-row{grid-template-columns:1fr}}
+    .form-field { margin-bottom:14px; }
+    .form-label { font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.04em; }
+    .form-input { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box;transition:border-color .15s; }
+    .form-input:focus { border-color:var(--accent); }
+    .form-select { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box; }
+    .form-textarea { width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:.875rem;background:var(--s1);color:var(--t1);resize:vertical;min-height:80px;font-family:inherit;outline:none;box-sizing:border-box; }
+
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--s2); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-info { flex:1; }
+    .toggle-lbl { font-size:.875rem;font-weight:500;color:var(--t1); }
+    .toggle-sub { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .toggle { position:relative;width:42px;height:23px;border-radius:99px;background:var(--s3);cursor:pointer;transition:background .2s;border:none;flex-shrink:0; }
+    .toggle.is-on { background:var(--accent); }
+    .toggle::after { content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:left .2s; }
+    .toggle.is-on::after { left:22px; }
+
+    .integration-card { display:flex;align-items:center;gap:14px;padding:14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:10px; }
+    .int-logo { width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:var(--s1); }
+    .int-name { font-size:.875rem;font-weight:700;color:var(--t1); }
+    .int-status { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .int-action { margin-left:auto; }
+
+    .danger-action { display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--s2); }
+    .danger-action:last-child { border-bottom:none; }
+    .danger-label { font-size:.875rem;font-weight:600;color:var(--t1); }
+    .danger-sub { font-size:.75rem;color:var(--t3);margin-top:1px; }
+
+    .template-card { border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px; }
+    .template-name { font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px; }
+    .template-preview { font-size:.8125rem;color:var(--t3);line-height:1.5;margin-bottom:8px; }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-sub">Manage your nursery profile, channels, and preferences</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn--primary" onclick="saveAll()">Save Changes</button>
+          </div>
+        </div>
+
+        <div class="settings-layout">
+
+          <!-- Nav -->
+          <div class="settings-nav">
+            <div class="settings-nav-item is-active" onclick="scrollToSection('profile')">🏠 Profile</div>
+            <div class="settings-nav-item" onclick="scrollToSection('channels')">📡 Channels</div>
+            <div class="settings-nav-item" onclick="scrollToSection('notifications')">🔔 Notifications</div>
+            <div class="settings-nav-item" onclick="scrollToSection('templates')">📝 Templates</div>
+            <div class="settings-nav-item" onclick="scrollToSection('integrations')">🔌 Integrations</div>
+            <div class="settings-nav-item" onclick="scrollToSection('danger')">⚠ Danger Zone</div>
+          </div>
+
+          <!-- Sections -->
+          <div>
+
+            <!-- Profile -->
+            <div class="settings-section" id="profile">
+              <div class="section-head">
+                <div>
+                  <div class="section-title">Nursery Profile</div>
+                  <div class="section-sub">Public info shown to parents and AI</div>
+                </div>
+              </div>
+              <div class="section-body">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                  <div style="width:64px;height:64px;border-radius:16px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:1.75rem">🌟</div>
+                  <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Photo upload coming soon','info')">Change Logo</button>
+                </div>
+                <div class="form-row">
+                  <div class="form-field"><label class="form-label">Nursery Name</label><input class="form-input" value="Sunshine Nursery"></div>
+                  <div class="form-field"><label class="form-label">Owner Name</label><input class="form-input" value="David Kim"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-field"><label class="form-label">Phone</label><input class="form-input" type="tel" value="+1 780 555 0100"></div>
+                  <div class="form-field"><label class="form-label">Email</label><input class="form-input" type="email" value="hello@sunshinenursery.ca"></div>
+                </div>
+                <div class="form-field"><label class="form-label">Address</label><input class="form-input" value="123 Maple Street, Edmonton, AB T5H 2K3"></div>
+                <div class="form-row">
+                  <div class="form-field"><label class="form-label">Opening Hours</label><input class="form-input" value="Mon–Fri 7:00 AM – 6:00 PM"></div>
+                  <div class="form-field"><label class="form-label">Capacity</label><input class="form-input" type="number" value="24"></div>
+                </div>
+                <div class="form-field"><label class="form-label">About Your Nursery</label><textarea class="form-textarea">Sunshine Nursery is a warm, caring, Reggio-inspired childcare in Edmonton. We offer full-time and part-time care for children aged 6 weeks to 5 years.</textarea></div>
+              </div>
+            </div>
+
+            <!-- Channels -->
+            <div class="settings-section" id="channels">
+              <div class="section-head">
+                <div class="section-title">Communication Channels</div>
+              </div>
+              <div class="section-body" id="channelsBody"></div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="settings-section" id="notifications">
+              <div class="section-head">
+                <div class="section-title">Notifications</div>
+              </div>
+              <div class="section-body" id="notifBody"></div>
+            </div>
+
+            <!-- Templates -->
+            <div class="settings-section" id="templates">
+              <div class="section-head">
+                <div class="section-title">Message Templates</div>
+                <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Template editor coming soon','info')">+ New Template</button>
+              </div>
+              <div class="section-body" id="templatesBody"></div>
+            </div>
+
+            <!-- Integrations -->
+            <div class="settings-section" id="integrations">
+              <div class="section-head">
+                <div class="section-title">Integrations</div>
+              </div>
+              <div class="section-body" id="integrationsBody"></div>
+            </div>
+
+            <!-- Danger zone -->
+            <div class="settings-section" id="danger" style="border-color:#FCA5A5">
+              <div class="section-head" style="background:#FEF2F2">
+                <div class="section-title" style="color:#DC2626">Danger Zone</div>
+              </div>
+              <div class="section-body">
+                <div class="danger-action">
+                  <div>
+                    <div class="danger-label">Export All Data</div>
+                    <div class="danger-sub">Download a full export of your nursery data</div>
+                  </div>
+                  <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Export preparing…','info')">Export</button>
+                </div>
+                <div class="danger-action">
+                  <div>
+                    <div class="danger-label">Reset Knowledge Base</div>
+                    <div class="danger-sub">Clear all AI training data and start fresh</div>
+                  </div>
+                  <button class="btn btn--ghost btn--sm" style="border-color:#FCA5A5;color:#DC2626" onclick="CL.showToast('Are you sure? This cannot be undone.','error')">Reset</button>
+                </div>
+                <div class="danger-action">
+                  <div>
+                    <div class="danger-label">Delete Account</div>
+                    <div class="danger-sub">Permanently delete this nursery account and all data</div>
+                  </div>
+                  <button class="btn btn--ghost btn--sm" style="border-color:#FCA5A5;color:#DC2626" onclick="CL.showToast('Please contact support to delete your account','error')">Delete</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'settings' });
+    window.scrollToSection = id => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
+    window.saveAll = () => CL.showToast('Settings saved successfully','success');
+
+    /* ── Channels ── */
+    document.getElementById('channelsBody').innerHTML = [
+      { icon:'📱', name:'WhatsApp Business', desc:'Primary channel for parent messaging', connected:true },
+      { icon:'📧', name:'Email',             desc:'Automated reports and invoices',       connected:true },
+      { icon:'💬', name:'Website Chat',      desc:'Live chat widget on your website',     connected:false },
+      { icon:'📞', name:'Voice (AI Call)',   desc:'AI answers calls when you are busy',   connected:false },
+    ].map(function(c){ return `
+      <div class="toggle-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:1.25rem">${c.icon}</span>
+          <div class="toggle-info">
+            <div class="toggle-lbl">${c.name}</div>
+            <div class="toggle-sub">${c.desc}</div>
+          </div>
+        </div>
+        <button class="toggle ${c.connected?'is-on':''}" onclick="this.classList.toggle('is-on')"></button>
+      </div>`; }).join('');
+
+    /* ── Notifications ── */
+    document.getElementById('notifBody').innerHTML = [
+      { label:'New enquiry received',         sub:'Get notified instantly when a lead comes in',  on:true },
+      { label:'Tour booking confirmed',       sub:'Notification when a tour is booked by AI',     on:true },
+      { label:'Daily attendance summary',     sub:'Morning report of who is expected in',         on:true },
+      { label:'Overdue invoice alert',        sub:'Alert when a payment is more than 5 days late',on:true },
+      { label:'Review posted on Google',      sub:'Notification when a new review appears',       on:false },
+      { label:'AI escalation needed',         sub:'When AI cannot handle a parent enquiry',       on:true },
+    ].map(function(n){ return `
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-lbl">${n.label}</div>
+          <div class="toggle-sub">${n.sub}</div>
+        </div>
+        <button class="toggle ${n.on?'is-on':''}" onclick="this.classList.toggle('is-on')"></button>
+      </div>`; }).join('');
+
+    /* ── Templates with variable insertion UI ── */
+    var VARS = ['parent_name','child_name','date','time','amount','month','mood','activities','link'];
+    var templates = [
+      { name:'Tour Confirmation',
+        body:'Hi {parent_name}! Your tour at Sunshine Nursery is confirmed for {date} at {time}. We look forward to meeting you and {child_name}! 🌟',
+        channels:['WhatsApp','Email'] },
+      { name:'Daily Report',
+        body:'Hi {parent_name}! 👋 {child_name} had a wonderful day today. They were in a {mood} mood and loved {activities}. See you tomorrow! 💛',
+        channels:['WhatsApp','Email'] },
+      { name:'Invoice Reminder',
+        body:'Hi {parent_name}, your invoice for {month} is due on {date}. Amount: ${amount}. Please let us know if you have any questions.',
+        channels:['Email','WhatsApp'] },
+      { name:'Review Request',
+        body:'Hi {parent_name}! We hope {child_name} is loving nursery. If you have a moment, we\'d love a Google review! Here\'s the link: {link} ⭐',
+        channels:['WhatsApp'] },
+    ];
+    document.getElementById('templatesBody').innerHTML = `
+      <div style="background:var(--s1);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.8125rem;color:var(--t3)">
+        <strong style="color:var(--t2)">Personalisation Variables</strong> — click any variable to copy it, then paste into a template body.
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+          ${VARS.map(function(v){ return `<code style="background:var(--accent-bg);color:var(--accent);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:.75rem;font-family:monospace" onclick="navigator.clipboard.writeText('{${v}}');CL.showToast('{${v}} copied','success')">{${v}}</code>`; }).join('')}
+        </div>
+      </div>
+      ${templates.map(function(t,ti){ return `
+      <div class="template-card" id="tpl-${ti}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="template-name">${t.name}</div>
+          <div style="display:flex;gap:6px">
+            ${t.channels.map(function(ch){ return `<span style="font-size:.6875rem;padding:2px 7px;border-radius:5px;background:var(--s2);color:var(--t3);font-weight:600">${ch}</span>`; }).join('')}
+            <button class="btn btn--ghost btn--sm" onclick="editTpl(${ti})">Edit</button>
+            <button class="btn btn--ghost btn--sm" onclick="testSend('${t.name}')">Test Send</button>
+          </div>
+        </div>
+        <div class="template-preview" id="tpl-preview-${ti}">${t.body}</div>
+        <textarea class="form-textarea" id="tpl-editor-${ti}" style="display:none;margin-top:8px">${t.body}</textarea>
+        <div id="tpl-actions-${ti}" style="display:none;margin-top:8px;display:none;gap:8px">
+          <button class="btn btn--primary btn--sm" onclick="saveTpl(${ti})">Save</button>
+          <button class="btn btn--ghost btn--sm" onclick="cancelTpl(${ti})">Cancel</button>
+        </div>
+      </div>`; }).join('')}`;
+
+    window.editTpl = function(i) {
+      document.getElementById('tpl-preview-'+i).style.display='none';
+      document.getElementById('tpl-editor-'+i).style.display='block';
+      document.getElementById('tpl-actions-'+i).style.display='flex';
+    };
+    window.saveTpl = function(i) {
+      var newBody = document.getElementById('tpl-editor-'+i).value;
+      document.getElementById('tpl-preview-'+i).textContent = newBody;
+      document.getElementById('tpl-preview-'+i).style.display='block';
+      document.getElementById('tpl-editor-'+i).style.display='none';
+      document.getElementById('tpl-actions-'+i).style.display='none';
+      CL.showToast('Template saved','success');
+    };
+    window.cancelTpl = function(i) {
+      document.getElementById('tpl-preview-'+i).style.display='block';
+      document.getElementById('tpl-editor-'+i).style.display='none';
+      document.getElementById('tpl-actions-'+i).style.display='none';
+    };
+    window.testSend = function(name) { CL.showToast('Test message for "'+name+'" sent','info'); };
+
+    /* ── Integrations ── */
+    document.getElementById('integrationsBody').innerHTML = [
+      { icon:'📅', name:'Google Calendar',   status:'Connected',     action:'Disconnect', connected:true },
+      { icon:'⭐', name:'Google Business',   status:'Connected',     action:'Disconnect', connected:true },
+      { icon:'💳', name:'Stripe Payments',   status:'Not connected', action:'Connect',    connected:false },
+      { icon:'📊', name:'Xero Accounting',   status:'Not connected', action:'Connect',    connected:false },
+    ].map(function(itg){ return `
+      <div class="integration-card">
+        <div class="int-logo">${itg.icon}</div>
+        <div>
+          <div class="int-name">${itg.name}</div>
+          <div class="int-status" style="color:${itg.connected?'#16A34A':'var(--t3)'}">${itg.connected?'● ':''} ${itg.status}</div>
+        </div>
+        <div class="int-action">
+          <button class="btn ${itg.action==='Connect'?'btn--primary':'btn--ghost'} btn--sm" onclick="CL.showToast('${itg.name} ${itg.action.toLowerCase()}ed','success')">${itg.action}</button>
+        </div>
+      </div>`; }).join('');
+
+    /* Active nav on scroll */
+    const sections = ['profile','channels','notifications','templates','integrations','danger'];
+    const navItems = document.querySelectorAll('.settings-nav-item');
+    window.addEventListener('scroll', () => {
+      let active = 'profile';
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.getBoundingClientRect().top <= 120) active = id;
+      });
+      navItems.forEach((ni,i) => ni.classList.toggle('is-active', sections[i]===active));
+    }, { passive:true });
+  </script>
+</body>
+</html>

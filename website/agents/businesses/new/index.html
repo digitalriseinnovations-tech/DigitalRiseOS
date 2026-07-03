@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Business — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .wz-panel { background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:720px;margin:0 auto; }
+    .wz-step-content { display:none; }
+    .wz-step-content.is-active { display:block; }
+    .ind-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px; }
+    @media(max-width:700px){.ind-grid{grid-template-columns:repeat(3,1fr)}}
+    .emp-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px; }
+    @media(max-width:700px){.emp-grid{grid-template-columns:1fr 1fr}}
+    .auto-list { display:flex;flex-direction:column;gap:8px;margin-top:12px; }
+    .auto-item { display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s; }
+    .auto-item.is-selected { border-color:var(--accent);background:var(--accent-bg); }
+    .auto-ico { font-size:1.25rem;width:34px;text-align:center;flex-shrink:0; }
+    .auto-name { font-size:.875rem;font-weight:700;color:var(--t1); }
+    .auto-desc { font-size:.75rem;color:var(--t3);margin-top:1px; }
+    .launch-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0; }
+    @media(max-width:500px){.launch-grid{grid-template-columns:1fr}}
+    .ready-emp { display:flex;align-items:center;gap:10px;padding:12px;background:var(--accent-bg);border:1.5px solid var(--accent-light,#C7D2FE);border-radius:10px;margin-bottom:8px; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Add New Business</div>
+          <div class="ag-ph-sub">Set up a new business and deploy AI employees in 5 steps</div>
+        </div>
+        <a href="/agents/businesses" class="btn btn--ghost">← Back to Businesses</a>
+      </div>
+
+      <!-- Wizard steps -->
+      <div class="ag-wizard-steps" id="wzSteps"></div>
+
+      <!-- Step panels -->
+      <div class="wz-panel">
+
+        <!-- Step 1: Business Info -->
+        <div class="wz-step-content is-active" id="step1">
+          <div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px">Business Information</div>
+          <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Tell us about the business you're setting up AI employees for.</div>
+          <div class="ag-form-row">
+            <div class="ag-form-group"><label class="ag-label">Business Name *</label><input class="ag-input" id="f_name" placeholder="e.g. Sunshine Nursery"></div>
+            <div class="ag-form-group"><label class="ag-label">Industry *</label>
+              <select class="ag-select" id="f_industry">
+                <option value="">Select industry…</option>
+                <option>Daycare</option><option>Dental Clinic</option><option>Restaurant</option>
+                <option>Contractor</option><option>Beauty Salon</option><option>Real Estate</option>
+                <option>Fitness Studio</option><option>Medical Clinic</option><option>Law Firm</option><option>Accounting Firm</option>
+              </select>
+            </div>
+          </div>
+          <div class="ag-form-row">
+            <div class="ag-form-group"><label class="ag-label">Website</label><input class="ag-input" id="f_website" placeholder="www.example.com"></div>
+            <div class="ag-form-group"><label class="ag-label">Location</label><input class="ag-input" id="f_location" placeholder="City, Province"></div>
+          </div>
+          <div class="ag-form-row">
+            <div class="ag-form-group"><label class="ag-label">Phone</label><input class="ag-input" id="f_phone" placeholder="+1 416-555-0000"></div>
+            <div class="ag-form-group"><label class="ag-label">Email</label><input class="ag-input" id="f_email" type="email" placeholder="hello@example.com"></div>
+          </div>
+          <div class="ag-form-group"><label class="ag-label">WhatsApp Number</label><input class="ag-input" id="f_whatsapp" placeholder="+1 416-555-0000 (WhatsApp Business)"></div>
+        </div>
+
+        <!-- Step 2: AI Employees -->
+        <div class="wz-step-content" id="step2">
+          <div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px">Choose AI Employees</div>
+          <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Select the AI employees to deploy for this business. You can add more later.</div>
+          <div class="emp-grid" id="empChoices"></div>
+        </div>
+
+        <!-- Step 3: Knowledge Base -->
+        <div class="wz-step-content" id="step3">
+          <div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px">Knowledge Base</div>
+          <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">This information trains the AI employees so they can accurately represent the business.</div>
+          <div class="ag-form-group"><label class="ag-label">Business Hours</label><input class="ag-input" id="kb_hours" placeholder="Mon–Fri 7am–6pm, Sat 9am–2pm"></div>
+          <div class="ag-form-group"><label class="ag-label">Services Offered</label><textarea class="ag-textarea" id="kb_services" placeholder="List the main services, e.g. Infant Care, Toddler Care, Preschool, After School Programme"></textarea></div>
+          <div class="ag-form-group"><label class="ag-label">Pricing Notes</label><textarea class="ag-textarea" id="kb_pricing" placeholder="e.g. Full-time from $1,200/mo, Part-time from $750/mo. Subsidy accepted." style="min-height:60px"></textarea></div>
+          <div class="ag-form-group"><label class="ag-label">FAQs</label><textarea class="ag-textarea" id="kb_faqs" placeholder="Common questions and answers the AI should know..."></textarea></div>
+          <div class="ag-form-row">
+            <div class="ag-form-group"><label class="ag-label">Booking/Scheduling Rules</label><input class="ag-input" id="kb_booking" placeholder="e.g. Tours Mon–Fri 10am or 2pm"></div>
+            <div class="ag-form-group"><label class="ag-label">Escalation Contact</label><input class="ag-input" id="kb_escalation" placeholder="e.g. Sarah — 416-555-0001"></div>
+          </div>
+          <div class="ag-form-group"><label class="ag-label">Google Review Link</label><input class="ag-input" id="kb_review" placeholder="https://g.page/r/…/review"></div>
+        </div>
+
+        <!-- Step 4: Automations -->
+        <div class="wz-step-content" id="step4">
+          <div style="font-size:1rem;font-weight:700;color:var(--t1);margin-bottom:4px">Choose Automations</div>
+          <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Select the workflows to activate for this business. All can be modified later.</div>
+          <div class="auto-list" id="autoChoices"></div>
+        </div>
+
+        <!-- Step 5: Launch -->
+        <div class="wz-step-content" id="step5">
+          <div style="text-align:center;padding:8px 0 24px">
+            <div style="font-size:2.5rem;margin-bottom:12px">🚀</div>
+            <div style="font-size:1.125rem;font-weight:800;color:var(--t1);margin-bottom:6px">Ready to Launch!</div>
+            <div style="font-size:.875rem;color:var(--t3)">Your AI employees are configured and ready to deploy.</div>
+          </div>
+          <div id="launchSummary"></div>
+          <div class="launch-grid">
+            <button class="btn btn--primary btn--lg btn--full" onclick="launchBusiness()">🚀 Launch AI Employees</button>
+            <button class="btn btn--ghost btn--lg btn--full" onclick="AG.toast('Opening test chat…','info')">🧪 Test AI Employee</button>
+          </div>
+        </div>
+
+        <!-- Nav buttons -->
+        <div class="ag-divider"></div>
+        <div style="display:flex;justify-content:space-between">
+          <button class="btn btn--ghost" id="btnPrev" onclick="prevStep()" style="display:none">← Previous</button>
+          <div style="margin-left:auto">
+            <button class="btn btn--primary" id="btnNext" onclick="nextStep()">Next Step →</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'businesses' });
+
+var STEPS = ['Business Info','AI Employees','Knowledge Base','Automations','Launch'];
+var currentStep = 1;
+var selectedEmps = {};
+var selectedAutos = {};
+
+function renderWzSteps() {
+  document.getElementById('wzSteps').innerHTML = STEPS.map(function(s,i){
+    var n = i+1;
+    var cls = n < currentStep ? 'is-done' : n === currentStep ? 'is-active' : '';
+    return '<div class="ag-wz-step '+cls+'">' +
+      '<div class="ag-wz-num">'+(n < currentStep ? '✓' : n)+'</div>' +
+      '<div class="ag-wz-label">'+s+'</div>' +
+      '<div class="ag-wz-line"></div></div>';
+  }).join('');
+}
+
+var EMP_TYPES = [
+  {id:'website', ico:'💻', name:'Website AI',     desc:'Chat widget for your site'},
+  {id:'whatsapp',ico:'📲', name:'WhatsApp AI',    desc:'Instant WhatsApp follow-ups'},
+  {id:'email',   ico:'📧', name:'Email AI',       desc:'Automated email sequences'},
+  {id:'phone',   ico:'📞', name:'Phone AI',       desc:'Missed call recovery'},
+  {id:'booking', ico:'📅', name:'Booking AI',     desc:'Appointment & reservation AI'},
+  {id:'review',  ico:'⭐', name:'Review AI',      desc:'Google review collection'},
+  {id:'followup',ico:'🔄', name:'Follow-up AI',   desc:'Lead nurture sequences'},
+];
+var AUTO_TYPES = [
+  {id:'a1',ico:'📥',name:'New Enquiry Capture',         desc:'AI replies, qualifies, creates lead instantly'},
+  {id:'a2',ico:'📞',name:'Missed Call Recovery',         desc:'WhatsApp/SMS follow-up within 60 seconds'},
+  {id:'a3',ico:'📅',name:'Appointment Booking',          desc:'AI checks availability and confirms bookings'},
+  {id:'a4',ico:'📤',name:'Quote Follow-up',              desc:'Auto follow-up 48hrs after sending a quote'},
+  {id:'a5',ico:'⭐',name:'Happy Customer Review Ask',   desc:'Google review request after completed service'},
+  {id:'a6',ico:'🔔',name:'Negative Feedback Alert',     desc:'Instant staff alert for unhappy customers'},
+  {id:'a7',ico:'🔄',name:'No Response Follow-up',       desc:'Re-engage leads inactive for 3+ days'},
+  {id:'a8',ico:'💌',name:'Post-Visit Follow-up',         desc:'Thank-you + feedback + rebooking offer'},
+];
+
+document.getElementById('empChoices').innerHTML = EMP_TYPES.map(function(e){
+  return '<div class="ag-choice-card" id="ec_'+e.id+'" onclick="toggleEmp(\''+e.id+'\')">' +
+    '<div class="ag-cc-check">✓</div>' +
+    '<div class="ag-cc-ico">'+e.ico+'</div>' +
+    '<div class="ag-cc-title">'+e.name+'</div>' +
+    '<div class="ag-cc-sub">'+e.desc+'</div></div>';
+}).join('');
+
+document.getElementById('autoChoices').innerHTML = AUTO_TYPES.map(function(a){
+  return '<div class="auto-item" id="ac_'+a.id+'" onclick="toggleAuto(\''+a.id+'\')">' +
+    '<div class="auto-ico">'+a.ico+'</div>' +
+    '<div style="flex:1"><div class="auto-name">'+a.name+'</div><div class="auto-desc">'+a.desc+'</div></div>' +
+    '<div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.625rem;color:#fff;flex-shrink:0" id="ac_chk_'+a.id+'"></div>' +
+    '</div>';
+}).join('');
+
+window.toggleEmp = function(id) {
+  selectedEmps[id] = !selectedEmps[id];
+  var card = document.getElementById('ec_'+id);
+  card.classList.toggle('is-selected', !!selectedEmps[id]);
+};
+window.toggleAuto = function(id) {
+  selectedAutos[id] = !selectedAutos[id];
+  var item = document.getElementById('ac_'+id);
+  var chk = document.getElementById('ac_chk_'+id);
+  item.classList.toggle('is-selected', !!selectedAutos[id]);
+  if (chk) { chk.style.background = selectedAutos[id]?'var(--accent)':''; chk.style.borderColor = selectedAutos[id]?'var(--accent)':'var(--border)'; chk.textContent = selectedAutos[id]?'✓':''; }
+};
+
+function buildLaunchSummary() {
+  var name = document.getElementById('f_name').value||'New Business';
+  var industry = document.getElementById('f_industry').value||'Business';
+  var empSel = EMP_TYPES.filter(function(e){return selectedEmps[e.id];});
+  var autoSel = AUTO_TYPES.filter(function(a){return selectedAutos[a.id];});
+  document.getElementById('launchSummary').innerHTML =
+    '<div style="background:var(--border-s);border-radius:10px;padding:16px;margin-bottom:16px">' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:10px">BUSINESS SUMMARY</div>' +
+    '<div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:2px">'+name+'</div>' +
+    '<div style="font-size:.75rem;color:var(--t3)">'+industry+'</div></div>' +
+    (empSel.length?'<div style="margin-bottom:12px"><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">AI EMPLOYEES ('+empSel.length+')</div>'+empSel.map(function(e){return '<div class="ready-emp"><span style="font-size:1.25rem">'+e.ico+'</span><div><div style="font-size:.875rem;font-weight:700;color:var(--t1)">'+e.name+'</div><div style="font-size:.6875rem;color:var(--t3)">'+e.desc+'</div></div></div>';}).join('')+'</div>':'') +
+    (autoSel.length?'<div><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:6px">AUTOMATIONS ('+autoSel.length+')</div>'+autoSel.map(function(a){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-s)"><span>'+a.ico+'</span><span style="font-size:.8125rem;color:var(--t2)">'+a.name+'</span><span class="badge badge--green" style="margin-left:auto">On</span></div>';}).join('')+'</div>':'');
+}
+
+window.nextStep = function() {
+  if (currentStep === 1) {
+    if (!document.getElementById('f_name').value.trim() || !document.getElementById('f_industry').value) {
+      AG.toast('Please fill in Business Name and Industry','error'); return;
+    }
+  }
+  if (currentStep < 5) {
+    document.getElementById('step'+currentStep).classList.remove('is-active');
+    currentStep++;
+    document.getElementById('step'+currentStep).classList.add('is-active');
+    document.getElementById('btnPrev').style.display = currentStep > 1 ? 'inline-flex' : 'none';
+    document.getElementById('btnNext').style.display = currentStep < 5 ? 'inline-flex' : 'none';
+    if (currentStep === 5) buildLaunchSummary();
+    renderWzSteps();
+  }
+};
+window.prevStep = function() {
+  if (currentStep > 1) {
+    document.getElementById('step'+currentStep).classList.remove('is-active');
+    currentStep--;
+    document.getElementById('step'+currentStep).classList.add('is-active');
+    document.getElementById('btnPrev').style.display = currentStep > 1 ? 'inline-flex' : 'none';
+    document.getElementById('btnNext').style.display = 'inline-flex';
+    renderWzSteps();
+  }
+};
+
+window.launchBusiness = function() {
+  var name = document.getElementById('f_name').value.trim();
+  var industry = document.getElementById('f_industry').value;
+  var initials = name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var colors = ['#7C3AED','#0891B2','#D97706','#16A34A','#EC4899','#6366F1','#0284C7'];
+  var newBiz = {
+    id: 'b' + Date.now(), name: name, industry: industry,
+    plan: 'Starter', website: document.getElementById('f_website').value,
+    phone: document.getElementById('f_phone').value, email: document.getElementById('f_email').value,
+    whatsapp: document.getElementById('f_whatsapp').value,
+    location: document.getElementById('f_location').value,
+    employeeIds: [], status: 'setup',
+    channels: Object.keys(selectedEmps).filter(function(k){return selectedEmps[k];}),
+    leads: 0, bookings: 0, reviews: 0, conversations: 0, responseTime: '—',
+    color: colors[Math.floor(Math.random()*colors.length)], initial: initials,
+    setupScore: 60, createdAt: new Date().toISOString().slice(0,10),
+  };
+  var businesses = AD.store.get('businesses', AD.defaultBusinesses);
+  businesses.push(newBiz);
+  AD.store.set('businesses', businesses);
+  AG.toast(name + ' has been added! AI employees are deploying…', 'success');
+  setTimeout(function() { window.location.href = '/agents/businesses'; }, 1500);
+};
+
+renderWzSteps();
+</script>
+</body>
+</html>

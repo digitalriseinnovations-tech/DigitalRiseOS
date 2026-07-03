@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .bar-row { display:flex;align-items:center;gap:10px;margin-bottom:10px }
+    .bar-label { font-size:.8125rem;color:var(--t2);width:180px;flex-shrink:0 }
+    .bar-wrap { flex:1;height:8px;background:var(--border-s);border-radius:99px;overflow:hidden }
+    .bar-fill { height:100%;border-radius:99px;transition:width .8s cubic-bezier(.22,1,.36,1) }
+    .bar-val { font-size:.8125rem;font-weight:700;color:var(--t1);width:36px;text-align:right;flex-shrink:0 }
+    .day-bar-wrap { display:flex;flex-direction:column;align-items:center;gap:4px;flex:1 }
+    .day-bar { width:100%;background:var(--accent-bg);border-radius:4px 4px 0 0;transition:height .6s ease;min-height:2px;position:relative }
+    .day-bar:hover { background:var(--accent);cursor:default }
+    .day-bar:hover::after { content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--t1);color:var(--card);padding:3px 8px;border-radius:5px;font-size:.625rem;font-weight:700;white-space:nowrap;pointer-events:none }
+    .day-label { font-size:.5625rem;color:var(--t4);font-weight:600 }
+    .trend-chart { display:flex;align-items:flex-end;gap:4px;height:80px;padding-bottom:0 }
+    .biz-cmp-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-s) }
+    .biz-cmp-row:last-child { border:none }
+    .biz-cmp-bar { height:6px;border-radius:99px;flex-shrink:0 }
+    .kpi-delta { font-size:.6875rem;margin-top:4px }
+    .kpi-delta.up { color:var(--green) }
+    .kpi-delta.dn { color:var(--red) }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Analytics</div>
+          <div class="ag-ph-sub">Website Enquiry Agent performance across all businesses</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bizFilter" onchange="renderAll()" style="width:180px">
+            <option value="">All Businesses</option>
+          </select>
+          <select class="ag-select" id="rangeFilter" onchange="renderAll()" style="width:140px">
+            <option value="30">Last 30 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KPI widgets -->
+      <div class="ag-grid-3 ag-section" id="kpiGrid"></div>
+
+      <!-- Row 1 -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Enquiry Types</div><div class="ag-card-sub">Top questions the agent handled</div></div>
+          <div id="enquiryBars"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Lead Status Breakdown</div></div>
+          <div id="statusBars"></div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="ag-row-6040 ag-section">
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Day-by-Day Enquiry Trend</div><div class="ag-card-sub">Conversations per day — last 14 days</div></div>
+          <div class="trend-chart" id="trendChart"></div>
+          <div style="display:flex;gap:4px;margin-top:6px" id="trendLabels"></div>
+        </div>
+        <div class="ag-card">
+          <div class="ag-card-hd"><div class="ag-card-title">Most Asked FAQs</div><a href="/agents/agent-website-enquiry/knowledge-base" class="ag-card-action">Edit KB →</a></div>
+          <div id="topFaqs"></div>
+        </div>
+      </div>
+
+      <!-- Business comparison -->
+      <div class="ag-card ag-section">
+        <div class="ag-card-hd">
+          <div><div class="ag-card-title">Business-by-Business Comparison</div><div class="ag-card-sub">Agent performance across your client portfolio</div></div>
+          <a href="/agents/agent-website-enquiry/business-config" class="ag-card-action">Configure →</a>
+        </div>
+        <div id="bizComparison"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+/* ── Populate filters ────────────────────────────────── */
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option'); o.value=b.id; o.textContent=b.name;
+  document.getElementById('bizFilter').appendChild(o);
+});
+
+/* ── Derived data ────────────────────────────────────── */
+function getStats(){
+  var biz=document.getElementById('bizFilter').value;
+  if(biz && AD.agentStats[biz]) return [AD.agentStats[biz]];
+  return Object.values(AD.agentStats);
+}
+function sum(arr,key){ return arr.reduce(function(s,x){return s+(x[key]||0);},0); }
+function avg(arr,key){ if(!arr.length) return 0; return Math.round(sum(arr,key)/arr.length); }
+
+/* ── Render all ─────────────────────────────────────── */
+window.renderAll = function(){
+  var stats = getStats();
+  renderKpis(stats);
+  renderEnquiryBars();
+  renderStatusBars();
+  renderTrend();
+  renderFaqs();
+  renderBizComparison();
+};
+
+function renderKpis(stats){
+  var conversations = sum(stats,'conversations');
+  var leads = sum(stats,'leads');
+  var qualified = sum(stats,'qualified');
+  var faqRate = avg(stats,'faqRate');
+  var bookings = sum(stats,'bookings');
+  document.getElementById('kpiGrid').innerHTML=[
+    {label:'Conversations',       val:conversations,  delta:'↑ +47 this week',  ico:'💬', col:'var(--accent)', dd:'up'},
+    {label:'Leads Captured',      val:leads,          delta:'↑ +12 this week',  ico:'👤', col:'#7C3AED',       dd:'up'},
+    {label:'Qualified Leads',     val:qualified,      delta:Math.round(qualified/leads*100)+'% qual rate',ico:'🎯', col:'var(--green)',  dd:'up'},
+    {label:'FAQ Resolution Rate', val:faqRate+'%',    delta:'↑ +3% vs last month', ico:'✅', col:'var(--green)',dd:'up'},
+    {label:'Booking Intent',      val:bookings,       delta:'From enquiry → booked', ico:'📅', col:'var(--amber)', dd:'up'},
+    {label:'Avg Response Time',   val:'9s',           delta:'↑ vs 4–8hr industry', ico:'⚡', col:'var(--blue)', dd:'up'},
+  ].map(function(k){
+    return '<div class="ag-stat" style="border-left:3px solid '+k.col+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+k.label+'</div><div style="font-size:1.25rem">'+k.ico+'</div></div>'+
+      '<div class="ag-stat-val">'+k.val+'</div>'+
+      '<div class="kpi-delta up">'+k.delta+'</div></div>';
+  }).join('');
+}
+
+function renderEnquiryBars(){
+  var TYPES = AD.enquiryTypes||[
+    {label:'Fees & Pricing',        pct:82},{label:'Availability & Spots',  pct:68},
+    {label:'Tour Requests',         pct:55},{label:'Subsidy Questions',     pct:42},
+    {label:'Waitlist Enquiries',    pct:34},{label:'General Information',   pct:28},
+    {label:'Curriculum & Programs', pct:21},{label:'Callback Requests',     pct:15},
+  ];
+  document.getElementById('enquiryBars').innerHTML=TYPES.map(function(t){
+    return '<div class="bar-row"><div class="bar-label" style="font-size:.75rem">'+t.label+'</div>'+
+      '<div class="bar-wrap"><div class="bar-fill" style="width:'+t.pct+'%;background:var(--accent)"></div></div>'+
+      '<div class="bar-val">'+t.pct+'%</div></div>';
+  }).join('');
+}
+
+function renderStatusBars(){
+  var statuses=[
+    {label:'New',      val:14, col:'var(--blue)'},
+    {label:'Qualified',val:31, col:'var(--green)'},
+    {label:'Booked',   val:24, col:'#7C3AED'},
+    {label:'Follow-up',val:18, col:'var(--amber)'},
+    {label:'Won',      val:22, col:'var(--green)'},
+    {label:'Escalated',val:9,  col:'var(--red)'},
+  ];
+  var total=statuses.reduce(function(s,x){return s+x.val;},0);
+  document.getElementById('statusBars').innerHTML=statuses.map(function(s){
+    var pct=Math.round(s.val/total*100);
+    return '<div class="bar-row"><div class="bar-label" style="font-size:.75rem">'+s.label+'</div>'+
+      '<div class="bar-wrap"><div class="bar-fill" style="width:'+pct+'%;background:'+s.col+'"></div></div>'+
+      '<div class="bar-val">'+s.val+'</div></div>';
+  }).join('');
+}
+
+function renderTrend(){
+  var DAYS=['M','T','W','T','F','S','S','M','T','W','T','F','S','S'];
+  var VALS=[12,18,8,22,31,14,6,19,27,11,24,33,17,9];
+  var maxV=Math.max.apply(null,VALS);
+  document.getElementById('trendChart').innerHTML=VALS.map(function(v,i){
+    var h=Math.max(4,Math.round(v/maxV*72));
+    return '<div class="day-bar-wrap"><div class="day-bar" style="height:'+h+'px" data-tip="'+v+' convs"></div></div>';
+  }).join('');
+  document.getElementById('trendLabels').innerHTML=DAYS.map(function(d){
+    return '<div style="flex:1;text-align:center;font-size:.5625rem;color:var(--t4);font-weight:600">'+d+'</div>';
+  }).join('');
+}
+
+function renderFaqs(){
+  var FAQS=[
+    {q:'What are your fees?',               count:94},
+    {q:'Do you have availability?',         count:71},
+    {q:'Can we book a tour?',               count:58},
+    {q:'Do you accept subsidies/CWELCC?',   count:47},
+    {q:'What age groups do you take?',      count:41},
+    {q:'What hours are you open?',          count:36},
+    {q:'Are you on the waitlist?',          count:29},
+    {q:'What curriculum do you use?',       count:22},
+  ];
+  document.getElementById('topFaqs').innerHTML=FAQS.map(function(f,i){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-s)">'+
+      '<div style="width:20px;font-size:.75rem;font-weight:700;color:var(--t4);text-align:center">'+(i+1)+'</div>'+
+      '<div style="flex:1;font-size:.8125rem;color:var(--t2)">'+f.q+'</div>'+
+      '<div style="font-size:.8125rem;font-weight:700;color:var(--t1);flex-shrink:0">'+f.count+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderBizComparison(){
+  var sorted=AD.businesses.map(function(b){
+    return {biz:b, stats:AD.agentStats[b.id]||{}};
+  }).sort(function(a,b){return (b.stats.conversations||0)-(a.stats.conversations||0);});
+  var maxConv = Math.max.apply(null, sorted.map(function(x){return x.stats.conversations||0;}));
+  document.getElementById('bizComparison').innerHTML=sorted.map(function(row){
+    var b=row.biz; var st=row.stats;
+    var pct=Math.round((st.conversations||0)/maxConv*100);
+    var qb=AG.qualBadge(Math.round((st.qualified||0)/(st.leads||1)*100));
+    return '<div class="biz-cmp-row">'+
+      '<div class="av av-sm" style="background:'+b.color+'">'+b.initial+'</div>'+
+      '<div style="width:140px;flex-shrink:0">'+
+        '<div style="font-size:.8125rem;font-weight:700;color:var(--t1)">'+b.name+'</div>'+
+        '<div style="font-size:.625rem;color:var(--t3)">'+b.industry+'</div>'+
+      '</div>'+
+      '<div style="flex:1;min-width:60px">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+          '<div style="flex:1;height:6px;background:var(--border-s);border-radius:99px;overflow:hidden">'+
+            '<div style="width:'+pct+'%;height:100%;background:'+b.color+';border-radius:99px"></div></div>'+
+          '<div style="font-size:.75rem;font-weight:700;color:var(--t2);width:30px;text-align:right">'+st.conversations+'</div>'+
+        '</div>'+
+        '<div style="font-size:.5625rem;color:var(--t4);margin-top:2px">conversations</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px;flex-wrap:wrap">'+
+        '<span class="badge badge--purple">'+st.leads+' leads</span>'+
+        '<span class="badge badge--green">'+st.faqRate+'% FAQ</span>'+
+        '<span class="badge" style="background:'+qb.bg+';color:'+qb.color+'">'+Math.round((st.qualified||0)/(st.leads||1)*100)+'% qual</span>'+
+        '<span class="badge badge--amber">'+st.avgResponse+' resp</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+renderAll();
+</script>
+</body>
+</html>

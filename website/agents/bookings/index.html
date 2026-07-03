@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Bookings</div>
+          <div class="ag-ph-sub">AI-managed appointments, reservations, and tours</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bkBizFilter" style="width:180px" onchange="renderBookings()">
+            <option value="">All Businesses</option>
+          </select>
+          <button class="btn btn--primary" onclick="AG.toast('Adding booking…','info')">+ Add Booking</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="bkStats"></div>
+
+      <!-- Status filters -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm is-active" data-bkf="all"       onclick="filterBk('all',this)">All Upcoming (8)</button>
+        <button class="btn btn--ghost btn--sm" data-bkf="confirmed" onclick="filterBk('confirmed',this)">Confirmed (6)</button>
+        <button class="btn btn--ghost btn--sm" data-bkf="pending"   onclick="filterBk('pending',this)">Pending (2)</button>
+      </div>
+
+      <!-- Table -->
+      <div class="ag-card" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table class="ag-table">
+            <thead><tr>
+              <th>Customer</th><th>Business</th><th>Type</th><th>Date & Time</th>
+              <th>Channel</th><th>AI Employee</th><th>Reminder</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="bkTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'bookings' });
+
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('bkBizFilter').appendChild(o);
+});
+
+document.getElementById('bkStats').innerHTML = [
+  {label:'Upcoming Bookings', val:AD.bookings.length,                                                                    col:'var(--accent)', ico:'📅'},
+  {label:'Confirmed',         val:AD.bookings.filter(function(b){return b.status==='confirmed';}).length,                col:'var(--green)',  ico:'✅'},
+  {label:'Reminders Sent',    val:AD.bookings.filter(function(b){return b.reminderSent;}).length,                        col:'var(--blue)',   ico:'🔔'},
+  {label:'Pending Confirm',   val:AD.bookings.filter(function(b){return b.status==='pending';}).length,                  col:'var(--amber)',  ico:'⏳'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+var _bkf = 'all';
+function filterBk(f, btn) {
+  if(btn){ document.querySelectorAll('[data-bkf]').forEach(function(b){b.classList.remove('is-active');}); btn.classList.add('is-active'); }
+  _bkf = f||_bkf;
+  renderBookings();
+}
+window.filterBk = filterBk;
+
+function renderBookings() {
+  var bizF = document.getElementById('bkBizFilter').value;
+  var list = AD.bookings.filter(function(bk){
+    if(_bkf!=='all' && bk.status!==_bkf) return false;
+    if(bizF && bk.bizId!==bizF) return false;
+    return true;
+  });
+  document.getElementById('bkTable').innerHTML = list.map(function(bk){
+    return '<tr>' +
+      '<td><div style="font-weight:600;color:var(--t1)">'+bk.customer+'</div></td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t2)">'+bk.biz+'</div></td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t1)">'+bk.type+'</div></td>' +
+      '<td><div style="font-size:.875rem;font-weight:600;color:var(--t1)">'+bk.date+'</div><div style="font-size:.75rem;color:var(--t3)">'+bk.time+'</div></td>' +
+      '<td>'+AG.chBadge(bk.channel.toLowerCase())+'</td>' +
+      '<td><div style="font-size:.8125rem;color:var(--t2)">'+bk.employee+'</div></td>' +
+      '<td><span class="badge '+(bk.reminderSent?'badge--green':'badge--gray')+'">'+(bk.reminderSent?'Sent':'Pending')+'</span></td>' +
+      '<td>'+AG.statusBadge(bk.status)+'</td>' +
+      '<td><div style="display:flex;gap:6px;flex-wrap:nowrap">' +
+        (!bk.reminderSent?'<button class="btn btn--ghost btn--sm" onclick="sendReminder(\''+bk.id+'\')">🔔 Remind</button>':'') +
+        '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Marking complete…\',\'success\')">✅ Done</button>' +
+        '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Rescheduling…\',\'info\')">📅 Reschedule</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+  if(!list.length) document.getElementById('bkTable').innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--t4)">No bookings found</td></tr>';
+}
+renderBookings();
+
+window.sendReminder = function(id) {
+  var bk = AD.bookings.find(function(x){return x.id===id;});
+  if(bk) { bk.reminderSent=true; AG.toast('Reminder sent to '+bk.customer+'!','success'); renderBookings(); }
+};
+</script>
+</body>
+</html>

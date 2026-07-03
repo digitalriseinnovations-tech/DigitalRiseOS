@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews — Sunshine Nursery</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.reviews-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+.rating-big { font-size: 3rem; font-weight: 900; color: var(--t1); line-height: 1; }
+.rating-stars { display: flex; gap: 3px; margin: 6px 0; }
+.rating-star { color: var(--c-amber); }
+.rating-star svg { width: 20px; height: 20px; }
+.sentiment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.sentiment-card { background: var(--bg-3); border-radius: var(--radius); padding: 12px; text-align: center; }
+.sentiment-val { font-size: 1.375rem; font-weight: 800; color: var(--t1); }
+.sentiment-lbl { font-size: .71875rem; color: var(--t3); margin-top: 2px; }
+.review-reply { background: var(--bg-3); border-left: 3px solid var(--c-blue); padding: 10px 14px; margin-top: 8px; border-radius: 0 8px 8px 0; }
+.review-reply-lbl { font-size: .6875rem; font-weight: 700; color: var(--c-blue); margin-bottom: 4px; }
+.review-reply-text { font-size: .78125rem; color: var(--t2); }
+@media (max-width: 900px) { .reviews-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Review Management</h1>
+          <p class="page-sub">AI-powered review collection and reputation management</p>
+        </div>
+        <div class="page-hdr-right">
+          <button class="btn btn--secondary" onclick="DR.showToast('Sending review requests to last 10 tour attendees...')">Send Review Request</button>
+          <button class="btn btn--primary" onclick="DR.showToast('Review campaign started')">Start Campaign</button>
+        </div>
+      </div>
+
+      <div class="reviews-layout">
+        <div>
+
+          <!-- Review cards -->
+          <div class="section-hdr"><div class="section-title">Recent Reviews</div><span style="font-size:.78125rem;color:var(--t3)">Latest 4 reviews</span></div>
+          <div id="reviewList"></div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+          <!-- Rating summary -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">Overall Rating</div></div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+                <div>
+                  <div class="rating-big">4.8</div>
+                  <div class="rating-stars" id="bigStars"></div>
+                  <div style="font-size:.78125rem;color:var(--t3)">Based on 47 reviews</div>
+                </div>
+                <div style="flex:1">
+                  <div class="bar-chart" id="ratingBreakdown"></div>
+                </div>
+              </div>
+              <div class="sentiment-grid">
+                <div class="sentiment-card"><div class="sentiment-val" style="color:var(--c-green)">43</div><div class="sentiment-lbl">Positive</div></div>
+                <div class="sentiment-card"><div class="sentiment-val" style="color:var(--c-amber)">3</div><div class="sentiment-lbl">Neutral</div></div>
+                <div class="sentiment-card"><div class="sentiment-val" style="color:var(--c-red)">1</div><div class="sentiment-lbl">Negative</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review performance -->
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">Review Performance</div></div>
+            <div class="card-body">
+              <div class="stat-row"><span class="stat-row-lbl">Review requests sent</span><span class="stat-row-val">54</span></div>
+              <div class="stat-row"><span class="stat-row-lbl">Reviews received</span><span class="stat-row-val">47</span></div>
+              <div class="stat-row"><span class="stat-row-lbl">Conversion rate</span><span class="stat-row-val" style="color:var(--c-green)">87%</span></div>
+              <div class="stat-row"><span class="stat-row-lbl">Average response time</span><span class="stat-row-val">12s</span></div>
+              <div class="stat-row"><span class="stat-row-lbl">Private flags resolved</span><span class="stat-row-val">100%</span></div>
+            </div>
+          </div>
+
+          <!-- AI Review settings -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">AI Review Settings</div></div>
+            <div class="card-body">
+              <div class="toggle-wrap">
+                <div class="toggle-info"><div class="toggle-title">Auto-request after tour</div><div class="toggle-sub">Send review request 24hr after attended tour</div></div>
+                <input type="checkbox" class="toggle-switch" checked>
+              </div>
+              <div class="toggle-wrap">
+                <div class="toggle-info"><div class="toggle-title">Positive → Google link</div><div class="toggle-sub">Happy parent? Send Google review link automatically</div></div>
+                <input type="checkbox" class="toggle-switch" checked>
+              </div>
+              <div class="toggle-wrap">
+                <div class="toggle-info"><div class="toggle-title">Negative → Private alert</div><div class="toggle-sub">Flag to manager privately instead of public review</div></div>
+                <input type="checkbox" class="toggle-switch" checked>
+              </div>
+              <div class="form-group" style="margin-top:14px">
+                <label class="form-label">Google Review Link</label>
+                <input class="form-input" type="url" value="https://g.page/r/sunshine-nursery/review">
+              </div>
+              <button class="btn btn--primary btn--sm btn--full" onclick="DR.showToast('Settings saved')">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Sunshine Nursery', href: '/platform/businesses/daycare' },
+    { label: 'Reviews' }
+  ]
+});
+
+const D = window.DR_DATA;
+const R = D.reviews;
+
+/* Big stars */
+const STAR_SVG = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+document.getElementById('bigStars').innerHTML = [1,2,3,4,5].map(n =>
+  `<span class="rating-star" style="color:${n <= Math.round(R.rating) ? 'var(--c-amber)' : 'var(--border-2)'}">${STAR_SVG}</span>`
+).join('');
+
+/* Rating breakdown */
+const breakdown = [5,4,3,2,1].map(star => {
+  const count = R.breakdown.filter(r => r === star).length;
+  const pct = Math.round((count / R.breakdown.length) * 100);
+  return { star, count, pct };
+});
+document.getElementById('ratingBreakdown').innerHTML = breakdown.map(b =>
+  `<div class="bar-row">
+    <span class="bar-lbl" style="width:20px">${b.star}★</span>
+    <div class="bar-track"><div class="bar-fill" style="--fill:${b.pct}%;background:var(--c-amber)"></div></div>
+    <span class="bar-val">${b.count}</span>
+  </div>`
+).join('');
+
+/* Reviews list */
+document.getElementById('reviewList').innerHTML = R.recent.map(r => {
+  const stars = [1,2,3,4,5].map(n =>
+    `<span style="color:${n <= r.rating ? 'var(--c-amber)' : 'var(--border-2)'}">${STAR_SVG}</span>`
+  ).join('');
+  const isPrivate = r.platform === 'Private';
+  return `<div class="review-card">
+    <div class="review-hdr">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av av--purple" style="width:32px;height:32px;font-size:.75rem">${r.author.charAt(0)}</div>
+          <div>
+            <div class="review-author">${r.author}</div>
+            <div class="review-platform">${r.platform} · ${r.time}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="stars">${stars}</div>
+        ${isPrivate ? `<span class="badge badge--orange">Private</span>` : r.replied ? `<span class="badge badge--blue">Replied</span>` : `<button class="btn btn--ghost btn--sm" onclick="replyReview('${r.id}')">Reply</button>`}
+      </div>
+    </div>
+    <div class="review-text">${r.text}</div>
+    ${isPrivate && r.privateNote ? `
+      <div class="review-reply">
+        <div class="review-reply-lbl">🔒 Private Manager Note</div>
+        <div class="review-reply-text">${r.privateNote}</div>
+      </div>` : ''}
+    ${r.replied && !isPrivate ? `
+      <div class="review-reply">
+        <div class="review-reply-lbl">Your response</div>
+        <div class="review-reply-text">Thank you so much for this wonderful review! It means the world to our whole team. We're so happy your child loves being with us. 💛</div>
+      </div>` : ''}
+  </div>`;
+}).join('');
+
+function replyReview(id) {
+  const reply = prompt('Write your reply:');
+  if (reply) DR.showToast('Reply posted to Google Review');
+}
+</script>
+</body>
+</html>

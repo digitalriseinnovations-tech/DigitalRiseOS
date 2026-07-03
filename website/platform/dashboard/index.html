@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Digital Rise OS</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.dash-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+.dash-main { display: flex; flex-direction: column; gap: 20px; }
+.dash-side { display: flex; flex-direction: column; gap: 20px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px)  { .chart-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <!-- Page Header -->
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-sub">Good morning — here's your AI platform overview</p>
+        </div>
+        <div class="page-hdr-right">
+          <a href="/platform/businesses/new" class="btn btn--primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Business
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <!-- Main content -->
+      <div class="dash-grid">
+        <div class="dash-main">
+
+          <!-- Admissions Funnel -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Admissions Funnel</div>
+                <div class="card-sub">Across all businesses this month</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="funnel" id="funnelChart"></div>
+            </div>
+          </div>
+
+          <!-- Weekly Enquiries -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Enquiries This Week</div>
+                <div class="card-sub">AI conversations started by day</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="vbar-chart" id="weeklyChart"></div>
+            </div>
+          </div>
+
+          <!-- Lead Sources + Businesses row -->
+          <div class="chart-row">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Lead Sources</div></div>
+              <div class="card-body">
+                <div class="bar-chart" id="sourcesChart"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Businesses</div>
+                <a href="/platform/businesses" class="btn btn--ghost btn--sm">View all</a>
+              </div>
+              <div class="card-body" id="bizMiniList"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Side: Activity Feed -->
+        <div class="dash-side">
+          <div class="card" style="flex:1">
+            <div class="card-header">
+              <div class="card-title">Live Activity</div>
+              <span class="badge badge--green" id="liveDot">● Live</span>
+            </div>
+            <div class="activity-feed" id="activityFeed"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [{ label: 'Dashboard' }]
+});
+
+const D = window.DR_DATA;
+
+/* KPIs */
+const kpiDefs = [
+  { key: 'totalLeads',     label: 'Total Leads',     growthKey: 'leadsGrowth',    color: '#2563EB' },
+  { key: 'aiConversations',label: 'AI Conversations',growthKey: 'convGrowth',     color: '#7C3AED' },
+  { key: 'tasksCompleted', label: 'Tasks Completed', growthKey: 'tasksGrowth',    color: '#059669' },
+  { key: 'bookings',       label: 'Tours Booked',    growthKey: 'bookingsGrowth', color: '#D97706' },
+  { key: 'reviews',        label: 'Reviews',         growthKey: 'reviewsGrowth',  color: '#0D9488' },
+  { key: 'responseTime',   label: 'Avg Response',    growthKey: null,             color: '#4F46E5' },
+];
+document.getElementById('kpiGrid').innerHTML = kpiDefs.map(k => {
+  const val = D.kpis[k.key];
+  const growth = k.growthKey ? D.kpis[k.growthKey] : null;
+  return `<div class="kpi-card" style="--kpi-color:${k.color}">
+    <div class="kpi-label">${k.label}</div>
+    <div class="kpi-value">${val}</div>
+    <div class="kpi-meta">
+      ${growth ? `<span class="kpi-growth">↑ ${growth}%</span> vs last month` : `<span>AI handled 98%</span>`}
+    </div>
+  </div>`;
+}).join('');
+
+/* Funnel */
+const maxFunnel = D.funnel[0].count;
+document.getElementById('funnelChart').innerHTML = D.funnel.map(f =>
+  `<div class="funnel-item">
+    <span class="funnel-lbl">${f.label}</span>
+    <div class="funnel-bar"><div class="funnel-fill" style="--w:${f.pct}%"></div></div>
+    <span class="funnel-count">${f.count}</span>
+    <span class="funnel-pct">${f.pct}%</span>
+  </div>`
+).join('');
+
+/* Weekly chart */
+const maxW = Math.max(...D.weeklyEnquiries.map(d => d.count));
+document.getElementById('weeklyChart').innerHTML = D.weeklyEnquiries.map(d => {
+  const h = Math.round((d.count / maxW) * 72);
+  return `<div class="vbar-col">
+    <div class="vbar-bar" style="height:${h}px"></div>
+    <div class="vbar-lbl">${d.day}</div>
+  </div>`;
+}).join('');
+
+/* Sources */
+document.getElementById('sourcesChart').innerHTML = `<div class="bar-chart">` + D.leadSources.map(s =>
+  `<div class="bar-row">
+    <span class="bar-lbl">${s.label}</span>
+    <div class="bar-track"><div class="bar-fill" style="--fill:${s.pct}%;background:${s.color}"></div></div>
+    <span class="bar-val">${s.pct}%</span>
+  </div>`
+).join('') + '</div>';
+
+/* Business mini list */
+document.getElementById('bizMiniList').innerHTML = D.businesses.map(b =>
+  `<a href="/platform/businesses/${b.id}" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);text-decoration:none">
+    <div class="av av--purple" style="width:38px;height:38px;font-size:.8125rem">${b.name.charAt(0)}</div>
+    <div>
+      <div style="font-size:.875rem;font-weight:700;color:var(--t1)">${b.name}</div>
+      <div style="font-size:.75rem;color:var(--t3)">${b.industry} · ${b.location}</div>
+    </div>
+    <span style="margin-left:auto;color:var(--t3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+  </a>`
+).join('') + `<a href="/platform/businesses/new" class="btn btn--ghost btn--sm btn--full" style="margin-top:12px">+ Add Business</a>`;
+
+/* Activity feed */
+const ICO = {
+  calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+  user:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  wa:       `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.997 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.463 3.413 1.271 4.85L2 22l5.29-1.253C8.739 21.546 10.343 22 11.997 22c5.514 0 9.997-4.483 9.997-9.997 0-5.515-4.483-9.997-9.997-10z" fill-rule="evenodd"/></svg>`,
+  db:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+  star:     `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  brain:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+  list:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+  bell:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+};
+
+document.getElementById('activityFeed').innerHTML = D.activityFeed.map(a =>
+  `<div class="act-item">
+    <div class="act-ico act-ico--${a.color}">${ICO[a.icon] || ICO.bell}</div>
+    <div class="act-text">${a.msg}</div>
+    <div class="act-time">${a.time}</div>
+  </div>`
+).join('');
+</script>
+</body>
+</html>

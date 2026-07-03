@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activities — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    /* ── AI Generator ── */
+    .ai-gen-card { background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 60%,#0891B2 100%); border-radius:18px; padding:24px; margin-bottom:20px; color:#fff; }
+    .ai-gen-title { font-size:1.125rem; font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .ai-gen-sub { font-size:.8125rem; opacity:.8; margin-bottom:20px; }
+    .ai-gen-controls { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:10px; align-items:end; }
+    @media(max-width:800px){ .ai-gen-controls{grid-template-columns:1fr 1fr} }
+    .ai-sel { background:rgba(255,255,255,.15); border:1.5px solid rgba(255,255,255,.25); border-radius:10px; color:#fff; padding:9px 12px; font-size:.875rem; outline:none; width:100%; cursor:pointer; }
+    .ai-sel option { background:#4F46E5; color:#fff; }
+    .ai-gen-btn { background:#fff; color:#7C3AED; border:none; border-radius:10px; padding:10px 20px; font-size:.875rem; font-weight:800; cursor:pointer; white-space:nowrap; transition:transform .12s,box-shadow .12s; display:flex; align-items:center; gap:6px; }
+    .ai-gen-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.2); }
+    .ai-results { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; margin-top:18px; }
+    .ai-idea-card { background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.2); border-radius:12px; padding:14px; backdrop-filter:blur(4px); transition:background .15s; cursor:pointer; }
+    .ai-idea-card:hover { background:rgba(255,255,255,.2); }
+    .ai-idea-title { font-size:.9375rem; font-weight:700; margin-bottom:4px; }
+    .ai-idea-desc  { font-size:.8rem; opacity:.85; line-height:1.5; margin-bottom:8px; }
+    .ai-idea-tags  { display:flex; flex-wrap:wrap; gap:5px; }
+    .ai-idea-tag   { font-size:.625rem; font-weight:700; background:rgba(255,255,255,.15); padding:2px 7px; border-radius:5px; }
+    .ai-loading    { text-align:center; padding:24px; font-size:.875rem; opacity:.8; }
+    .ai-gen-ctrl-label { font-size:.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; opacity:.8; margin-bottom:5px; }
+
+    /* ── Etsy Shop ── */
+    .etsy-card { background:var(--card-bg); border:1.5px solid var(--border); border-radius:18px; padding:22px; margin-bottom:20px; }
+    .etsy-header { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+    .etsy-logo { width:46px; height:46px; border-radius:12px; background:#F56400; display:flex; align-items:center; justify-content:center; font-size:1.375rem; flex-shrink:0; }
+    .etsy-shop-name { font-size:1rem; font-weight:800; color:var(--t1); }
+    .etsy-shop-sub  { font-size:.75rem; color:var(--t3); margin-top:2px; }
+    .etsy-products { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+    .etsy-product { border:1.5px solid var(--border); border-radius:12px; overflow:hidden; transition:border-color .15s,box-shadow .15s; cursor:pointer; text-decoration:none; display:block; }
+    .etsy-product:hover { border-color:#F56400; box-shadow:0 4px 16px rgba(245,100,0,.1); }
+    .etsy-prod-img { height:110px; background:linear-gradient(135deg,var(--s2),var(--s3)); display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
+    .etsy-prod-body { padding:10px 12px; }
+    .etsy-prod-name { font-size:.8125rem; font-weight:700; color:var(--t1); line-height:1.3; margin-bottom:4px; }
+    .etsy-prod-price { font-size:.75rem; font-weight:800; color:#F56400; }
+    .etsy-prod-tag { display:inline-block; font-size:.5625rem; font-weight:700; background:var(--s2); color:var(--t3); padding:1px 6px; border-radius:4px; margin-top:4px; }
+    .etsy-cta { margin-top:14px; padding-top:14px; border-top:1px solid var(--s2); display:flex; align-items:center; justify-content:space-between; }
+
+    /* ── Occasions ── */
+    .occ-section { background:var(--card-bg); border:1.5px solid var(--border); border-radius:18px; padding:22px; margin-bottom:20px; }
+    .occ-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-top:16px; }
+    .occ-card { border:1.5px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; transition:all .15s; }
+    .occ-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 20px rgba(124,58,237,.08); }
+    .occ-card.is-expanded { background:var(--accent-bg); border-color:var(--accent); }
+    .occ-card-head { display:flex; align-items:center; gap:10px; }
+    .occ-card-ico { font-size:1.625rem; width:38px; text-align:center; }
+    .occ-card-nm { font-size:.875rem; font-weight:700; color:var(--t1); }
+    .occ-card-dt { font-size:.6875rem; color:var(--t3); margin-top:2px; }
+    .occ-card-ideas { display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+    .occ-card.is-expanded .occ-card-ideas { display:block; }
+    .occ-idea-item { display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; font-size:.8rem; color:var(--t2); line-height:1.4; }
+    .occ-idea-item::before { content:'•'; color:var(--accent); flex-shrink:0; margin-top:1px; }
+    .occ-add-btn { margin-top:8px; font-size:.75rem; font-weight:700; color:var(--accent); background:none; border:1.5px solid var(--accent); border-radius:6px; padding:4px 10px; cursor:pointer; transition:all .15s; }
+    .occ-add-btn:hover { background:var(--accent); color:#fff; }
+
+    /* ── Activities (existing) ── */
+    .cat-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .cat-btn { padding:6px 14px; border-radius:8px; border:1.5px solid var(--border); font-size:.8125rem; font-weight:500; cursor:pointer; background:var(--card-bg); color:var(--t2); transition:all .15s; }
+    .cat-btn.is-active { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
+    .cat-btn:hover:not(.is-active) { border-color:var(--t4); }
+    .activities-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+    .activity-card { background:var(--card-bg); border:1.5px solid var(--border); border-radius:14px; overflow:hidden; transition:border-color .15s,box-shadow .15s; }
+    .activity-card:hover { border-color:var(--accent); box-shadow:0 4px 20px rgba(124,58,237,.08); }
+    .ac-header { padding:16px 16px 12px; }
+    .ac-cat-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; font-size:.6875rem; font-weight:600; margin-bottom:10px; }
+    .ac-title { font-size:.9375rem; font-weight:700; color:var(--t1); margin-bottom:4px; }
+    .ac-body { padding:0 16px 14px; }
+    .ac-skills { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:10px; }
+    .ac-skill { padding:2px 7px; border-radius:5px; font-size:.6875rem; font-weight:500; background:var(--s2); color:var(--t3); }
+    .ac-meta { display:flex; gap:12px; font-size:.75rem; color:var(--t4); }
+    .ac-footer { padding:10px 16px; border-top:1px solid var(--s2); display:flex; gap:8px; }
+    .ac-btn { flex:1; padding:6px; border-radius:7px; border:1.5px solid var(--border); font-size:.75rem; font-weight:600; cursor:pointer; background:var(--card-bg); color:var(--t2); transition:all .15s; text-align:center; }
+    .ac-btn--add { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
+    .ac-btn--add:hover { background:var(--accent); color:#fff; }
+    .print-flag { display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:5px; font-size:.625rem; font-weight:600; background:#FFFBEB; color:#D97706; }
+
+    /* ── Weekly plan ── */
+    .weekly-plan { background:var(--card-bg); border:1.5px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; }
+    .weekly-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
+    @media(max-width:700px){ .weekly-grid{grid-template-columns:1fr 1fr} }
+    .day-col { border:1.5px solid var(--border); border-radius:10px; padding:10px; min-height:90px; }
+    .day-name { font-size:.5625rem; font-weight:800; color:var(--t3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; }
+    .day-activity { padding:4px 6px; border-radius:5px; font-size:.6875rem; font-weight:500; margin-bottom:4px; line-height:1.3; }
+
+    /* ── Publish / mark done ── */
+    .published-badge { display:inline-flex;align-items:center;gap:4px;background:#DCFCE7;color:#16A34A;font-size:.625rem;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid #86EFAC; }
+    .mark-done-item { display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:7px;background:var(--s1);margin-bottom:5px;font-size:.75rem;color:var(--t2);cursor:pointer;transition:background .12s;user-select:none; }
+    .mark-done-item:hover { background:var(--s2); }
+    .mark-done-item.is-done { background:#F0FDF4;color:#16A34A;text-decoration:line-through;opacity:.7; }
+    .mark-done-cb { width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.625rem; }
+    .mark-done-item.is-done .mark-done-cb { background:#16A34A;border-color:#16A34A;color:#fff; }
+    .idea-result-card { background:var(--s1);border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-top:8px; }
+    .idea-result-title { font-size:.8125rem;font-weight:700;color:var(--t1);margin-bottom:8px; }
+    .idea-result-list div { font-size:.75rem;color:var(--t2);line-height:1.7; }
+    .upcoming-occ-item { display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--s1);margin-bottom:6px; }
+
+    /* ── Birthdays section ── */
+    .bday-month-card { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; background:linear-gradient(135deg,#F3F0FF,#EDE9FE); border:1.5px solid #DDD6FE; margin-bottom:8px; }
+    .bday-m-av { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#7C3AED,#4F46E5); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.9375rem; flex-shrink:0; }
+    .bday-m-name { font-size:.875rem; font-weight:700; color:var(--t1); }
+    .bday-m-sub { font-size:.6875rem; color:var(--t3); margin-top:1px; }
+    .bday-m-badge { margin-left:auto; font-size:.625rem; font-weight:800; background:linear-gradient(135deg,#FBBF24,#F59E0B); color:#fff; padding:3px 8px; border-radius:20px; white-space:nowrap; }
+    .bday-section-wrap { background:var(--card-bg); border:1.5px solid var(--border); border-radius:18px; padding:22px; margin-bottom:20px; }
+  </style>
+</head>
+<body class="cl-body">
+<div class="cl-layout">
+  <aside class="cl-sidebar" id="clSidebar"></aside>
+  <div class="cl-main-wrap">
+    <header class="cl-topbar" id="clTopbar"></header>
+    <main class="cl-content">
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Activities & Resources</h1>
+          <p class="page-sub" id="actPageSub">AI generator · Etsy shop · Occasions · Activity library</p>
+        </div>
+        <div class="page-actions" id="managerPageActions">
+          <button class="btn btn--ghost" onclick="printWeekly()">🖨 Print Plan</button>
+          <button class="btn btn--primary" onclick="CL.showToast('Activity saved','success')">+ Add Activity</button>
+        </div>
+      </div>
+
+      <!-- ── AI ACTIVITY GENERATOR (manager only) ── -->
+      <div class="ai-gen-card" id="aiGenSection">
+        <div class="ai-gen-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          ✨ AI Activity Idea Generator
+        </div>
+        <div class="ai-gen-sub">Pick an age group and occasion — your AI generates fresh, age-appropriate activity ideas instantly.</div>
+        <div class="ai-gen-controls">
+          <div>
+            <div class="ai-gen-ctrl-label">Age Group</div>
+            <select class="ai-sel" id="genAge">
+              <option value="0-18m">0–18 months (Infants)</option>
+              <option value="18m-3">18m–3 years (Toddlers)</option>
+              <option value="3-5" selected>3–5 years (Preschool)</option>
+              <option value="all">All ages</option>
+            </select>
+          </div>
+          <div>
+            <div class="ai-gen-ctrl-label">Theme / Occasion</div>
+            <select class="ai-sel" id="genOcc">
+              <option value="summer">☀️ Summer Fun</option>
+              <option value="canada">🇨🇦 Canada Day</option>
+              <option value="nature">🌿 Nature & Outdoors</option>
+              <option value="art">🎨 Art & Craft</option>
+              <option value="stem">🔬 STEM Exploration</option>
+              <option value="literacy">📚 Literacy & Language</option>
+              <option value="motor">✋ Fine Motor Skills</option>
+              <option value="sensory">🌊 Sensory Play</option>
+              <option value="halloween">🎃 Halloween</option>
+              <option value="christmas">🎄 Christmas</option>
+              <option value="diwali">🪔 Diwali</option>
+              <option value="easter">🐣 Easter</option>
+              <option value="birthday">🎂 Birthday Party</option>
+              <option value="weather">🌦 Weather & Science</option>
+            </select>
+          </div>
+          <div>
+            <div class="ai-gen-ctrl-label">Duration</div>
+            <select class="ai-sel" id="genDur">
+              <option value="15">15 minutes (quick)</option>
+              <option value="30" selected>20–30 minutes</option>
+              <option value="45">45–60 minutes</option>
+            </select>
+          </div>
+          <button class="ai-gen-btn" onclick="generateIdeas()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Generate Ideas
+          </button>
+        </div>
+        <div id="aiResults"></div>
+      </div>
+
+      <!-- ── BIRTHDAYS THIS MONTH ── -->
+      <div class="bday-section-wrap" id="bdayWrap" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:.9375rem;font-weight:700;color:var(--t1)">🎂 July Birthdays — Star of the Month</div>
+          <button class="btn btn--ghost btn--sm" onclick="CL.showToast('Birthday certificate printed!','success')">🖨 Print Certificate</button>
+        </div>
+        <div id="bdayCards"></div>
+      </div>
+
+      <!-- ── ETSY SHOP — LITTLECAREHUB ── -->
+      <div class="etsy-card">
+        <div class="etsy-header">
+          <div class="etsy-logo">🛍️</div>
+          <div>
+            <div class="etsy-shop-name">LittleCareHub — Etsy Shop</div>
+            <div class="etsy-shop-sub">Premium printable activity packs for early years educators · Digital downloads ready to print</div>
+          </div>
+          <a href="https://www.etsy.com/ca/shop/LittleCareHub" target="_blank" class="btn btn--primary" style="margin-left:auto;white-space:nowrap">Visit Shop ↗</a>
+        </div>
+        <div class="etsy-products" id="etsyProducts"></div>
+        <div class="etsy-cta">
+          <span style="font-size:.8125rem;color:var(--t3)">Use these printable packs directly in your weekly activity plan</span>
+          <a href="https://www.etsy.com/ca/shop/LittleCareHub" target="_blank" class="btn btn--ghost btn--sm">Browse All Products ↗</a>
+        </div>
+      </div>
+
+      <!-- ── OCCASIONS & CELEBRATION IDEAS ── -->
+      <div class="occ-section">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:.9375rem;font-weight:700;color:var(--t1)">🗓 Occasions & Celebration Ideas</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-top:2px">Click any occasion to expand celebration activity ideas</div>
+          </div>
+          <select id="occMonth" class="filter-select" onchange="renderOccasions()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.8125rem;background:var(--s1);color:var(--t1)">
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7" selected>July</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div class="occ-grid" id="occGrid"></div>
+
+        <!-- Share idea box — manager only -->
+        <div id="shareIdeaBox" style="display:none;margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
+          <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">💡 Share Your Idea</div>
+          <div style="font-size:.75rem;color:var(--t3);margin-bottom:10px">Describe how you'd like to celebrate an upcoming occasion — AI will suggest specific activities, decorations &amp; songs.</div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <textarea id="shareIdeaInput" placeholder="e.g. For Canada Day I want to do something with maple leaf art and red &amp; white colours..." style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.8125rem;background:var(--s1);color:var(--t1);resize:vertical;min-height:64px;font-family:inherit;outline:none"></textarea>
+            <button onclick="submitShareIdea()" style="padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.8125rem;cursor:pointer;white-space:nowrap">✨ Get Ideas</button>
+          </div>
+          <div id="shareIdeaResult"></div>
+        </div>
+
+        <!-- Upcoming occasions — manager only -->
+        <div id="upcomingOccBox" style="display:none;margin-top:18px;border-top:1px solid var(--border);padding-top:16px">
+          <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:10px">⏰ Upcoming Occasions — Prepare Now</div>
+          <div id="upcomingOccList"></div>
+        </div>
+      </div>
+
+      <!-- ── TEACHER PLAN VIEW (teacher only) ── -->
+      <div id="teacherPlanView" style="display:none;margin-bottom:20px">
+        <div style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border:1.5px solid #86EFAC;border-radius:14px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:1.5rem">👩‍🏫</div>
+          <div>
+            <div style="font-size:.875rem;font-weight:700;color:#16A34A">Teacher View — Finalized Plan</div>
+            <div style="font-size:.75rem;color:#15803D;margin-top:2px">Your manager publishes the weekly plan here. Tap an activity to mark it done.</div>
+          </div>
+        </div>
+        <div id="teacherWeeklyPlan" style="background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:20px"></div>
+      </div>
+
+      <!-- ── WEEKLY PLAN (manager) ── -->
+      <div class="weekly-plan" id="managerWeeklyPlan">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div style="font-size:.9375rem;font-weight:700;color:var(--t1)">This Week's Activity Plan</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn--ghost btn--sm" onclick="CL.showToast('AI is planning this week…','info');setTimeout(function(){CL.showToast('Weekly plan updated!','success');},1500)">✨ Auto-Plan with AI</button>
+            <button class="btn btn--primary btn--sm" id="publishPlanBtn" onclick="publishPlan()">📤 Publish to Teachers</button>
+          </div>
+        </div>
+        <div class="weekly-grid" id="weeklyGrid"></div>
+      </div>
+
+      <!-- ── ACTIVITY LIBRARY (manager only) ── -->
+      <div id="actLibSection">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:.9375rem;font-weight:700;color:var(--t1)">Activity Library</div>
+          <span style="font-size:.75rem;color:var(--t3)" id="actCount"></span>
+        </div>
+        <div class="cat-filters" id="catFilters"></div>
+        <div class="activities-grid" id="activitiesGrid"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<div id="panelOverlay"></div>
+<script src="/client/daycare/shared/daycare-data.js"></script>
+<script src="/client/daycare/shared/client.js"></script>
+<script>
+CL.init({ page: 'activities' });
+
+var _ROLE = CL.getRole();
+var _IS_MGR = _ROLE === 'manager';
+
+/* ── Section visibility ── */
+if(!_IS_MGR){
+  document.getElementById('aiGenSection').style.display='none';
+  document.getElementById('actLibSection').style.display='none';
+  document.getElementById('managerPageActions').style.display='none';
+  document.getElementById('managerWeeklyPlan').style.display='none';
+  document.getElementById('teacherPlanView').style.display='block';
+  document.getElementById('actPageSub').textContent='Occasions · Published weekly plan';
+} else {
+  document.getElementById('shareIdeaBox').style.display='block';
+  document.getElementById('upcomingOccBox').style.display='block';
+}
+
+/* ────────────────────────────────
+   BIRTHDAYS
+──────────────────────────────── */
+(function(){
+  const bdays = DC.children.filter(c=>parseInt(c.dob.split('-')[1])===7);
+  if(!bdays.length) return;
+  document.getElementById('bdayWrap').style.display='block';
+  document.getElementById('bdayCards').innerHTML=bdays.map(c=>{
+    const day=parseInt(c.dob.split('-')[2]);
+    const ini=c.name.split(' ').map(n=>n[0]).join('').slice(0,2);
+    const age=new Date().getFullYear()-parseInt(c.dob.split('-')[0]);
+    return `<div class="bday-month-card">
+      <div class="bday-m-av">${ini}</div>
+      <div>
+        <div class="bday-m-name">${c.name}</div>
+        <div class="bday-m-sub">July ${day} · Turning ${age} · ${c.room}</div>
+      </div>
+      <div class="bday-m-badge">⭐ STAR OF THE MONTH</div>
+    </div>`;
+  }).join('');
+})();
+
+/* ────────────────────────────────
+   ETSY SHOP PRODUCTS
+──────────────────────────────── */
+var etsyProducts=[
+  {ico:'📖',name:'Alphabet Tracing Printable Pack',price:'CA$4.99',tag:'Best Seller',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'🔢',name:'Number Counting Mats Bundle (1–20)',price:'CA$5.99',tag:'Printable',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'🎨',name:'Seasonal Coloring Sheets — Summer',price:'CA$3.99',tag:'New',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'🐾',name:'Animal Matching Flash Cards',price:'CA$4.49',tag:'Printable',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'🌈',name:'Color & Shape Sorting Game',price:'CA$5.49',tag:'Best Seller',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'📅',name:'Daily Schedule Routine Cards',price:'CA$3.49',tag:'Printable',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'🇨🇦',name:'Canada Day Activities Bundle',price:'CA$4.99',tag:'Seasonal',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+  {ico:'✋',name:'Fine Motor Skills Activity Sheets',price:'CA$4.99',tag:'Printable',href:'https://www.etsy.com/ca/shop/LittleCareHub'},
+];
+document.getElementById('etsyProducts').innerHTML=etsyProducts.map(p=>`
+  <a href="${p.href}" target="_blank" class="etsy-product">
+    <div class="etsy-prod-img">${p.ico}</div>
+    <div class="etsy-prod-body">
+      <div class="etsy-prod-name">${p.name}</div>
+      <div class="etsy-prod-price">${p.price}</div>
+      <div class="etsy-prod-tag">${p.tag}</div>
+    </div>
+  </a>`).join('');
+
+/* ────────────────────────────────
+   OCCASIONS DATA
+──────────────────────────────── */
+var OCCASIONS={
+  1:[
+    {ic:'🎆',nm:"New Year's Day",  dt:'Jan 1',  ideas:["Make resolution stars — write one goal on each","Firework craft with black paper and paint splatter","Count down clock collage craft","New year sensory bin with silver & gold items"]},
+    {ic:'🐻',nm:'Polar Animal Week', dt:'Mid Jan',ideas:["Polar bear watercolor prints","Arctic sensory bin with fake snow","Penguin foot painting","Polar habitat diorama"]},
+  ],
+  2:[
+    {ic:'❤️',nm:"Valentine's Day",  dt:'Feb 14', ideas:["Heart shape painting & printing","Love letter writing practice","Pink & red sensory rice bin","Make friendship bracelets"]},
+    {ic:'🐾',nm:'Chinese New Year',  dt:'Feb',    ideas:["Dragon puppet craft with paper bags","Red envelope art project","Chinese number tracing sheets","Lion dance movement activity"]},
+  ],
+  3:[
+    {ic:'🍀',nm:"St Patrick's Day", dt:'Mar 17', ideas:["Rainbow sponge painting","Lucky leprechaun trap craft","Green sensory bin with coins","Shamrock counting mats"]},
+    {ic:'🌷',nm:'Spring Begins',     dt:'Mar 20', ideas:["Flower petal printing","Spring nature walk & journal","Seed planting sensory activity","Butterfly life cycle craft"]},
+  ],
+  4:[
+    {ic:'🐣',nm:'Easter',           dt:'Apr',    ideas:["Egg dyeing with natural dyes","Bunny paper bag puppets","Easter egg counting game","Spring chick craft with cotton balls"]},
+    {ic:'🌍',nm:'Earth Day',         dt:'Apr 22', ideas:["Plant a seed in a cup","Recycled art sculpture","Nature litter pick with bags","Earth day pledge writing"]},
+  ],
+  5:[
+    {ic:'👩',nm:"Mother's Day",      dt:'May',    ideas:["Hand flower bouquet card","Photo frame decorating","Breakfast menu design craft","Flower pot painting gift"]},
+    {ic:'🌿',nm:'Nature Week',        dt:'May',    ideas:["Leaf rubbing art","Bug hotel building","Nature colour matching","Blossom printing with real flowers"]},
+  ],
+  6:[
+    {ic:'👨',nm:"Father's Day",      dt:'Jun',    ideas:["Tool belt paper craft","Tie-dye tie painting","Build a birdhouse (cardboard)","Sports themed art project"]},
+    {ic:'☀️',nm:'Summer Kick-off',   dt:'Jun 21', ideas:["Ice cube colour mixing","Sun print art on fabric","Outdoor chalk drawing day","Make a summer bucket list"]},
+  ],
+  7:[
+    {ic:'🇨🇦',nm:'Canada Day',       dt:'Jul 1',  ideas:["Maple leaf monoprints","Red & white sensory bin","Canadian animal sorting cards","Flag collage with torn paper"]},
+    {ic:'☀️',nm:'Summer Fun Week',   dt:'Jul 7',  ideas:["Water balloon colour mixing","Nature scavenger hunt bingo","Outdoor mud kitchen play","Watermelon slice craft"]},
+    {ic:'👨‍👩‍👧‍👦',nm:'Parent Showcase', dt:'Jul 18', ideas:["Portfolio art display","Favourite memory writing","Thank you card for parents","Self-portrait artwork frame"]},
+    {ic:'🏖️',nm:'Beach Theme Day',    dt:'Jul 22', ideas:["Sand tray letter practice","Shell sorting & counting","Crab craft with paper plates","Ocean in a bottle sensory jar"]},
+  ],
+  8:[
+    {ic:'🌻',nm:'Sunflower Week',    dt:'Aug',    ideas:["Sunflower seed craft","Yellow & orange colour mixing","Sunflower counting petals","Garden vegetable painting"]},
+    {ic:'🎒',nm:'Back to School Prep',dt:'Late Aug',ideas:["Name writing practice sheets","School bus craft","New friend portraits","Backpack sorting fine motor"]},
+  ],
+  9:[
+    {ic:'🍂',nm:'Autumn Begins',     dt:'Sep 22', ideas:["Leaf colour sorting & printing","Autumn sensory bin (leaves, acorns)","Apple stamping art","Pumpkin seed counting"]},
+    {ic:'📚',nm:'Library Book Week', dt:'Sep',    ideas:["Story retelling puppets","Book character dress-up day","Make your own mini storybook","Favourite book cover drawing"]},
+  ],
+  10:[
+    {ic:'🎃',nm:'Halloween',         dt:'Oct 31', ideas:["Pumpkin face printing","Spooky sensory bin with black beans","Ghost foot painting","Spider web weaving with yarn"]},
+    {ic:'🕯️',nm:'Diwali',            dt:'Oct/Nov',ideas:["Diya lamp clay craft","Rangoli pattern drawing","Firework explosion painting","Festival light paper lanterns"]},
+  ],
+  11:[
+    {ic:'🕊️',nm:'Remembrance Day',   dt:'Nov 11', ideas:["Poppy flower stamping","Peace dove craft","Story time — remembering kindness","Red watercolour poppy field art"]},
+    {ic:'🦃',nm:'Thanksgiving',       dt:'Nov',    ideas:["Handprint turkey art","Gratitude tree with paper leaves","Harvest sensory vegetable bin","Cornucopia craft"]},
+  ],
+  12:[
+    {ic:'🎄',nm:'Christmas',          dt:'Dec 25', ideas:["Paper chain garland counting","Snowflake symmetry cutting","Gift card making for parents","Christmas tree collage layers"]},
+    {ic:'⛄',nm:'Winter Wonderland',  dt:'Dec',    ideas:["Fake snow sensory bin","Snowman 3-part building craft","Mitten matching game","Hot chocolate sensory play"]},
+    {ic:'🕎',nm:'Hanukkah',           dt:'Dec',    ideas:["Star of David craft","Dreidel counting game","Menorah candle number matching","Blue & white collage art"]},
+  ],
+};
+
+function renderOccasions(){
+  var m=parseInt(document.getElementById('occMonth').value);
+  var list=OCCASIONS[m]||[];
+  document.getElementById('occGrid').innerHTML=list.map(function(o,i){
+    var ideasInner=_IS_MGR
+      ? o.ideas.map(function(idea){return '<div class="occ-idea-item">'+idea+'</div>';}).join('')+
+        '<button class="occ-add-btn" onclick="event.stopPropagation();addOccToPlan(\''+o.nm.replace(/'/g,'&#39;')+'\')" >+ Add to Week Plan</button>'
+      : '<div style="font-size:.75rem;color:var(--t3);font-style:italic;padding:4px 0">Celebration activities are set by your manager — check the Published Plan below.</div>';
+    return '<div class="occ-card" id="occ-'+i+'" onclick="toggleOcc('+i+')">'+
+      '<div class="occ-card-head">'+
+      '<div class="occ-card-ico">'+o.ic+'</div>'+
+      '<div><div class="occ-card-nm">'+o.nm+'</div><div class="occ-card-dt">'+o.dt+'</div></div>'+
+      '</div>'+
+      '<div class="occ-card-ideas">'+ideasInner+'</div>'+
+      '</div>';
+  }).join('');
+  if(_IS_MGR) _renderUpcomingOcc();
+}
+function _renderUpcomingOcc(){
+  var today=new Date();
+  var tMonth=today.getMonth()+1;
+  var upcoming=[];
+  for(var d=0;d<3;d++){
+    var mo=((tMonth+d-1)%12)+1;
+    (OCCASIONS[mo]||[]).forEach(function(o){upcoming.push({o:o,mo:mo});});
+  }
+  var MN=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var el=document.getElementById('upcomingOccList');
+  if(!el)return;
+  if(!upcoming.length){el.innerHTML='<div style="font-size:.8rem;color:var(--t3)">No upcoming occasions in the next 3 months.</div>';return;}
+  el.innerHTML=upcoming.slice(0,6).map(function(u){
+    return '<div class="upcoming-occ-item">'+
+      '<span style="font-size:1.25rem">'+u.o.ic+'</span>'+
+      '<div style="flex:1"><div style="font-size:.8125rem;font-weight:700;color:var(--t1)">'+u.o.nm+'</div>'+
+      '<div style="font-size:.625rem;color:var(--t3)">'+MN[u.mo]+' · '+u.o.dt+'</div></div>'+
+      '<button onclick="CL.showToast(\'Prep ideas for '+u.o.nm.replace(/'/g,'&#39;')+'…\',\'info\')" style="font-size:.625rem;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent);cursor:pointer">Prep →</button>'+
+      '</div>';
+  }).join('');
+}
+window.toggleOcc=function(i){
+  document.getElementById('occ-'+i).classList.toggle('is-expanded');
+};
+window.addOccToPlan=function(name){CL.showToast('"'+name+'" added to weekly plan','success');};
+renderOccasions();
+
+/* ────────────────────────────────
+   SHARE IDEA / OCCASION AI
+──────────────────────────────── */
+var IDEA_BANK={
+  maple:   {t:'Maple Leaf Art Station',    s:['🍁 Maple leaf monoprints with red & white paint','🎨 Flag collage with torn red & white paper','🌿 Leaf rubbings on black card with wax crayon','🔢 Maple leaf counting mats 1–10']},
+  canada:  {t:'Canada Day Celebration',    s:['🇨🇦 Canadian animal sorting (moose, loon, beaver)','🎨 Red & white sensory bin with pompoms & pasta','🍁 Maple leaf stamp printing with real leaves','🎵 O Canada circle time with drums & shakers']},
+  water:   {t:'Water Play Theme Day',      s:['💧 Water balloon colour mixing (outdoor)','🧊 Ice excavation with frozen toys inside blocks','🫧 Bubble-blowing & watercolour bubble prints','🌊 Waterfall sensory table with coloured water']},
+  fall:    {t:'Autumn Harvest Celebration',s:['🍂 Leaf colour sorting walk & field journal','🍎 Apple stamping art with red & yellow paint','🎃 Pumpkin seed counting (use a real pumpkin)','🌾 Scarecrow stuffing craft from old clothes']},
+  winter:  {t:'Winter Wonderland Day',     s:['❄️ Fake snow sensory bin with glitter & gems','✂️ Snowflake symmetry cutting activity','🧤 Mitten matching fine motor game','☕ Hot chocolate ingredient counting & mixing']},
+  birthday:{t:'Birthday Celebration Plan', s:['👑 Birthday crown craft from paper & stickers','🎈 Balloon stomp countdown game','🎂 Decorate a "birthday cake" from playdough','📸 Photo booth with birthday props for keepsakes']},
+  rainbow: {t:'Rainbow Colour Theme Day',  s:['🌈 Rainbow sponge painting in colour order','🔴 Colour sorting bin with items by colour','🎨 Colour mixing experiment (red + yellow = ?)','🌈 Rainbow handprint mural on large paper']},
+};
+var IDEA_DEFAULT={t:'Celebration Activity Ideas',s:['🎨 Themed sensory bin with occasion colours','✂️ Craft station for age-appropriate creations','📖 Circle time with themed songs & stories','🎁 Take-home craft or card for families']};
+
+window.submitShareIdea=function(){
+  var input=document.getElementById('shareIdeaInput').value.trim();
+  if(!input){CL.showToast('Please describe your idea first','error');return;}
+  var el=document.getElementById('shareIdeaResult');
+  el.innerHTML='<div style="font-size:.8rem;color:var(--t3);padding:8px 0">✨ AI is thinking…</div>';
+  setTimeout(function(){
+    var lc=input.toLowerCase();
+    var res=IDEA_DEFAULT;
+    for(var k in IDEA_BANK){if(lc.indexOf(k)!==-1){res=IDEA_BANK[k];break;}}
+    el.innerHTML='<div class="idea-result-card">'+
+      '<div class="idea-result-title">✨ AI Suggestion: '+res.t+'</div>'+
+      '<div class="idea-result-list">'+res.s.map(function(i){return '<div>'+i+'</div>';}).join('')+'</div>'+
+      '<div style="margin-top:12px;display:flex;gap:6px">'+
+      '<button onclick="CL.showToast(\'Idea added to weekly plan!\',\'success\')" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:.75rem;font-weight:700;cursor:pointer">+ Add to Plan</button>'+
+      '<button onclick="publishPlan()" style="padding:5px 12px;background:#16A34A;color:#fff;border:none;border-radius:7px;font-size:.75rem;font-weight:700;cursor:pointer">📤 Publish to Teachers</button>'+
+      '</div></div>';
+  },1000);
+};
+
+/* ────────────────────────────────
+   PUBLISH PLAN (manager → teachers)
+──────────────────────────────── */
+var _currentWeekPlan={
+  Mon:['🎨 Colour Sorting Game','📖 Circle Time'],
+  Tue:['🌿 Outdoor Nature Walk','Story Time'],
+  Wed:['✋ Fine Motor Play Tray','🔢 Number Mats'],
+  Thu:['🧩 Shapes & Colours Puzzle','Life Skills — Tidy Up'],
+  Fri:['🌊 Sensory Bin Exploration','Show & Tell'],
+};
+window.publishPlan=function(){
+  var pub={week:'Jul 7 – Jul 11, 2026',publishedBy:'Manager',plan:_currentWeekPlan};
+  localStorage.setItem('dc_published_plan',JSON.stringify(pub));
+  var btn=document.getElementById('publishPlanBtn');
+  if(btn){btn.textContent='✅ Plan Published';btn.style.background='#16A34A';btn.style.border='none';}
+  CL.showToast('Plan published — teachers can now see this week\'s activities!','success');
+};
+
+/* ────────────────────────────────
+   TEACHER PLAN VIEW
+──────────────────────────────── */
+function renderTeacherPlan(){
+  var container=document.getElementById('teacherWeeklyPlan');
+  if(!container)return;
+  var saved=localStorage.getItem('dc_published_plan');
+  var done=JSON.parse(localStorage.getItem('dc_plan_done')||'{}');
+  if(!saved){
+    container.innerHTML='<div style="text-align:center;padding:32px;color:var(--t3)">'+
+      '<div style="font-size:2rem;margin-bottom:8px">📋</div>'+
+      '<div style="font-size:.875rem;font-weight:700;color:var(--t1)">No plan published yet</div>'+
+      '<div style="font-size:.75rem;margin-top:4px">Your manager hasn\'t published this week\'s plan yet. Check back later.</div>'+
+      '</div>';
+    return;
+  }
+  var pub=JSON.parse(saved);
+  var days=['Mon','Tue','Wed','Thu','Fri'];
+  container.innerHTML='<div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<span class="published-badge">✅ Published</span>'+
+    '<span style="font-size:.75rem;color:var(--t3)">'+pub.week+' · Published by '+pub.publishedBy+'</span>'+
+    '</div>'+
+    '<div class="weekly-grid">'+days.map(function(d){
+      var acts=pub.plan[d]||[];
+      var items=acts.map(function(act,idx){
+        var key=d+'-'+idx;
+        var isDone=!!done[key];
+        return '<div class="mark-done-item'+(isDone?' is-done':'')+'" onclick="toggleDone(\''+key+'\')">'+
+          '<div class="mark-done-cb">'+(isDone?'✓':'')+'</div>'+
+          act+'</div>';
+      }).join('');
+      return '<div class="day-col"><div class="day-name">'+d+'</div>'+items+'</div>';
+    }).join('')+'</div>';
+}
+window.toggleDone=function(key){
+  var done=JSON.parse(localStorage.getItem('dc_plan_done')||'{}');
+  done[key]=!done[key];
+  localStorage.setItem('dc_plan_done',JSON.stringify(done));
+  CL.showToast(done[key]?'Marked as done!':'Unmarked',done[key]?'success':'info');
+  renderTeacherPlan();
+};
+if(!_IS_MGR) renderTeacherPlan();
+
+/* ────────────────────────────────
+   AI IDEA GENERATOR
+──────────────────────────────── */
+var AI_IDEAS={
+  'summer-3-5':[
+    {t:'Water Colour Volcano',     d:'Baking soda volcano in a tray — add coloured vinegar and watch it erupt. Perfect outdoor summer activity.',  tags:['STEM','Sensory','Outdoor']},
+    {t:'Nature Stamp Printing',    d:'Collect leaves, flowers and sticks from outdoors. Dip in paint and press onto paper to create unique nature prints.', tags:['Art','Fine Motor','Nature']},
+    {t:'Ice Excavation',           d:'Freeze plastic animals or toys in a block of ice. Give children tools to excavate — combines science and fine motor.',  tags:['STEM','Fine Motor','Sensory']},
+    {t:'Fruit & Veg Stamping',     d:'Cut oranges, corn cobs, strawberries in half and use as paint stamps. Great for pattern recognition and creativity.', tags:['Art','Literacy','Science']},
+  ],
+  'canada-3-5':[
+    {t:'Maple Leaf Monoprints',    d:'Place a real maple leaf under paper and rub over it with red/white crayons to reveal the leaf shape.',  tags:['Art','Fine Motor','Cultural']},
+    {t:'Canadian Animal Matching', d:'Match baby animals to parent animals across Canada — moose, beaver, loon, caribou. Build vocabulary and sorting skills.', tags:['Language','Sorting','Cultural']},
+    {t:'Red & White Sensory Bin',  d:'Fill a bin with red and white items — pasta, pompoms, paper. Sort, count and play freely.',  tags:['Sensory','Counting','Fine Motor']},
+    {t:'Flag Collage',             d:'Torn red and white paper pieces arranged into a Canadian flag. Builds colour recognition and fine motor control.', tags:['Art','Cultural','Fine Motor']},
+  ],
+  'nature-3-5':[
+    {t:'Leaf Colour Sorting',      d:'Collect fallen leaves on a nature walk. Sort by colour, size and shape back in the classroom.',    tags:['Science','Sorting','Outdoor']},
+    {t:'Bug Hotel Building',       d:'Use cardboard tubes, sticks and leaves to build a bug hotel in the garden. Discuss what bugs need to survive.', tags:['STEM','Nature','Team']},
+    {t:'Muddy Puddle Painting',    d:'Use muddy water as "paint" on large paper outdoors. Explore textures and natural colour.',  tags:['Sensory','Art','Outdoor']},
+    {t:'Seed Planting Journal',    d:'Each child plants a seed and draws their prediction. Track growth with weekly drawings over 4 weeks.', tags:['Science','Literacy','Fine Motor']},
+  ],
+  'halloween-3-5':[
+    {t:'Pumpkin Seed Counting',    d:'Scoop out a real pumpkin and count the seeds. Sort into groups of 5 and 10 for number sense building.',   tags:['Math','Science','Fine Motor']},
+    {t:'Spider Web Weaving',       d:'Using a paper plate with holes punched, children weave black yarn to create a spider web. Add a pompom spider.', tags:['Fine Motor','Art','Halloween']},
+    {t:'Spooky Sensory Bin',       d:'Black beans with mini plastic skeletons, bats and spiders. Use tongs and tweezers for fine motor practice.', tags:['Sensory','Fine Motor','Halloween']},
+    {t:'Ghost Footprint Art',      d:'Paint children\'s feet white and press onto black paper to make ghost shapes. Add googly eyes and draw mouths.', tags:['Art','Body Awareness','Halloween']},
+  ],
+  'christmas-3-5':[
+    {t:'Paper Chain Countdown',    d:'Make a 25-link paper chain — one loop per day. Remove a link each morning as a visual advent countdown.', tags:['Math','Fine Motor','Art']},
+    {t:'Snowflake Symmetry Cut',   d:'Fold paper and cut patterns to create unique snowflakes. Discuss symmetry — each snowflake is different!', tags:['STEM','Fine Motor','Art']},
+    {t:'Gift Card Making',         d:'Children decorate handmade cards for their parents with personal drawings and dictated messages.',  tags:['Literacy','Art','Emotional']},
+    {t:'Jingle Bell Rhythm',       d:'Use jingle bells, drums and shakers to clap, tap and ring along to Christmas songs. Develop rhythm and coordination.', tags:['Music','Motor','Language']},
+  ],
+  'diwali-3-5':[
+    {t:'Clay Diya Making',         d:'Roll and shape air-dry clay into small diya lamps. Paint with bright colours and add a "flame" cut from orange paper.', tags:['Art','Cultural','Fine Motor']},
+    {t:'Rangoli Pattern Drawing',  d:'Use chalk on the floor or draw on paper — create symmetric rangoli patterns with bright colours.', tags:['Art','Math','Cultural']},
+    {t:'Firework Explosion Art',   d:'Black paper, paint and a straw — blow paint from the centre outward to create dazzling firework bursts.', tags:['Art','Science','Cultural']},
+    {t:'Festival Light Lanterns',  d:'Decorate paper bags with tissue paper cut-outs, then fold the top down and add a battery tea light inside.', tags:['Art','Fine Motor','Cultural']},
+  ],
+  'art-3-5':[
+    {t:'Watercolour Resist Art',   d:'Draw with white crayon on white paper, then paint over with watercolour. The hidden drawing magically appears!', tags:['Art','Science','Fine Motor']},
+    {t:'Torn Paper Landscape',     d:'Tear coloured paper into strips and layer to create hills, sky, trees — no scissors needed. Great for beginners.', tags:['Art','Fine Motor','Nature']},
+    {t:'Marble Run Painting',      d:'Place paper in a tray. Add marbles dipped in different paint colours. Tilt the tray and watch patterns emerge.', tags:['Art','STEM','Sensory']},
+    {t:'Self-Portrait Masterpiece',d:'Use mirrors for children to observe themselves and draw detailed self-portraits. Celebrate individuality!', tags:['Art','Emotional','Social']},
+  ],
+  'sensory-0-18m':[
+    {t:'Jelly Sensory Discovery',  d:'Set up a tray of jelly in different colours for babies to squish, poke and explore. Supervised close.', tags:['Sensory','Fine Motor','Infant']},
+    {t:'Texture Basket',           d:'Fill a basket with safe textured objects — sponge, rubber duck, fabric, wooden ring. Encourage exploration.', tags:['Sensory','Language','Infant']},
+    {t:'Mirror Play',              d:'Place a baby-safe mirror on the floor. Tummy time while observing their reflection builds self-awareness.', tags:['Sensory','Social','Infant']},
+    {t:'Sound Bottle Shakers',     d:'Sealed bottles with rice, bells, beads. Babies shake and listen — builds cause/effect understanding.', tags:['Music','Sensory','Infant']},
+  ],
+};
+function normKey(age,occ){
+  var a=age,o=occ;
+  var key=o+'-'+a;
+  if(AI_IDEAS[key]) return key;
+  // fallback to theme-3-5
+  var fb=o+'-3-5';
+  if(AI_IDEAS[fb]) return fb;
+  // further fallback
+  return 'art-3-5';
+}
+window.generateIdeas=function(){
+  var age=document.getElementById('genAge').value;
+  var occ=document.getElementById('genOcc').value;
+  var dur=document.getElementById('genDur').value;
+  var el=document.getElementById('aiResults');
+  el.innerHTML='<div class="ai-loading">✨ Generating ideas for you…</div>';
+  setTimeout(function(){
+    var key=normKey(age,occ);
+    var ideas=AI_IDEAS[key]||AI_IDEAS['art-3-5'];
+    el.innerHTML='<div class="ai-results">'+ideas.map(function(idea){
+      return `<div class="ai-idea-card" onclick="CL.showToast('\'${idea.t}\' added to your library','success')">
+        <div class="ai-idea-title">${idea.t}</div>
+        <div class="ai-idea-desc">${idea.d}</div>
+        <div class="ai-idea-tags">${idea.tags.map(function(t){return `<span class="ai-idea-tag">${t}</span>`}).join('')}
+          <span class="ai-idea-tag" style="background:rgba(255,255,255,.25);margin-left:auto">~${dur} min</span>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  },900);
+};
+
+/* ────────────────────────────────
+   CATEGORY FILTERS + ACTIVITY GRID
+──────────────────────────────── */
+var cats=['All',...new Set(DC.activities.map(function(a){return a.category}))];
+var activeCat='All';
+var catColors={'Colors':'purple','Alphabet':'blue','Animals':'green','Rainy Day Activities':'teal',
+  'Fine Motor Skills':'orange','Numbers':'amber','Story Time':'pink','Sensory Play':'purple',
+  'Crafts':'red','Outdoor Play':'green','Shapes':'blue','Hindi/Punjabi Learning':'indigo'};
+var catBgs={'Colors':'#F3F0FF','Alphabet':'#EFF6FF','Animals':'#F0FDF4','Rainy Day Activities':'#F0FDFA',
+  'Fine Motor Skills':'#FFF7ED','Numbers':'#FFFBEB','Story Time':'#FDF2F8','Sensory Play':'#F3F0FF',
+  'Crafts':'#FEF2F2','Outdoor Play':'#F0FDF4','Shapes':'#EFF6FF','Hindi/Punjabi Learning':'#EEF2FF'};
+
+function renderCats(){
+  document.getElementById('catFilters').innerHTML=cats.map(function(c){
+    return `<button class="cat-btn ${activeCat===c?'is-active':''}" onclick="setCat('${c}')">${c}</button>`;
+  }).join('');
+}
+window.setCat=function(c){activeCat=c;renderCats();renderActivities();};
+
+function renderActivities(){
+  var list=activeCat==='All'?DC.activities:DC.activities.filter(function(a){return a.category===activeCat});
+  document.getElementById('actCount').textContent=list.length+' activities';
+  document.getElementById('activitiesGrid').innerHTML=list.map(function(a){
+    var bg=catBgs[a.category]||'#F3F0FF';
+    return `<div class="activity-card">
+      <div class="ac-header">
+        <div class="ac-cat-badge" style="background:${bg};color:var(--accent)">${a.category}</div>
+        ${a.printable?'<span class="print-flag" style="float:right">🖨 Printable</span>':''}
+        <div class="ac-title">${a.title}</div>
+      </div>
+      <div class="ac-body">
+        <div class="ac-skills">${(a.skills||[]).map(function(s){return `<span class="ac-skill">${s}</span>`}).join('')}</div>
+        <div class="ac-meta">
+          <span>⏱ ${a.duration}</span>
+          <span>👶 ${a.ageGroup}</span>
+          ${a.materials?`<span>🎨 ${a.materials}</span>`:''}
+        </div>
+      </div>
+      <div class="ac-footer">
+        <button class="ac-btn ac-btn--add" onclick="addToPlan('${a.title}')">+ Add to Plan</button>
+        ${a.printable?`<button class="ac-btn" onclick="CL.showToast('Opening printable…','success')">🖨 Print</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.addToPlan=function(name){CL.showToast('"'+name+'" added to plan','success');};
+
+renderCats();
+renderActivities();
+
+/* ────────────────────────────────
+   WEEKLY PLAN (manager grid)
+──────────────────────────────── */
+if(_IS_MGR){
+var colors=['#F3F0FF','#EFF6FF','#F0FDF4','#FFFBEB','#FDF2F8'];
+document.getElementById('weeklyGrid').innerHTML=['Mon','Tue','Wed','Thu','Fri'].map(function(d){
+  var items=_currentWeekPlan[d]||[];
+  return '<div class="day-col">'+
+    '<div class="day-name">'+d+'</div>'+
+    items.map(function(i,idx){return '<div class="day-activity" style="background:'+colors[idx%colors.length]+';color:var(--accent)">'+i+'</div>';}).join('')+
+    '</div>';
+}).join('');
+}
+
+window.printWeekly=function(){
+  CL.showToast('Preparing weekly plan PDF…','info');
+  setTimeout(function(){CL.showToast('Weekly plan ready to print!','success')},1200);
+};
+</script>
+</body>
+</html>

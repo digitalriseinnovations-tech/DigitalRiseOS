@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews — Digital Rise AI Employees</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .review-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:10px; }
+    .review-card.is-alert { border-color:var(--red);background:#FFF5F5; }
+    .stars { display:flex;gap:2px;font-size:1rem; }
+    .reply-box { margin-top:12px;padding:12px;background:var(--accent-bg);border-radius:8px;border-left:3px solid var(--accent); }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Reviews</div>
+          <div class="ag-ph-sub">AI-automated review collection and alert management</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="rvBizFilter" style="width:180px" onchange="renderReviews()">
+            <option value="">All Businesses</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="rvStats"></div>
+
+      <!-- Alert banner -->
+      <div id="alertBanner"></div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn--ghost btn--sm is-active" data-rvf="all"      onclick="filterRv('all',this)">All</button>
+        <button class="btn btn--ghost btn--sm" data-rvf="received" onclick="filterRv('received',this)">Received ⭐</button>
+        <button class="btn btn--ghost btn--sm" data-rvf="sent"     onclick="filterRv('sent',this)">Request Sent</button>
+        <button class="btn btn--ghost btn--sm" data-rvf="alert"    onclick="filterRv('alert',this)">Alerts 🔔</button>
+      </div>
+
+      <div id="rvList"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'reviews' });
+
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('rvBizFilter').appendChild(o);
+});
+
+var received = AD.reviews.filter(function(r){return r.status==='received';});
+var avgRating = received.length ? (received.reduce(function(s,r){return s+r.rating;},0)/received.length).toFixed(1) : '—';
+
+document.getElementById('rvStats').innerHTML = [
+  {label:'Reviews Requested', val:AD.reviews.filter(function(r){return r.status!=='alert';}).length, col:'var(--accent)', ico:'📤'},
+  {label:'Reviews Received',  val:received.length,                                                   col:'var(--green)',  ico:'⭐'},
+  {label:'Avg Star Rating',   val:avgRating + ' ★',                                                  col:'var(--amber)',  ico:'🌟'},
+  {label:'Alerts',            val:AD.reviews.filter(function(r){return r.status==='alert';}).length,  col:'var(--red)',    ico:'🔔'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+var alerts = AD.reviews.filter(function(r){return r.status==='alert';});
+if(alerts.length) {
+  document.getElementById('alertBanner').innerHTML =
+    '<div style="background:#FEE2E2;border:1.5px solid #FCA5A5;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">' +
+      '<div style="font-size:1.25rem">🔔</div>' +
+      '<div><div style="font-weight:700;color:#991B1B;font-size:.875rem">'+alerts.length+' negative feedback alert'+(alerts.length>1?'s':'')+' require attention</div>' +
+        '<div style="font-size:.75rem;color:#B91C1C;margin-top:2px">AI has flagged these and notified staff. Click to respond privately.</div></div>' +
+      '<button class="btn btn--sm" style="margin-left:auto;background:#DC2626;color:#fff;border-color:#DC2626" onclick="filterRv(\'alert\',null)">View Alerts</button>' +
+    '</div>';
+}
+
+var _rvf = 'all';
+function filterRv(f, btn) {
+  if(btn){ document.querySelectorAll('[data-rvf]').forEach(function(b){b.classList.remove('is-active');}); btn.classList.add('is-active'); }
+  _rvf = f||_rvf;
+  renderReviews();
+}
+window.filterRv = filterRv;
+
+function starHtml(n) {
+  var s='';
+  for(var i=1;i<=5;i++) s+='<span style="color:'+(i<=n?'#F59E0B':'#D1D5DB')+'">★</span>';
+  return '<div class="stars">'+s+'</div>';
+}
+
+function renderReviews() {
+  var bizF = document.getElementById('rvBizFilter').value;
+  var list = AD.reviews.filter(function(r){
+    if(_rvf!=='all' && r.status!==_rvf) return false;
+    if(bizF && r.bizId!==bizF) return false;
+    return true;
+  });
+  document.getElementById('rvList').innerHTML = list.map(function(r){
+    var isAlert = r.status==='alert';
+    var isSent  = r.status==='sent';
+    return '<div class="review-card'+(isAlert?' is-alert':'')+'">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">' +
+        '<div><div style="font-size:.9375rem;font-weight:700;color:var(--t1)">'+r.customer+'</div>' +
+          '<div style="font-size:.75rem;color:var(--t3);margin-top:2px">'+r.biz+' · '+r.platform+' · Sent '+r.sentAt+'</div>' +
+          '<div style="margin-top:6px">'+starHtml(r.rating)+'</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<span class="badge '+(isAlert?'badge--red':isSent?'badge--blue':'badge--green')+'">'+r.status+'</span>' +
+          '<span style="font-size:.75rem;color:var(--t4)">via '+r.employee+'</span>' +
+        '</div>' +
+      '</div>' +
+      (r.note?'<div style="font-size:.875rem;color:var(--t2);line-height:1.5;margin-bottom:10px">"'+r.note+'"</div>':'') +
+      (isSent?'<div style="font-size:.8125rem;color:var(--t3);font-style:italic">Review request sent — waiting for customer response</div>':'') +
+      (isAlert?'<div class="reply-box"><div style="font-size:.6875rem;font-weight:700;color:var(--accent);margin-bottom:6px">AI PRIVATE REPLY SENT</div><div style="font-size:.8125rem;color:var(--t2)">Hi '+r.customer.split(' ')[0]+'! We\'re so sorry to hear about your experience and want to make this right. Our manager has been alerted and will reach out personally within 2 hours. Thank you for your feedback.</div></div>':'') +
+      (!isSent?'<div style="display:flex;gap:8px;margin-top:10px">' +
+        (isAlert?'<button class="btn btn--sm" style="background:#DC2626;color:#fff;border-color:#DC2626" onclick="AG.toast(\'Escalating to manager…\',\'info\')">🔴 Escalate</button>':'') +
+        '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Opening reply…\',\'info\')">💬 Reply</button>' +
+        '</div>':'') +
+    '</div>';
+  }).join('');
+  if(!list.length) document.getElementById('rvList').innerHTML='<div class="ag-empty"><div class="ag-empty-ico">⭐</div><div class="ag-empty-title">No reviews found</div></div>';
+}
+renderReviews();
+</script>
+</body>
+</html>

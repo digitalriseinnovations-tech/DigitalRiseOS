@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Business — Digital Rise OS</title>
+<link rel="stylesheet" href="/platform/shared/platform.css">
+<style>
+.wizard-wrap { max-width: 680px; margin: 0 auto; }
+.step-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-xl); box-shadow: var(--sh); overflow: hidden; }
+.step-card-body { padding: 32px; }
+.step-title { font-size: 1.25rem; font-weight: 800; color: var(--t1); margin-bottom: 6px; }
+.step-desc  { font-size: .875rem; color: var(--t2); margin-bottom: 26px; }
+.step-footer { display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; border-top: 1px solid var(--border); background: var(--bg-3); }
+.step-section { margin-bottom: 22px; }
+.step-section-title { font-size: .78125rem; font-weight: 700; color: var(--t2); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+/* Tone selector */
+.tone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tone-opt {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: center;
+}
+.tone-opt.is-selected { border-color: var(--c-blue); background: var(--c-blue-bg); }
+.tone-opt-name { font-size: .875rem; font-weight: 700; color: var(--t1); }
+.tone-opt-desc { font-size: .71875rem; color: var(--t3); margin-top: 3px; }
+
+/* Services */
+.svc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.svc-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.svc-opt.is-selected { border-color: var(--c-blue); background: var(--c-blue-bg); }
+.svc-opt input[type="checkbox"] { accent-color: var(--c-blue); }
+.svc-opt-lbl { font-size: .8125rem; font-weight: 600; color: var(--t1); }
+
+/* Channel chips */
+.channel-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.ch-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--t2);
+  transition: all .15s;
+}
+.ch-opt.is-selected { border-color: var(--c-blue); background: var(--c-blue-bg); color: var(--t1); }
+
+/* Success screen */
+.success-screen { text-align: center; padding: 48px 32px; }
+.success-ico { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #059669, #10B981); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.success-ico svg { width: 28px; height: 28px; color: #fff; }
+.success-title { font-size: 1.5rem; font-weight: 800; color: var(--t1); margin-bottom: 8px; }
+.success-sub   { font-size: .9375rem; color: var(--t2); margin-bottom: 28px; }
+</style>
+</head>
+<body class="platform">
+<div class="p-layout">
+  <aside class="p-sidebar" id="pSidebar"></aside>
+  <div class="p-main-wrap">
+    <header class="p-topbar" id="pTopbar"></header>
+    <main class="p-content">
+
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <a href="/platform/businesses" style="display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;font-weight:600;color:var(--t3);margin-bottom:8px;text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Businesses
+          </a>
+          <h1 class="page-title">Add New Business</h1>
+          <p class="page-sub">Set up your AI employee platform in 7 simple steps</p>
+        </div>
+      </div>
+
+      <div class="wizard-wrap">
+        <!-- Step indicators -->
+        <div class="wizard-steps" id="wizardSteps"></div>
+
+        <!-- Step cards -->
+        <div id="stepCards">
+
+          <!-- Step 1: Business Info -->
+          <div class="step-card" data-step="1">
+            <div class="step-card-body">
+              <div class="step-title">Business Information</div>
+              <div class="step-desc">Tell us about your business so we can personalise your AI employees.</div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Business Name *</label><input class="form-input" id="biz-name" placeholder="e.g. Sunshine Nursery" type="text"></div>
+                <div class="form-group"><label class="form-label">Industry *</label>
+                  <select class="form-select" id="biz-industry">
+                    <option value="">Select industry...</option>
+                    <option value="Daycare" selected>Daycare / Nursery</option>
+                    <option value="Dental">Dental Practice</option>
+                    <option value="Salon">Hair Salon / Beauty</option>
+                    <option value="Gym">Gym / Fitness</option>
+                    <option value="Restaurant">Restaurant</option>
+                    <option value="Retail">Retail Store</option>
+                    <option value="Real Estate">Real Estate</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Website</label><input class="form-input" id="biz-website" placeholder="https://yourbusiness.com" type="url"></div>
+                <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="biz-location" placeholder="City, Province/State" type="text"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" id="biz-phone" placeholder="+1 780 555 0000" type="tel"></div>
+                <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" id="biz-email" placeholder="hello@yourbusiness.com" type="email"></div>
+              </div>
+            </div>
+            <div class="step-footer"><span></span><button class="btn btn--primary" onclick="WZ.next()">Next →</button></div>
+          </div>
+
+          <!-- Step 2: Tone & Voice -->
+          <div class="step-card" data-step="2" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">AI Tone & Voice</div>
+              <div class="step-desc">Choose the personality that best matches your brand. Your AI employees will speak in this style.</div>
+              <div class="tone-grid" id="toneGrid">
+                <div class="tone-opt is-selected" data-tone="Warm"><div class="tone-opt-name">Warm & Friendly</div><div class="tone-opt-desc">Caring, approachable, personal. Great for nurseries, salons.</div></div>
+                <div class="tone-opt" data-tone="Professional"><div class="tone-opt-name">Professional</div><div class="tone-opt-desc">Polished, confident, trustworthy. Great for clinics, finance.</div></div>
+                <div class="tone-opt" data-tone="Energetic"><div class="tone-opt-name">Energetic</div><div class="tone-opt-desc">Upbeat, enthusiastic, motivating. Great for gyms, events.</div></div>
+                <div class="tone-opt" data-tone="Casual"><div class="tone-opt-name">Casual & Fun</div><div class="tone-opt-desc">Relaxed, conversational, witty. Great for retail, food.</div></div>
+                <div class="tone-opt" data-tone="Formal"><div class="tone-opt-name">Formal</div><div class="tone-opt-desc">Respectful, precise, authoritative. Great for legal, B2B.</div></div>
+                <div class="tone-opt" data-tone="Empathetic"><div class="tone-opt-name">Empathetic</div><div class="tone-opt-desc">Understanding, supportive, patient. Great for healthcare.</div></div>
+              </div>
+              <div class="form-group" style="margin-top:20px">
+                <label class="form-label">AI Greeting Message (optional)</label>
+                <textarea class="form-textarea" id="biz-greeting" rows="3" placeholder="Hi! I'm the AI assistant for {business_name}. How can I help you today?"></textarea>
+                <div class="form-hint">Leave blank to auto-generate from your tone and industry.</div>
+              </div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" onclick="WZ.next()">Next →</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Services -->
+          <div class="step-card" data-step="3" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">AI Services</div>
+              <div class="step-desc">Select the tasks your AI employees will handle. Each service is a fully scripted conversation flow.</div>
+              <div class="svc-grid" id="svcGrid"></div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" onclick="WZ.next()">Next →</button>
+            </div>
+          </div>
+
+          <!-- Step 4: Channels -->
+          <div class="step-card" data-step="4" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">Communication Channels</div>
+              <div class="step-desc">Which channels will your AI employees use to communicate with customers?</div>
+              <div class="channel-grid" id="channelGrid">
+                <div class="ch-opt is-selected" data-ch="website"><span>💬</span> Website Chat</div>
+                <div class="ch-opt is-selected" data-ch="whatsapp"><span>📱</span> WhatsApp</div>
+                <div class="ch-opt" data-ch="voice"><span>🎙️</span> Voice AI</div>
+                <div class="ch-opt" data-ch="email"><span>📧</span> Email</div>
+                <div class="ch-opt" data-ch="instagram"><span>📸</span> Instagram DM</div>
+                <div class="ch-opt" data-ch="facebook"><span>📘</span> Facebook Messenger</div>
+              </div>
+              <div class="form-group" style="margin-top:20px">
+                <label class="form-label">WhatsApp Business Number</label>
+                <input class="form-input" id="biz-whatsapp" placeholder="+1 780 555 0000" type="tel">
+              </div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" onclick="WZ.next()">Next →</button>
+            </div>
+          </div>
+
+          <!-- Step 5: Knowledge Base -->
+          <div class="step-card" data-step="5" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">Knowledge Base</div>
+              <div class="step-desc">This is what your AI employees know. Add as much detail as possible — this becomes their training data.</div>
+              <div class="form-group"><label class="form-label">Opening Hours *</label><input class="form-input" id="kb-hours" placeholder="e.g. Monday–Friday 7:30 AM – 6:30 PM" type="text"></div>
+              <div class="form-group"><label class="form-label">Services / Pricing Summary</label><textarea class="form-textarea" id="kb-pricing" rows="3" placeholder="e.g. Full-time £1,150/month. Part-time from £650. Sibling discount 10%."></textarea></div>
+              <div class="form-group"><label class="form-label">Location & Parking</label><input class="form-input" id="kb-location" placeholder="e.g. 123 Main Street. Free parking on-site." type="text"></div>
+              <div class="form-group"><label class="form-label">Key Policies (optional)</label><textarea class="form-textarea" id="kb-policies" rows="3" placeholder="e.g. Sick child policy: 48hr rule. All staff DBS checked. Nut-free kitchen."></textarea></div>
+              <div class="form-hint" style="margin-top:8px">You can edit and expand your knowledge base at any time from your business settings.</div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" onclick="WZ.next()">Next →</button>
+            </div>
+          </div>
+
+          <!-- Step 6: Escalation -->
+          <div class="step-card" data-step="6" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">Escalation Rules</div>
+              <div class="step-desc">Define when your AI employees should hand conversations to a human.</div>
+              <div class="form-group"><label class="form-label">Human Handover Email</label><input class="form-input" id="esc-email" placeholder="manager@yourbusiness.com" type="email"></div>
+              <div class="form-group"><label class="form-label">Escalation Trigger</label>
+                <select class="form-select" id="esc-trigger">
+                  <option value="upset">If the customer appears upset or frustrated</option>
+                  <option value="2fails">After 2 failed answer attempts</option>
+                  <option value="safeguarding">If safeguarding / emergency is mentioned</option>
+                  <option value="request">If customer explicitly asks for a human</option>
+                  <option value="all">Any of the above</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Handover Message</label>
+                <textarea class="form-textarea" id="esc-msg" rows="2" placeholder="I'm connecting you to one of our team now. They'll be with you shortly!"></textarea>
+              </div>
+              <div class="toggle-wrap">
+                <div class="toggle-info">
+                  <div class="toggle-title">24/7 AI Coverage</div>
+                  <div class="toggle-sub">AI responds outside business hours; team follows up next day</div>
+                </div>
+                <input type="checkbox" class="toggle-switch" checked>
+              </div>
+              <div class="toggle-wrap">
+                <div class="toggle-info">
+                  <div class="toggle-title">Instant Staff Notification</div>
+                  <div class="toggle-sub">Email/WhatsApp alert when AI escalates a conversation</div>
+                </div>
+                <input type="checkbox" class="toggle-switch" checked>
+              </div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" onclick="WZ.next()">Next →</button>
+            </div>
+          </div>
+
+          <!-- Step 7: Review & Launch -->
+          <div class="step-card" data-step="7" style="display:none">
+            <div class="step-card-body">
+              <div class="step-title">Review & Launch</div>
+              <div class="step-desc">Everything looks great. Review your setup before activating your AI employees.</div>
+              <div id="reviewSummary" style="display:flex;flex-direction:column;gap:16px"></div>
+            </div>
+            <div class="step-footer">
+              <button class="btn btn--ghost" onclick="WZ.prev()">← Back</button>
+              <button class="btn btn--primary" id="btnLaunch" onclick="WZ.launch()">
+                🚀 Launch AI Employees
+              </button>
+            </div>
+          </div>
+
+          <!-- Success -->
+          <div class="step-card" data-step="success" style="display:none">
+            <div class="success-screen">
+              <div class="success-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="success-title">AI Employees Active!</div>
+              <div class="success-sub">Your AI employees are live and ready to handle customer conversations 24/7.</div>
+              <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <a href="/platform/businesses/daycare" class="btn btn--primary">Open Business Dashboard →</a>
+                <a href="/platform/businesses" class="btn btn--secondary">Back to Businesses</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/platform/shared/platform-data.js"></script>
+<script src="/platform/shared/platform.js"></script>
+<script>
+DR.init({
+  breadcrumbs: [
+    { label: 'Dashboard', href: '/platform/dashboard' },
+    { label: 'Businesses', href: '/platform/businesses' },
+    { label: 'Add Business' }
+  ]
+});
+
+const STEPS = [
+  'Business Info', 'Tone & Voice', 'Services',
+  'Channels', 'Knowledge Base', 'Escalation', 'Review & Launch'
+];
+
+const SERVICES = [
+  'Book a Daycare Tour', 'Check Availability', 'Ask About Fees',
+  'Join Waiting List', 'Parent FAQ', 'Request Callback',
+  'Review Management', 'Existing Parent Support'
+];
+
+const WZ = {
+  current: 1,
+  data: { tone: 'Warm', services: ['Book a Daycare Tour', 'Check Availability', 'Ask About Fees', 'Request Callback'], channels: ['website', 'whatsapp'] },
+
+  renderSteps() {
+    document.getElementById('wizardSteps').innerHTML = STEPS.map((s, i) => {
+      const n = i + 1;
+      const done   = n < this.current;
+      const active = n === this.current;
+      const cls = done ? 'wz-step is-done' : active ? 'wz-step is-active' : 'wz-step';
+      const line = i < STEPS.length - 1 ? `<div class="wz-line"></div>` : '';
+      const ico = done ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : n;
+      return `<div class="${cls}"><div class="wz-step-num">${ico}</div><div class="wz-step-lbl">${s}</div></div>${line}`;
+    }).join('');
+  },
+
+  showStep(n) {
+    document.querySelectorAll('[data-step]').forEach(el => {
+      el.style.display = el.dataset.step == n ? '' : 'none';
+    });
+    this.renderSteps();
+  },
+
+  next() {
+    if (this.current < 7) { this.current++; this.showStep(this.current); this.initStep(); }
+  },
+
+  prev() {
+    if (this.current > 1) { this.current--; this.showStep(this.current); }
+  },
+
+  initStep() {
+    if (this.current === 7) this.renderReview();
+  },
+
+  renderReview() {
+    const summary = document.getElementById('reviewSummary');
+    const name = document.getElementById('biz-name')?.value || 'Your Business';
+    const industry = document.getElementById('biz-industry')?.value || 'Daycare';
+    summary.innerHTML = `
+      <div class="card" style="margin:0"><div class="card-body">
+        <div class="section-hdr" style="margin-bottom:10px"><div class="section-title">Business</div><button class="btn btn--ghost btn--sm" onclick="WZ.current=1;WZ.showStep(1)">Edit</button></div>
+        <div style="font-size:.875rem;color:var(--t2)"><strong>${name}</strong> · ${industry}</div>
+      </div></div>
+      <div class="card" style="margin:0"><div class="card-body">
+        <div class="section-hdr" style="margin-bottom:10px"><div class="section-title">AI Tone</div><button class="btn btn--ghost btn--sm" onclick="WZ.current=2;WZ.showStep(2)">Edit</button></div>
+        <span class="badge badge--purple">${this.data.tone}</span>
+      </div></div>
+      <div class="card" style="margin:0"><div class="card-body">
+        <div class="section-hdr" style="margin-bottom:10px"><div class="section-title">Services (${this.data.services.length})</div><button class="btn btn--ghost btn--sm" onclick="WZ.current=3;WZ.showStep(3)">Edit</button></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${this.data.services.map(s => `<span class="badge badge--blue">${s}</span>`).join('')}</div>
+      </div></div>
+      <div class="card" style="margin:0"><div class="card-body">
+        <div class="section-hdr" style="margin-bottom:10px"><div class="section-title">Channels</div><button class="btn btn--ghost btn--sm" onclick="WZ.current=4;WZ.showStep(4)">Edit</button></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${this.data.channels.map(c => `<span class="badge badge--green">${c}</span>`).join('')}</div>
+      </div></div>
+    `;
+  },
+
+  launch() {
+    const btn = document.getElementById('btnLaunch');
+    btn.textContent = 'Launching...';
+    btn.disabled = true;
+    setTimeout(() => {
+      document.querySelectorAll('[data-step]').forEach(el => el.style.display = 'none');
+      document.querySelector('[data-step="success"]').style.display = '';
+    }, 1500);
+  }
+};
+
+/* Init services grid */
+document.getElementById('svcGrid').innerHTML = SERVICES.map(s => {
+  const sel = WZ.data.services.includes(s);
+  return `<label class="svc-opt${sel ? ' is-selected' : ''}">
+    <input type="checkbox" ${sel ? 'checked' : ''} style="display:none" onchange="WZ.toggleSvc(this,'${s}')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <span class="svc-opt-lbl">${s}</span>
+  </label>`;
+}).join('');
+
+WZ.toggleSvc = function(el, svc) {
+  if (el.checked) { if (!this.data.services.includes(svc)) this.data.services.push(svc); }
+  else { this.data.services = this.data.services.filter(s => s !== svc); }
+  el.closest('.svc-opt').classList.toggle('is-selected', el.checked);
+};
+
+/* Tone select */
+document.getElementById('toneGrid').addEventListener('click', e => {
+  const opt = e.target.closest('.tone-opt');
+  if (!opt) return;
+  document.querySelectorAll('.tone-opt').forEach(o => o.classList.remove('is-selected'));
+  opt.classList.add('is-selected');
+  WZ.data.tone = opt.dataset.tone;
+});
+
+/* Channel select */
+document.getElementById('channelGrid').addEventListener('click', e => {
+  const opt = e.target.closest('.ch-opt');
+  if (!opt) return;
+  opt.classList.toggle('is-selected');
+  const ch = opt.dataset.ch;
+  if (opt.classList.contains('is-selected')) { if (!WZ.data.channels.includes(ch)) WZ.data.channels.push(ch); }
+  else { WZ.data.channels = WZ.data.channels.filter(c => c !== ch); }
+});
+
+WZ.renderSteps();
+</script>
+</body>
+</html>

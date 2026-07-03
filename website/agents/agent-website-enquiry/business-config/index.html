@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Config — Website Enquiry Agent</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .cfg-layout { display:grid;grid-template-columns:200px 1fr;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--card); }
+    @media(max-width:800px){.cfg-layout{grid-template-columns:1fr}}
+    .cfg-tabs { border-right:1.5px solid var(--border);padding:8px; }
+    .cfg-tab { display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.8125rem;font-weight:500;color:var(--t3);transition:all .1s;margin-bottom:2px; }
+    .cfg-tab:hover { background:var(--border-s);color:var(--t1) }
+    .cfg-tab.is-active { background:var(--accent-bg);color:var(--accent);font-weight:700 }
+    .cfg-section { display:none;padding:24px; }
+    .cfg-section.is-active { display:block }
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-s); }
+    .toggle-row:last-child { border:none }
+    .rule-item { display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--border-s);border-radius:8px;margin-bottom:8px; }
+    .rule-item-del { color:var(--red);cursor:pointer;font-size:.75rem;margin-top:2px;flex-shrink:0 }
+    .ql-item { display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-s); }
+    .ql-item:last-child { border:none }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">Business Configuration</div>
+          <div class="ag-ph-sub">Configure the Website Enquiry Agent for a specific business</div>
+        </div>
+        <div class="ag-ph-actions">
+          <select class="ag-select" id="bizSel" style="width:200px" onchange="loadBiz(this.value)"></select>
+          <button class="btn btn--primary" onclick="saveConfig()">💾 Save Config</button>
+        </div>
+      </div>
+
+      <div class="cfg-layout">
+        <div class="cfg-tabs">
+          <div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.08em;padding:8px 12px 4px">Sections</div>
+          <div class="cfg-tab is-active" data-tab="profile"    onclick="switchTab('profile',this)">A. Business Profile</div>
+          <div class="cfg-tab" data-tab="services"  onclick="switchTab('services',this)">B. Services</div>
+          <div class="cfg-tab" data-tab="faqs"      onclick="switchTab('faqs',this)">C. FAQs & Knowledge</div>
+          <div class="cfg-tab" data-tab="qualify"   onclick="switchTab('qualify',this)">D. Qualification</div>
+          <div class="cfg-tab" data-tab="tone"      onclick="switchTab('tone',this)">E. Greeting & Tone</div>
+          <div class="cfg-tab" data-tab="actions"   onclick="switchTab('actions',this)">F. Next-step Actions</div>
+          <div class="cfg-tab" data-tab="rules"     onclick="switchTab('rules',this)">G. Escalation Rules</div>
+        </div>
+        <div style="overflow:auto">
+
+          <!-- A: Profile -->
+          <div class="cfg-section is-active" id="tab_profile">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">A. Business Profile</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Core information the agent uses to represent the business.</div>
+            <div class="ag-form-row">
+              <div class="ag-form-group"><label class="ag-label">Business Name</label><input class="ag-input" id="cfg_name" placeholder="e.g. Sunshine Nursery"></div>
+              <div class="ag-form-group"><label class="ag-label">Industry</label><input class="ag-input" id="cfg_industry" placeholder="e.g. Daycare"></div>
+            </div>
+            <div class="ag-form-row">
+              <div class="ag-form-group"><label class="ag-label">Website</label><input class="ag-input" id="cfg_website"></div>
+              <div class="ag-form-group"><label class="ag-label">Phone</label><input class="ag-input" id="cfg_phone"></div>
+            </div>
+            <div class="ag-form-row">
+              <div class="ag-form-group"><label class="ag-label">Email</label><input class="ag-input" id="cfg_email"></div>
+              <div class="ag-form-group"><label class="ag-label">WhatsApp</label><input class="ag-input" id="cfg_whatsapp"></div>
+            </div>
+            <div class="ag-form-group"><label class="ag-label">Location</label><input class="ag-input" id="cfg_location"></div>
+          </div>
+
+          <!-- B: Services -->
+          <div class="cfg-section" id="tab_services">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">B. Services Offered</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">What the agent offers as next steps when a visitor enquires.</div>
+            <div id="servicesList"></div>
+            <button class="btn btn--ghost btn--sm" onclick="addService()" style="margin-top:8px">+ Add Service</button>
+            <div class="ag-divider"></div>
+            <div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">Prefill for Daycare</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn--ghost btn--sm" onclick="prefillServices()">Load Daycare Services</button>
+            </div>
+          </div>
+
+          <!-- C: FAQs -->
+          <div class="cfg-section" id="tab_faqs">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">C. FAQs & Knowledge Inputs</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Information the agent uses to answer questions. More detail = better accuracy.</div>
+            <div id="faqFields"></div>
+          </div>
+
+          <!-- D: Qualification -->
+          <div class="cfg-section" id="tab_qualify">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">D. Qualification Questions</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Questions the agent asks to qualify a lead before creating a contact record.</div>
+            <div id="qualList"></div>
+            <button class="btn btn--ghost btn--sm" onclick="addQualQ()" style="margin-top:10px">+ Add Question</button>
+          </div>
+
+          <!-- E: Tone -->
+          <div class="cfg-section" id="tab_tone">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">E. Greeting & Tone</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">How the agent introduces itself and communicates.</div>
+            <div class="ag-form-row">
+              <div class="ag-form-group"><label class="ag-label">Agent Display Name</label><input class="ag-input" id="cfg_agentName" placeholder="e.g. Ava"></div>
+              <div class="ag-form-group"><label class="ag-label">Tone of Voice</label>
+                <select class="ag-select" id="cfg_tone">
+                  <option>Warm & Friendly</option><option>Professional</option><option>Cheerful & Helpful</option>
+                  <option>Direct & Efficient</option><option>Clinical & Clear</option><option>Personal & Warm</option>
+                </select>
+              </div>
+            </div>
+            <div class="ag-form-group"><label class="ag-label">Greeting Message</label>
+              <textarea class="ag-textarea" id="cfg_greeting" placeholder="e.g. Hi there! 👋 I'm Ava, the virtual assistant for Sunshine Nursery. How can I help you today?"></textarea>
+            </div>
+            <div class="ag-form-group"><label class="ag-label">Unavailable Hours Message</label>
+              <textarea class="ag-textarea" id="cfg_unavailMsg" style="min-height:60px" placeholder="e.g. Our team is currently offline but I can still help! Leave your details and we'll be in touch first thing tomorrow morning."></textarea>
+            </div>
+          </div>
+
+          <!-- F: Actions -->
+          <div class="cfg-section" id="tab_actions">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">F. Next-step Actions</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Toggle the actions the agent can offer or trigger.</div>
+            <div id="actionToggles"></div>
+          </div>
+
+          <!-- G: Escalation -->
+          <div class="cfg-section" id="tab_rules">
+            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">G. Escalation Rules</div>
+            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Define when the agent should flag a lead as high priority or alert a staff member.</div>
+            <div id="rulesList"></div>
+            <button class="btn btn--ghost btn--sm" onclick="addRule()" style="margin-top:8px">+ Add Rule</button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init();
+
+/* Populate business selector */
+AD.businesses.forEach(function(b){
+  var o=document.createElement('option');o.value=b.id;o.textContent=b.name;
+  document.getElementById('bizSel').appendChild(o);
+});
+
+var _curBiz = AD.businesses[0];
+var _cfg = {};
+
+/* Tab switcher */
+window.switchTab = function(id, btn) {
+  document.querySelectorAll('.cfg-section').forEach(function(el){el.classList.remove('is-active');});
+  document.querySelectorAll('.cfg-tab').forEach(function(el){el.classList.remove('is-active');});
+  document.getElementById('tab_'+id).classList.add('is-active');
+  if(btn) btn.classList.add('is-active');
+};
+
+window.loadBiz = function(id) {
+  _curBiz = AD.businesses.find(function(b){return b.id===id;})||AD.businesses[0];
+  var saved = AD.store.get('cfg_'+_curBiz.id, {});
+  _cfg = Object.assign({}, _curBiz, saved);
+  renderAll();
+};
+
+function renderAll() {
+  /* A */
+  ['name','industry','website','phone','email','whatsapp','location'].forEach(function(f){
+    var el=document.getElementById('cfg_'+f);
+    if(el) el.value=_cfg[f]||'';
+  });
+  /* B */
+  renderServices();
+  /* C */
+  renderFAQs();
+  /* D */
+  renderQual();
+  /* E */
+  var an=document.getElementById('cfg_agentName');if(an)an.value=_cfg.agentName||'Ava';
+  var tone=document.getElementById('cfg_tone');if(tone)tone.value=_cfg.tone||'Warm & Friendly';
+  var greet=document.getElementById('cfg_greeting');if(greet)greet.value=_cfg.greeting||("Hi there! 👋 I'm "+(_cfg.agentName||'Ava')+", the virtual assistant for "+_cfg.name+". How can I help you today?");
+  var uMsg=document.getElementById('cfg_unavailMsg');if(uMsg)uMsg.value=_cfg.unavailMsg||"Our team is currently offline but I can still help! Leave your details and we'll follow up first thing.";
+  /* F */
+  renderActionToggles();
+  /* G */
+  renderRules();
+}
+
+/* B: Services */
+var _services = [];
+function renderServices() {
+  var kb = AD.kbDefaults[_curBiz.id]||{};
+  if(!_services.length) _services = _cfg.services_list || ['Enquire About Availability','Book a Tour / Visit','Ask About Fees','Ask About Services','Join the Waitlist','Request a Callback'];
+  document.getElementById('servicesList').innerHTML = _services.map(function(s,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--border-s);border-radius:8px;margin-bottom:6px">'+
+      '<span style="font-size:.875rem">📌</span><input class="ag-input" value="'+s+'" oninput="_services['+i+']=this.value" style="flex:1">'+
+      '<button class="btn btn--danger btn--sm" onclick="_services.splice('+i+',1);renderServices()">✕</button></div>';
+  }).join('');
+}
+window.addService = function() { _services.push('New service'); renderServices(); };
+window.prefillServices = function() {
+  _services=['Book a Daycare Tour','Check Availability for September','Ask About Fees & Subsidy','Learn About Programs','Join the Waitlist','Request a Callback'];
+  renderServices();
+};
+
+/* C: FAQs */
+var FAQ_FIELDS = [
+  {id:'hours',   label:'⏰ Business Hours',             ph:'Mon–Fri 7:30am–6pm…'},
+  {id:'ageGroups',label:'👶 Age Groups / Programs',    ph:'Infant, Toddler, Preschool…'},
+  {id:'fees',    label:'💰 Fees',                       ph:'From $1,200/month…'},
+  {id:'subsidy', label:'📋 Subsidy / Payment Info',     ph:'CWELCC, CARE subsidy accepted…'},
+  {id:'meals',   label:'🥗 Meals & Snacks',             ph:'Nutritious meals included…'},
+  {id:'curriculum',label:'📚 Curriculum / Services',   ph:'Play-based, Reggio Emilia…'},
+  {id:'tours',   label:'🗓 Tours / Visits',             ph:'Mon–Fri 10am and 2pm…'},
+  {id:'availability',label:'📅 Availability',          ph:'Limited spots for September…'},
+  {id:'waitlist', label:'⏳ Waitlist Policy',           ph:'Free to join, no deposit…'},
+  {id:'sickPolicy',label:'🤒 Sick / Absence Policy',   ph:'24hr symptom-free rule…'},
+  {id:'escalation',label:'📞 Escalation Contact',      ph:'Director: Sarah Chen, 905-555-0199'},
+  {id:'bookingLink',label:'🔗 Booking / Tour Link',    ph:'https://yourdomain.ca/tour'},
+];
+function renderFAQs() {
+  var kb=AD.kbDefaults[_curBiz.id]||{};
+  document.getElementById('faqFields').innerHTML=FAQ_FIELDS.map(function(f){
+    var val=(_cfg[f.id])||kb[f.id]||'';
+    return '<div class="ag-form-group"><label class="ag-label">'+f.label+'</label>'+
+      '<textarea class="ag-textarea" id="faq_'+f.id+'" style="min-height:56px" placeholder="'+f.ph+'">'+val+'</textarea></div>';
+  }).join('');
+}
+
+/* D: Qualification */
+var _qualQs = [];
+var QUAL_DEFAULTS = {
+  b1:['What is your child\'s age?','When are you hoping to start?','Are you looking for full-time or part-time care?','Are you interested in booking a tour?','What is the best phone number / email to reach you?'],
+  b2:['What treatment are you interested in?','Do you have dental insurance?','How urgent is your need?','What days/times work for you?'],
+  b4:['What type of project are you planning?','What is your approximate location?','When do you need the work done by?','What is your rough budget range?'],
+};
+function renderQual() {
+  if(!_qualQs.length) _qualQs=_cfg.qualQs||QUAL_DEFAULTS[_curBiz.id]||['What brings you here today?','What is your name?','Best way to reach you (phone / email)?'];
+  document.getElementById('qualList').innerHTML=_qualQs.map(function(q,i){
+    return '<div class="ql-item"><span style="width:20px;text-align:center;font-size:.75rem;color:var(--t4)">'+(i+1)+'</span>'+
+      '<input class="ag-input" value="'+q+'" oninput="_qualQs['+i+']=this.value" style="flex:1">'+
+      '<button class="btn btn--danger btn--sm" onclick="_qualQs.splice('+i+',1);renderQual()">✕</button></div>';
+  }).join('');
+}
+window.addQualQ=function(){_qualQs.push('New question');renderQual();};
+
+/* F: Action toggles */
+var _actionStates={createLead:true,offerBooking:true,offerCallback:true,handoffWhatsApp:false,notifyStaff:true,sendBrochure:false};
+var ACTION_DEFS=[
+  {id:'createLead',      label:'Create lead record',              sub:'Automatically create a lead when contact details captured'},
+  {id:'offerBooking',    label:'Offer booking / tour',            sub:'Suggest a booking or tour as the next step'},
+  {id:'offerCallback',   label:'Capture callback requests',       sub:'Allow visitors to request a staff callback'},
+  {id:'handoffWhatsApp', label:'Hand off to WhatsApp',            sub:'Offer to continue conversation on WhatsApp'},
+  {id:'notifyStaff',     label:'Notify staff for hot leads',      sub:'Send alert when a high-priority lead is captured'},
+  {id:'sendBrochure',    label:'Send info pack / brochure',       sub:'Offer to email or link to an information pack'},
+];
+function renderActionToggles(){
+  document.getElementById('actionToggles').innerHTML=ACTION_DEFS.map(function(a){
+    var on=_actionStates[a.id];
+    return '<div class="toggle-row"><div><div style="font-size:.875rem;font-weight:600;color:var(--t1)">'+a.label+'</div>'+
+      '<div style="font-size:.75rem;color:var(--t3)">'+a.sub+'</div></div>'+
+      '<label class="ag-toggle"><input type="checkbox"'+(on?' checked':'')+' onchange="_actionStates[\''+a.id+'\']=this.checked">'+
+      '<span class="ag-toggle-slider"></span></label></div>';
+  }).join('');
+}
+
+/* G: Escalation rules */
+var _rules=[];
+var RULE_DEFAULTS={
+  b1:[
+    'If parent asks about subsidy or funding → flag as high priority → notify Director',
+    'If parent mentions urgent enrolment (starting this month) → escalate immediately',
+    'If parent asks about specific allergy or medical need → create callback task',
+  ],
+};
+function renderRules(){
+  if(!_rules.length) _rules=_cfg.rules||RULE_DEFAULTS[_curBiz.id]||['If visitor asks about pricing → create high-priority lead'];
+  document.getElementById('rulesList').innerHTML=_rules.map(function(r,i){
+    return '<div class="rule-item"><textarea class="ag-textarea" style="flex:1;min-height:44px;font-size:.8125rem" oninput="_rules['+i+']=this.value">'+r+'</textarea>'+
+      '<button class="btn--danger rule-item-del" onclick="_rules.splice('+i+',1);renderRules()">✕</button></div>';
+  }).join('');
+}
+window.addRule=function(){_rules.push('If [condition] → [action]');renderRules();};
+
+/* Save */
+window.saveConfig=function(){
+  var data={
+    name:document.getElementById('cfg_name').value,
+    industry:document.getElementById('cfg_industry').value,
+    website:document.getElementById('cfg_website').value,
+    phone:document.getElementById('cfg_phone').value,
+    email:document.getElementById('cfg_email').value,
+    whatsapp:document.getElementById('cfg_whatsapp').value,
+    location:document.getElementById('cfg_location').value,
+    agentName:document.getElementById('cfg_agentName').value,
+    tone:document.getElementById('cfg_tone').value,
+    greeting:document.getElementById('cfg_greeting').value,
+    unavailMsg:document.getElementById('cfg_unavailMsg').value,
+    services_list:_services,
+    qualQs:_qualQs,
+    rules:_rules,
+    actionStates:_actionStates,
+  };
+  FAQ_FIELDS.forEach(function(f){var el=document.getElementById('faq_'+f.id);if(el)data[f.id]=el.value;});
+  AD.store.set('cfg_'+_curBiz.id, data);
+  AG.toast('Configuration saved for '+_curBiz.name+'!','success');
+};
+
+loadBiz(AD.businesses[0].id);
+</script>
+</body>
+</html>

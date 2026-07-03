@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tours — Sunshine Nursery</title>
+  <link rel="stylesheet" href="/client/daycare/shared/client.css">
+  <style>
+    .tours-layout { display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start; }
+    @media(max-width:900px){.tours-layout{grid-template-columns:1fr}}
+
+    .view-toggle { display:flex;gap:4px;padding:3px;background:var(--s2);border-radius:9px; }
+    .view-btn { padding:5px 14px;border-radius:7px;font-size:.8125rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t3);transition:all .15s; }
+    .view-btn.is-active { background:var(--card-bg);color:var(--t1);box-shadow:0 1px 3px rgba(0,0,0,.08); }
+
+    .tour-card { background:var(--card-bg);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:border-color .15s; }
+    .tour-card:hover { border-color:var(--accent); }
+    .tour-time-block { min-width:70px;text-align:center;padding:10px;background:var(--accent-bg);border-radius:10px; }
+    .tour-time-block .date { font-size:.625rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em; }
+    .tour-time-block .time { font-size:1rem;font-weight:700;color:var(--t1); }
+    .tour-card-body { flex:1 }
+    .tour-card-name { font-size:.9375rem;font-weight:700;color:var(--t1);margin-bottom:3px; }
+    .tour-card-detail { font-size:.8125rem;color:var(--t3); }
+    .tour-actions { display:flex;gap:6px; }
+    .tour-act-btn { padding:5px 10px;border-radius:7px;border:1.5px solid var(--border);font-size:.75rem;font-weight:600;cursor:pointer;background:var(--card-bg);color:var(--t2);transition:all .15s; }
+    .tour-act-btn:hover { border-color:var(--accent);color:var(--accent); }
+
+    /* Mini calendar */
+    .mini-cal { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:16px; }
+    .mini-cal-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.875rem;font-weight:700;color:var(--t1); }
+    .mini-cal-nav { width:28px;height:28px;border-radius:7px;border:1.5px solid var(--border);background:var(--card-bg);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3); }
+    .mini-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:2px; }
+    .mini-cal-dow { font-size:.5625rem;font-weight:700;color:var(--t4);text-align:center;text-transform:uppercase;padding-bottom:4px; }
+    .mini-cal-day { aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:500;color:var(--t2);cursor:pointer;transition:all .15s;position:relative; }
+    .mini-cal-day:hover { background:var(--s2); }
+    .mini-cal-day.has-tour::after { content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent); }
+    .mini-cal-day.is-today { background:var(--accent);color:#fff;font-weight:700; }
+    .mini-cal-day.is-today::after { background:#fff; }
+
+    .quick-book { background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-top:16px; }
+    .form-field { margin-bottom:12px; }
+    .form-label { font-size:.75rem;font-weight:600;color:var(--t3);margin-bottom:4px;display:block; }
+    .form-input { width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;background:var(--s1);color:var(--t1);outline:none;box-sizing:border-box; }
+    .form-input:focus { border-color:var(--accent); }
+  </style>
+</head>
+<body class="cl-body">
+  <div class="cl-layout">
+    <aside class="cl-sidebar" id="clSidebar"></aside>
+    <div class="cl-main-wrap">
+      <header class="cl-topbar" id="clTopbar"></header>
+      <main class="cl-content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Tours</h1>
+            <p class="page-sub" id="toursSub"></p>
+          </div>
+          <div class="page-actions">
+            <div class="view-toggle">
+              <button class="view-btn is-active" onclick="setView(this,'list')">List</button>
+              <button class="view-btn" onclick="setView(this,'calendar')">Calendar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid" style="--kpi-cols:4;margin-bottom:24px" id="toursKpis"></div>
+
+        <div class="tours-layout">
+
+          <!-- Tours list -->
+          <div>
+            <div id="statusTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"></div>
+            <div id="toursList"></div>
+          </div>
+
+          <!-- Sidebar: mini cal + quick book -->
+          <div>
+            <div class="mini-cal">
+              <div class="mini-cal-head">
+                <button class="mini-cal-nav" onclick="">‹</button>
+                <span>June 2026</span>
+                <button class="mini-cal-nav" onclick="">›</button>
+              </div>
+              <div class="mini-cal-grid" id="miniCal"></div>
+            </div>
+
+            <div class="quick-book" style="margin-top:16px">
+              <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:14px">Quick Book Tour</div>
+              <div class="form-field">
+                <label class="form-label">Parent Name</label>
+                <input class="form-input" type="text" placeholder="e.g. Sarah Miller">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Child Name & Age</label>
+                <input class="form-input" type="text" placeholder="e.g. Lily, 3 years">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Date & Time</label>
+                <input class="form-input" type="datetime-local">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Phone (for WhatsApp reminder)</label>
+                <input class="form-input" type="tel" placeholder="+1 780 555 0000">
+              </div>
+              <button class="btn btn--primary" style="width:100%;margin-top:4px" onclick="bookTour()">Book Tour + Send Reminder</button>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="panelOverlay"></div>
+  <script src="/client/daycare/shared/daycare-data.js"></script>
+  <script src="/client/daycare/shared/client.js"></script>
+  <script>
+    CL.init({ page: 'tours' });
+
+    const statusColors = { confirmed:'green', pending:'amber', attended:'blue', 'no-show':'red' };
+    const statusLabels = { confirmed:'Confirmed', pending:'Pending', attended:'Attended', 'no-show':'No Show' };
+    let activeStatus = 'all';
+
+    const statuses = ['all', 'confirmed', 'pending', 'attended', 'no-show'];
+
+    /* KPIs */
+    document.getElementById('toursKpis').innerHTML = [
+      { label:'Total This Month', value:DC.tours.length,                                         color:'purple' },
+      { label:'Confirmed',        value:DC.tours.filter(t=>t.status==='confirmed').length,       color:'green' },
+      { label:'Attended',         value:DC.tours.filter(t=>t.status==='attended').length,        color:'blue' },
+      { label:'Conversion',       value:Math.round(DC.tours.filter(t=>t.status==='attended').length/DC.tours.length*100)+'%', color:'amber' },
+    ].map(k=>`
+      <div class="kpi-card">
+        <div class="kpi-top"><div class="kpi-ico kpi-ico--${k.color}">📅</div></div>
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>`).join('');
+
+    /* Status tabs */
+    function renderTabs() {
+      document.getElementById('statusTabs').innerHTML = statuses.map(s => {
+        const cnt = s==='all' ? DC.tours.length : DC.tours.filter(t=>t.status===s).length;
+        return `<button class="filter-btn ${activeStatus===s?'is-active':''}" onclick="setStatus('${s}')">${statusLabels[s]||'All'} <span style="opacity:.7">(${cnt})</span></button>`;
+      }).join('');
+    }
+    window.setStatus = s => { activeStatus=s; renderTabs(); renderList(); };
+
+    /* Tours list */
+    function renderList() {
+      const list = activeStatus==='all' ? DC.tours : DC.tours.filter(t=>t.status===activeStatus);
+      document.getElementById('toursSub').textContent = `${DC.tours.length} tours · ${DC.tours.filter(t=>t.status==='confirmed').length} confirmed`;
+      document.getElementById('toursList').innerHTML = list.map(t => `
+        <div class="tour-card">
+          <div class="tour-time-block">
+            <div class="date">${t.date}</div>
+            <div class="time">${t.time}</div>
+          </div>
+          <div class="tour-card-body">
+            <div class="tour-card-name">${t.parent}</div>
+            <div class="tour-card-detail">${t.childAge} · ${t.source||'Website'}</div>
+          </div>
+          <span class="badge badge--${statusColors[t.status]||'grey'}">${statusLabels[t.status]||t.status}</span>
+          <div class="tour-actions">
+            ${t.status==='pending'?`<button class="tour-act-btn" onclick="confirmTour('${t.id}')">Confirm</button>`:''}
+            ${t.status==='confirmed'?`<button class="tour-act-btn" onclick="markAttended('${t.id}')">Attended</button>`:''}
+            <button class="tour-act-btn" onclick="CL.showToast('Reminder sent via WhatsApp','success')">📱</button>
+          </div>
+        </div>`).join('') || '<div style="text-align:center;padding:32px;color:var(--t3)">No tours in this category.</div>';
+    }
+
+    /* Mini calendar */
+    function renderMiniCal() {
+      const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const tourDays = new Set(DC.tours.map(t=>{
+        const d = parseInt((t.date||'').split('-').pop()||'0');
+        return d;
+      }));
+      let html = dows.map(d=>`<div class="mini-cal-dow">${d}</div>`).join('');
+      for(let i=0;i<2;i++) html+=`<div></div>`;
+      for(let d=1;d<=30;d++) {
+        const isToday = d===30;
+        const hasTour = tourDays.has(d);
+        html += `<div class="mini-cal-day${isToday?' is-today':''}${hasTour?' has-tour':''}">${d}</div>`;
+      }
+      document.getElementById('miniCal').innerHTML = html;
+    }
+
+    window.confirmTour = id => {
+      const t = DC.tours.find(x=>x.id===id);
+      if(t){ t.status='confirmed'; renderTabs(); renderList(); CL.showToast('Tour confirmed + reminder sent','success'); }
+    };
+    window.markAttended = id => {
+      const t = DC.tours.find(x=>x.id===id);
+      if(t){ t.status='attended'; renderTabs(); renderList(); CL.showToast('Tour marked as attended','success'); }
+    };
+    window.bookTour = () => CL.showToast('Tour booked! WhatsApp reminder sent to parent','success');
+    window.setView = (el, v) => {
+      document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('is-active'));
+      el.classList.add('is-active');
+    };
+
+    renderTabs(); renderList(); renderMiniCal();
+  </script>
+</body>
+</html>

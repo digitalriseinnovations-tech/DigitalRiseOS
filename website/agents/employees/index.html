@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Employees — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .emp-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px; }
+    @media(max-width:1100px){.emp-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:650px){.emp-grid{grid-template-columns:1fr}}
+    .emp-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:all .15s;position:relative; }
+    .emp-card:hover { border-color:var(--accent);box-shadow:var(--shadow-md); }
+    .emp-ch { display:flex;gap:4px;flex-wrap:wrap;margin-top:8px; }
+    .emp-stat { text-align:center; }
+    .emp-stat-val { font-size:1.125rem;font-weight:800;color:var(--t1); }
+    .emp-stat-lbl { font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.04em; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content">
+
+      <div class="ag-ph">
+        <div>
+          <div class="ag-ph-title">AI Employees</div>
+          <div class="ag-ph-sub">10 AI employees deployed across 5 businesses</div>
+        </div>
+        <div class="ag-ph-actions">
+          <button class="btn btn--primary" onclick="openDeployModal()">+ Deploy AI Employee</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="ag-grid-4 ag-section" id="empStats"></div>
+
+      <!-- Filters -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;gap:6px" id="empFilters">
+          <button class="btn btn--ghost btn--sm is-active" data-ef="all"    onclick="filterEmp('all',this)">All (10)</button>
+          <button class="btn btn--ghost btn--sm" data-ef="active"  onclick="filterEmp('active',this)">Active (8)</button>
+          <button class="btn btn--ghost btn--sm" data-ef="paused"  onclick="filterEmp('paused',this)">Paused (1)</button>
+          <button class="btn btn--ghost btn--sm" data-ef="setup"   onclick="filterEmp('setup',this)">Setup (1)</button>
+        </div>
+        <div style="margin-left:auto">
+          <select class="ag-select" style="width:180px" id="bizFilter" onchange="filterEmp()">
+            <option value="">All Businesses</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="emp-grid" id="empGrid"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="ag-panel" id="empPanel">
+  <div class="ag-panel-hd">
+    <span class="ag-panel-title" id="panelEmpName">AI Employee</span>
+    <button class="ag-panel-close" onclick="AG.closePanel('empPanel')">✕</button>
+  </div>
+  <div class="ag-panel-body" id="panelEmpBody"></div>
+</div>
+
+<!-- Deploy modal -->
+<div class="ag-modal" id="deployModal">
+  <div class="ag-modal-box" style="max-width:480px">
+    <div class="ag-modal-hd">
+      <div class="ag-modal-title">Deploy New AI Employee</div>
+      <button class="ag-modal-close" onclick="AG.closeModal('deployModal')">✕</button>
+    </div>
+    <div class="ag-modal-body">
+      <div class="ag-form-group"><label class="ag-label">AI Employee Name</label><input class="ag-input" id="ne_name" placeholder="e.g. Aria"></div>
+      <div class="ag-form-group"><label class="ag-label">Role / Type</label>
+        <select class="ag-select" id="ne_role">
+          <option>Website AI Employee</option><option>WhatsApp Follow-up AI</option><option>Phone AI Employee</option>
+          <option>Booking AI Employee</option><option>Review AI Employee</option><option>Email Automation AI</option>
+          <option>Instagram AI Employee</option><option>Follow-up AI Employee</option>
+        </select>
+      </div>
+      <div class="ag-form-group"><label class="ag-label">Assign to Business</label>
+        <select class="ag-select" id="ne_biz"></select>
+      </div>
+      <div class="ag-form-group"><label class="ag-label">Tone of Voice</label>
+        <select class="ag-select" id="ne_tone">
+          <option>Warm & Friendly</option><option>Professional</option><option>Clinical & Clear</option>
+          <option>Cheerful & Helpful</option><option>Direct & Efficient</option><option>Personal & Warm</option>
+        </select>
+      </div>
+    </div>
+    <div class="ag-modal-ft">
+      <button class="btn btn--ghost" onclick="AG.closeModal('deployModal')">Cancel</button>
+      <button class="btn btn--primary" onclick="deployEmployee()">🚀 Deploy</button>
+    </div>
+  </div>
+</div>
+
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents.js"></script>
+<script>
+AG.init({ page: 'employees' });
+
+/* populate biz selects */
+AD.businesses.forEach(function(b){
+  ['bizFilter','ne_biz'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){var o=document.createElement('option');o.value=b.id;o.textContent=b.name;el.appendChild(o);}
+  });
+});
+
+/* stats */
+document.getElementById('empStats').innerHTML = [
+  {label:'Total AI Employees', val:AD.employees.length, ico:'🤖', col:'var(--accent)'},
+  {label:'Active',   val:AD.employees.filter(function(e){return e.status==='active';}).length,  ico:'✅', col:'var(--green)'},
+  {label:'Tasks Handled', val:AD.employees.reduce(function(s,e){return s+e.tasks;},0), ico:'⚡', col:'var(--blue)'},
+  {label:'Avg Response', val:'9s', ico:'⏱', col:'var(--amber)'},
+].map(function(s){
+  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+}).join('');
+
+var _ef = 'all';
+function filterEmp(f, btn) {
+  if(btn){ document.querySelectorAll('[data-ef]').forEach(function(b){b.classList.remove('is-active');}); btn.classList.add('is-active'); }
+  _ef = f || _ef;
+  renderEmps();
+}
+window.filterEmp = filterEmp;
+
+function renderEmps() {
+  var bizF = document.getElementById('bizFilter').value;
+  var list = AD.employees.filter(function(e){
+    if(_ef!=='all' && e.status!==_ef) return false;
+    if(bizF && e.bizId!==bizF) return false;
+    return true;
+  });
+  var biz = {};
+  AD.businesses.forEach(function(b){biz[b.id]=b;});
+  document.getElementById('empGrid').innerHTML = list.map(function(e){
+    var b = biz[e.bizId]||{};
+    var chHtml = e.channels.map(function(c){return AG.chBadge(c);}).join(' ');
+    return '<div class="emp-card" onclick="openEmpPanel(\''+e.id+'\')">' +
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">' +
+        '<div class="av av-lg" style="background:'+e.color+'">'+e.name[0]+'</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:.9375rem;font-weight:700;color:var(--t1)">'+e.name+'</div>' +
+          '<div style="font-size:.75rem;color:var(--t3);margin-top:1px">'+e.role+'</div>' +
+          '<div style="margin-top:4px">'+AG.statusBadge(e.status)+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--border-s);border-radius:8px;margin-bottom:10px">' +
+        '<div class="av av-sm" style="background:'+(b.color||'#888')+'">'+((b.initial)||'?')+'</div>' +
+        '<div style="font-size:.8125rem;font-weight:600;color:var(--t2)">'+(b.name||'—')+'</div>' +
+      '</div>' +
+      '<div class="emp-ch">'+chHtml+'</div>' +
+      '<div class="ag-divider"></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">' +
+        '<div class="emp-stat"><div class="emp-stat-val">'+e.tasks+'</div><div class="emp-stat-lbl">Tasks</div></div>' +
+        '<div class="emp-stat"><div class="emp-stat-val">'+(e.responseTime||'—')+'</div><div class="emp-stat-lbl">Response</div></div>' +
+        '<div class="emp-stat"><div class="emp-stat-val">'+(e.tone?e.tone.split(' ')[0]:'—')+'</div><div class="emp-stat-lbl">Tone</div></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  if(!list.length) document.getElementById('empGrid').innerHTML='<div class="ag-empty" style="grid-column:1/-1"><div class="ag-empty-ico">🤖</div><div class="ag-empty-title">No AI employees found</div></div>';
+}
+renderEmps();
+
+window.openEmpPanel = function(id) {
+  var e = AD.employees.find(function(x){return x.id===id;});
+  if(!e) return;
+  var b = AD.businesses.find(function(x){return x.id===e.bizId;})||{};
+  document.getElementById('panelEmpName').textContent = e.name;
+  document.getElementById('panelEmpBody').innerHTML =
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">' +
+      '<div class="av" style="width:56px;height:56px;font-size:1.25rem;background:'+e.color+'">'+e.name[0]+'</div>' +
+      '<div><div style="font-size:1.125rem;font-weight:700;color:var(--t1)">'+e.name+'</div>' +
+        '<div style="font-size:.8125rem;color:var(--t3)">'+e.role+'</div>' +
+        '<div style="margin-top:6px">'+AG.statusBadge(e.status)+'</div></div></div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+      [['Business',b.name||'—'],['Industry',e.industry],['Tone',e.tone],['Tasks Handled',e.tasks],['Response Time',e.responseTime||'—'],['Status',e.status]].map(function(kv){
+        return '<div><div style="font-size:.625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">'+kv[0]+'</div><div style="font-size:.875rem;color:var(--t1);margin-top:2px">'+kv[1]+'</div></div>';
+      }).join('') +
+    '</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">Channels</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">'+e.channels.map(function(c){return AG.chBadge(c);}).join(' ')+'</div>' +
+    '<div class="ag-divider"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Pausing '+e.name+'…\',\'info\')">⏸ Pause</button>' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Opening editor…\',\'info\')">✏ Edit AI</button>' +
+      '<button class="btn btn--ghost btn--sm" onclick="AG.toast(\'Opening test chat…\',\'info\')">🧪 Test Chat</button>' +
+      '<button class="btn btn--primary btn--sm" onclick="AG.toast(\'Viewing conversations…\',\'info\')">💬 Conversations</button>' +
+    '</div>';
+  AG.openPanel('empPanel');
+};
+
+window.openDeployModal = function() { AG.openModal('deployModal'); };
+window.deployEmployee = function() {
+  var name = document.getElementById('ne_name').value.trim();
+  if(!name){AG.toast('Please enter a name','error');return;}
+  AG.toast(name+' is being deployed…','success');
+  setTimeout(function(){AG.closeModal('deployModal');},1000);
+};
+</script>
+</body>
+</html>
