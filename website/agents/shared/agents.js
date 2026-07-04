@@ -126,9 +126,9 @@ const AG = (() => {
         </div>
       </div>
       <div class="ag-tb-right">
-        <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--accent-bg);border-radius:99px;border:1px solid var(--accent-light,#C7D2FE)">
-          <div style="width:7px;height:7px;border-radius:50%;background:var(--green)"></div>
-          <span style="font-size:.6875rem;font-weight:700;color:var(--accent)">Agent Live</span>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--green-bg);border-radius:99px;border:1px solid #A7F3D0">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px rgba(5,150,105,.2)"></div>
+          <span style="font-size:.625rem;font-weight:700;color:var(--green-t)">5 Agents Live</span>
         </div>
         <button class="ag-tb-btn" onclick="AG.toast('No new notifications','info')" title="Notifications">
           ${IC.bell}<span class="ag-tb-notif-dot"></span>

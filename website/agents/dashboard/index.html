@@ -9,22 +9,24 @@
     .kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px; }
     @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
-    .act-row { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-s); }
+    .act-row { display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border-s); }
     .act-row:last-child { border:none }
-    .act-ico { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0; }
-    .act-msg { font-size:.8125rem;color:var(--t2);flex:1;line-height:1.4; }
+    .act-ico { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0; }
+    .act-msg { font-size:.8125rem;color:var(--t2);flex:1;line-height:1.45; }
     .act-time { font-size:.6875rem;color:var(--t4);white-space:nowrap; }
-    .act-biz { font-size:.5625rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 6px;border-radius:4px;white-space:nowrap; }
-    .biz-row { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-s); }
+    .act-biz { font-size:.5rem;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:2px 7px;border-radius:4px;white-space:nowrap;letter-spacing:.04em; }
+    .biz-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-s); }
     .biz-row:last-child { border:none }
     .qa-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
     @media(max-width:700px){.qa-grid{grid-template-columns:repeat(2,1fr)}}
-    .qa-btn { display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 10px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;transition:all .15s;text-decoration:none;font-size:.6875rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;text-align:center; }
-    .qa-btn:hover { border-color:var(--accent);background:var(--accent-bg);color:var(--accent) }
-    .qa-ico { font-size:1.5rem }
+    .qa-btn { display:flex;flex-direction:column;align-items:center;gap:7px;padding:20px 10px;border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--card);cursor:pointer;transition:all var(--transition);text-decoration:none;font-size:.625rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;text-align:center; }
+    .qa-btn:hover { border-color:var(--accent);background:var(--accent-bg);color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-md) }
+    .qa-ico-wrap { width:40px;height:40px;border-radius:10px;background:var(--border-s);display:flex;align-items:center;justify-content:center;font-size:1.25rem;transition:background var(--transition) }
+    .qa-btn:hover .qa-ico-wrap { background:rgba(99,102,241,.12) }
     .q-bar { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-s); }
     .q-bar:last-child { border:none }
-    .q-fill { height:5px;border-radius:99px;background:var(--accent);transition:width .6s ease }
+    .q-fill { height:5px;border-radius:99px;background:var(--accent);transition:width .8s cubic-bezier(.22,1,.36,1) }
+    .kpi-ico { width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.125rem;margin-bottom:12px;flex-shrink:0; }
   </style>
 </head>
 <body class="ag-body">
@@ -40,8 +42,14 @@
           <div class="ag-ph-sub">Website Enquiry Agent live across 5 businesses · Real-time activity</div>
         </div>
         <div class="ag-ph-actions">
-          <a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost">🧪 Test Agent</a>
-          <a href="/agents/agent-website-enquiry/business-config" class="btn btn--primary">⚙ Configure</a>
+          <a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="13" x2="14" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Test Agent
+          </a>
+          <a href="/agents/agent-website-enquiry/business-config" class="btn btn--primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l-1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+            Configure
+          </a>
         </div>
       </div>
 
@@ -84,12 +92,22 @@
 
       <!-- Quick Actions -->
       <div class="ag-card ag-section">
-        <div class="ag-card-title" style="margin-bottom:14px">Quick Actions</div>
+        <div class="ag-card-hd">
+          <div><div class="ag-card-title">Quick Actions</div><div class="ag-card-sub">Jump to common tasks</div></div>
+        </div>
         <div class="qa-grid">
-          <a href="/agents/agent-website-enquiry/business-config" class="qa-btn"><span class="qa-ico">⚙</span>Configure Business</a>
-          <a href="/agents/agent-website-enquiry/tester" class="qa-btn"><span class="qa-ico">🧪</span>Open Agent Tester</a>
-          <a href="/agents/agent-website-enquiry/leads" class="qa-btn"><span class="qa-ico">👤</span>View Leads</a>
-          <a href="/agents/agent-website-enquiry/knowledge-base" class="qa-btn"><span class="qa-ico">🧠</span>Edit Knowledge Base</a>
+          <a href="/agents/agent-website-enquiry/business-config" class="qa-btn">
+            <div class="qa-ico-wrap">⚙</div>Configure Business
+          </a>
+          <a href="/agents/agent-website-enquiry/tester" class="qa-btn">
+            <div class="qa-ico-wrap">🧪</div>Open Agent Tester
+          </a>
+          <a href="/agents/agent-website-enquiry/leads" class="qa-btn">
+            <div class="qa-ico-wrap">👤</div>View Leads
+          </a>
+          <a href="/agents/agent-website-enquiry/knowledge-base" class="qa-btn">
+            <div class="qa-ico-wrap">🧠</div>Edit Knowledge Base
+          </a>
         </div>
       </div>
 
@@ -103,28 +121,26 @@
 AG.init({ page:'dashboard' });
 
 var h=new Date().getHours();
-document.getElementById('dashGreeting').textContent=(h<12?'Good morning':'h<17?Good afternoon':'Good evening').replace('h<17?','')+(', Digital Rise — AI Agent Command Centre');
-/* simple greeting */
 var gr=document.getElementById('dashGreeting');
-gr.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', Digital Rise — AI Agent Command Centre';
+gr.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', Digital Rise — AI Command Centre';
 
 /* KPIs */
 var KPIS=[
-  {label:'Active Businesses',       val:AD.kpis.activeBusinesses,       delta:'↑ +1 this month',           ico:'🏢', col:'var(--accent)'},
-  {label:'Enquiry Agents Live',     val:AD.kpis.agentsLive,             delta:'All 5 businesses live',      ico:'🤖', col:'var(--green)'},
-  {label:'Conversations Handled',   val:AD.kpis.conversationsHandled,   delta:'↑ +47 this week',           ico:'💬', col:'var(--blue)'},
-  {label:'Leads Captured',          val:AD.kpis.leadsCaptured,          delta:'↑ +12 this week',           ico:'👤', col:'#7C3AED'},
-  {label:'Qualified Leads',         val:AD.kpis.qualifiedLeads,         delta:'63% qualification rate',     ico:'🎯', col:'var(--green)'},
-  {label:'Avg Response Time',       val:AD.kpis.avgResponseTime,        delta:'vs 4–8hrs industry average', ico:'⚡', col:'var(--accent)'},
-  {label:'Conversion to Booking',   val:AD.kpis.conversionToBooking,    delta:'Enquiry → booked action',   ico:'📅', col:'var(--amber)'},
-  {label:'Needs Setup',             val:AD.kpis.needsSetup,             delta:'1 business at 55% setup',   ico:'⚠', col:'var(--red)'},
+  {label:'Active Businesses',     val:AD.kpis.activeBusinesses,     delta:'↑ +1 this month',           ico:'🏢', bg:'var(--accent-bg)', col:'var(--accent)'},
+  {label:'Agents Live',           val:AD.kpis.agentsLive,           delta:'All 5 businesses live',      ico:'🤖', bg:'var(--green-bg)',  col:'var(--green)'},
+  {label:'Conversations',         val:AD.kpis.conversationsHandled, delta:'↑ +47 this week',            ico:'💬', bg:'var(--blue-bg)',   col:'var(--blue)'},
+  {label:'Leads Captured',        val:AD.kpis.leadsCaptured,        delta:'↑ +12 this week',            ico:'👤', bg:'var(--purple-bg)', col:'var(--purple)'},
+  {label:'Qualified Leads',       val:AD.kpis.qualifiedLeads,       delta:'63% qualification rate',     ico:'🎯', bg:'var(--green-bg)',  col:'var(--green)'},
+  {label:'Avg Response Time',     val:AD.kpis.avgResponseTime,      delta:'vs 4–8hrs industry avg',     ico:'⚡', bg:'var(--accent-bg)', col:'var(--accent)'},
+  {label:'Conversion to Booking', val:AD.kpis.conversionToBooking,  delta:'Enquiry → booked action',    ico:'📅', bg:'var(--amber-bg)',  col:'var(--amber)'},
+  {label:'Needs Setup',           val:AD.kpis.needsSetup,           delta:'1 business at 55% setup',    ico:'⚠',  bg:'var(--red-bg)',    col:'var(--red)'},
 ];
 document.getElementById('kpiGrid').innerHTML=KPIS.map(function(k){
-  return '<div class="ag-stat" style="border-left:3px solid '+k.col+'">'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-    '<div class="ag-stat-label">'+k.label+'</div><div style="font-size:1.25rem">'+k.ico+'</div></div>'+
-    '<div class="ag-stat-val">'+k.val+'</div>'+
-    '<div style="font-size:.6875rem;color:var(--t3);margin-top:5px">'+k.delta+'</div>'+
+  return '<div class="ag-stat">'+
+    '<div class="kpi-ico" style="background:'+k.bg+'">'+k.ico+'</div>'+
+    '<div class="ag-stat-label">'+k.label+'</div>'+
+    '<div class="ag-stat-val" style="color:'+k.col+'">'+k.val+'</div>'+
+    '<div style="font-size:.6875rem;color:var(--t3);margin-top:6px;line-height:1.3">'+k.delta+'</div>'+
     '</div>';
 }).join('');
 

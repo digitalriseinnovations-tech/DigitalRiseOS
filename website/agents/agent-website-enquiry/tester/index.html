@@ -6,32 +6,53 @@
   <title>Agent Tester — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    .tester-layout { display:grid;grid-template-columns:1fr 360px;gap:16px;height:calc(100vh - 210px);min-height:480px; }
+    .tester-layout { display:grid;grid-template-columns:1fr 360px;gap:16px;height:calc(100vh - 200px);min-height:520px; }
     @media(max-width:900px){.tester-layout{grid-template-columns:1fr;height:auto}}
-    .chat-panel { display:flex;flex-direction:column;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden; }
-    .chat-hd { padding:14px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0; }
-    .chat-body { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px; }
-    .chat-ft { padding:12px;border-top:1.5px solid var(--border);display:flex;gap:8px;flex-shrink:0; }
+    .chat-panel {
+      display:flex;flex-direction:column;background:var(--card);
+      border:1.5px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .chat-hd {
+      padding:14px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px;flex-shrink:0;
+      background:var(--bg-alt);
+    }
+    .chat-body { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;background:var(--bg); }
+    .chat-ft {
+      padding:12px 14px;border-top:1px solid var(--border);
+      display:flex;gap:8px;flex-shrink:0;background:var(--card);
+    }
     .msg-wrap { display:flex;flex-direction:column;gap:3px; }
     .msg-wrap.out { align-items:flex-end }
-    .msg-label { font-size:.5625rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4); }
-    .msg-bubble { max-width:78%;padding:10px 14px;border-radius:12px;font-size:.8125rem;line-height:1.55;white-space:pre-wrap; }
-    .msg-in  { background:var(--border-s);color:var(--t1);border-bottom-left-radius:4px;align-self:flex-start }
-    .msg-out { background:var(--accent);color:#fff;border-bottom-right-radius:4px }
-    .msg-typing { display:flex;align-items:center;gap:3px;padding:10px 14px;background:var(--border-s);border-radius:12px;border-bottom-left-radius:4px;width:fit-content }
+    .msg-label { font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);padding:0 2px; }
+    .msg-bubble {
+      max-width:80%;padding:10px 14px;border-radius:14px;
+      font-size:.8125rem;line-height:1.6;white-space:pre-wrap;
+    }
+    .msg-in  { background:var(--card);color:var(--t1);border-bottom-left-radius:3px;align-self:flex-start;box-shadow:var(--shadow-xs);border:1px solid var(--border) }
+    .msg-out { background:var(--accent);color:#fff;border-bottom-right-radius:3px }
+    .msg-typing { display:flex;align-items:center;gap:4px;padding:10px 14px;background:var(--card);border-radius:14px;border-bottom-left-radius:3px;width:fit-content;border:1px solid var(--border) }
     .typing-dot { width:6px;height:6px;border-radius:50%;background:var(--t4);animation:typingPulse 1.4s infinite both }
     .typing-dot:nth-child(2){animation-delay:.2s}.typing-dot:nth-child(3){animation-delay:.4s}
     @keyframes typingPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-    .actions-panel { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column; }
-    .actions-hd { padding:12px 16px;border-bottom:1.5px solid var(--border);flex-shrink:0; }
+    .actions-panel {
+      background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);
+      overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);
+    }
+    .actions-hd { padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-alt); }
     .actions-body { flex:1;overflow-y:auto;padding:14px; }
-    .action-event { display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:8px;margin-bottom:6px;animation:fadeIn .3s ease; }
-    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .action-ico { width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0 }
+    .action-event { display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:10px;margin-bottom:6px;animation:fadeIn .25s ease; }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    .action-ico { width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0;background:rgba(255,255,255,.5) }
     .action-label { font-size:.8125rem;font-weight:700;color:var(--t1);line-height:1.3 }
-    .action-sub { font-size:.6875rem;color:var(--t3);margin-top:2px }
-    .lead-card { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:10px;padding:14px;margin-top:12px; }
-    .lead-field { display:flex;justify-content:space-between;padding:4px 0;font-size:.75rem; }
+    .action-sub { font-size:.6875rem;color:var(--t3);margin-top:2px;line-height:1.35 }
+    .lead-card {
+      background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 100%);
+      border:1.5px solid #C7D2FE;border-radius:12px;padding:14px;margin-top:12px;
+    }
+    .lead-field { display:flex;justify-content:space-between;padding:5px 0;font-size:.75rem;border-bottom:1px solid rgba(99,102,241,.1); }
+    .lead-field:last-child { border:none }
     .lf-key { color:var(--t3);font-weight:600 }
     .lf-val { color:var(--t1);font-weight:700 }
     .empty-chat { display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--t4);gap:8px;padding:24px;text-align:center }

@@ -6,17 +6,44 @@
   <title>Website Enquiry Agent — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    .hero-agent { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:var(--radius-lg);padding:32px;margin-bottom:24px;display:flex;align-items:center;gap:24px; }
-    @media(max-width:700px){.hero-agent{flex-direction:column;text-align:center}}
-    .agent-avatar { width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0; }
+    .hero-agent {
+      background: linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 60%,#F0F4FF 100%);
+      border:1.5px solid #C7D2FE;border-radius:var(--radius-xl);padding:32px 36px;
+      margin-bottom:24px;display:flex;align-items:center;gap:28px;
+      position:relative;overflow:hidden;
+    }
+    .hero-agent::before {
+      content:'';position:absolute;top:-40px;right:-40px;width:220px;height:220px;
+      border-radius:50%;background:rgba(99,102,241,.08);pointer-events:none;
+    }
+    @media(max-width:700px){.hero-agent{flex-direction:column;text-align:center;padding:24px}}
+    .agent-avatar {
+      width:80px;height:80px;border-radius:20px;
+      background:linear-gradient(135deg,#6366F1,#8B5CF6);
+      display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;
+      box-shadow:0 8px 24px rgba(99,102,241,.3);
+    }
     .flow-step { display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-s); }
     .flow-step:last-child { border:none }
-    .flow-num { width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px; }
-    .action-item { display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--border-s);border-radius:8px;margin-bottom:6px;font-size:.8125rem;color:var(--t2); }
-    .ind-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .15s; }
-    .ind-card:hover { border-color:var(--accent);box-shadow:var(--shadow-md) }
+    .flow-num {
+      width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;
+      flex-shrink:0;margin-top:2px;box-shadow:0 2px 6px rgba(99,102,241,.3);
+    }
+    .action-item {
+      display:flex;align-items:center;gap:10px;padding:8px 12px;
+      background:var(--border-s);border-radius:8px;margin-bottom:6px;
+      font-size:.8125rem;color:var(--t2);transition:background var(--transition);
+    }
+    .action-item:hover { background:var(--accent-bg);color:var(--t1) }
+    .ind-card {
+      background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);
+      padding:16px;cursor:pointer;transition:all var(--transition);
+    }
+    .ind-card:hover { border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-2px) }
     .stat-pair { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-s); }
     .stat-pair:last-child { border:none }
+    .ov-stat-ico { width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:10px; }
   </style>
 </head>
 <body class="ag-body">
@@ -90,14 +117,18 @@ AG.init();
 /* Stats */
 var totConv=Object.values(AD.agentStats).reduce(function(s,x){return s+x.conversations;},0);
 var totLeads=Object.values(AD.agentStats).reduce(function(s,x){return s+x.leads;},0);
-var totQual=Object.values(AD.agentStats).reduce(function(s,x){return s+x.qualified;},0);
 document.getElementById('overviewStats').innerHTML=[
-  {label:'Businesses Using Agent',  val:AD.businesses.length,       col:'var(--accent)', ico:'🏢'},
-  {label:'Conversations Handled',   val:totConv,                    col:'var(--blue)',   ico:'💬'},
-  {label:'Leads Captured',          val:totLeads,                   col:'#7C3AED',       ico:'👤'},
-  {label:'FAQ Resolution Rate',     val:'78%',                      col:'var(--green)',  ico:'✅'},
+  {label:'Businesses Using Agent', val:AD.businesses.length, col:'var(--accent)',  bg:'var(--accent-bg)',  ico:'🏢', delta:'All industries'},
+  {label:'Conversations Handled',  val:totConv,              col:'var(--blue)',    bg:'var(--blue-bg)',    ico:'💬', delta:'↑ +47 this week'},
+  {label:'Leads Captured',         val:totLeads,             col:'var(--purple)',  bg:'var(--purple-bg)',  ico:'👤', delta:'↑ +12 this week'},
+  {label:'FAQ Resolution Rate',    val:'78%',                col:'var(--green)',   bg:'var(--green-bg)',   ico:'✅', delta:'Industry avg: 45%'},
 ].map(function(s){
-  return '<div class="ag-stat" style="border-left:3px solid '+s.col+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
+  return '<div class="ag-stat">'+
+    '<div class="ov-stat-ico" style="background:'+s.bg+'">'+s.ico+'</div>'+
+    '<div class="ag-stat-label">'+s.label+'</div>'+
+    '<div class="ag-stat-val" style="color:'+s.col+'">'+s.val+'</div>'+
+    '<div style="font-size:.6875rem;color:var(--t3);margin-top:6px">'+s.delta+'</div>'+
+    '</div>';
 }).join('');
 
 /* Flow */

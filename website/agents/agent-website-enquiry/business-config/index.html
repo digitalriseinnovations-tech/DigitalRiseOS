@@ -6,20 +6,34 @@
   <title>Business Config — Website Enquiry Agent</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    .cfg-layout { display:grid;grid-template-columns:200px 1fr;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--card); }
+    .cfg-layout { display:grid;grid-template-columns:210px 1fr;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;background:var(--card); }
     @media(max-width:800px){.cfg-layout{grid-template-columns:1fr}}
-    .cfg-tabs { border-right:1.5px solid var(--border);padding:8px; }
-    .cfg-tab { display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.8125rem;font-weight:500;color:var(--t3);transition:all .1s;margin-bottom:2px; }
-    .cfg-tab:hover { background:var(--border-s);color:var(--t1) }
-    .cfg-tab.is-active { background:var(--accent-bg);color:var(--accent);font-weight:700 }
-    .cfg-section { display:none;padding:24px; }
+    .cfg-tabs { border-right:1.5px solid var(--border);padding:8px;background:var(--bg-alt); }
+    .cfg-tab {
+      display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-radius:8px;
+      cursor:pointer;font-size:.8125rem;font-weight:500;color:var(--t3);
+      transition:all var(--transition);margin-bottom:2px;position:relative;
+    }
+    .cfg-tab:hover { background:var(--border);color:var(--t2) }
+    .cfg-tab.is-active {
+      background:var(--accent-bg);color:var(--accent);font-weight:650;
+    }
+    .cfg-tab.is-active::before {
+      content:'';position:absolute;left:0;top:4px;bottom:4px;
+      width:2.5px;border-radius:99px;background:var(--accent);
+    }
+    .cfg-section { display:none;padding:28px; }
     .cfg-section.is-active { display:block }
-    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-s); }
+    .cfg-section-title { font-size:.9375rem;font-weight:800;color:var(--t1);margin-bottom:3px;letter-spacing:-.01em; }
+    .cfg-section-sub { font-size:.8125rem;color:var(--t3);margin-bottom:22px;line-height:1.5; }
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border-s); }
     .toggle-row:last-child { border:none }
     .rule-item { display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--border-s);border-radius:8px;margin-bottom:8px; }
-    .rule-item-del { color:var(--red);cursor:pointer;font-size:.75rem;margin-top:2px;flex-shrink:0 }
+    .rule-item-del { color:var(--red);cursor:pointer;font-size:.875rem;margin-top:2px;flex-shrink:0;line-height:1 }
+    .rule-item-del:hover { opacity:.7 }
     .ql-item { display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-s); }
     .ql-item:last-child { border:none }
+    .ql-num { width:22px;height:22px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.625rem;font-weight:800;flex-shrink:0; }
   </style>
 </head>
 <body class="ag-body">
@@ -55,8 +69,8 @@
 
           <!-- A: Profile -->
           <div class="cfg-section is-active" id="tab_profile">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">A. Business Profile</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Core information the agent uses to represent the business.</div>
+            <div class="cfg-section-title">A. Business Profile</div>
+            <div class="cfg-section-sub">Core information the agent uses to represent the business.</div>
             <div class="ag-form-row">
               <div class="ag-form-group"><label class="ag-label">Business Name</label><input class="ag-input" id="cfg_name" placeholder="e.g. Sunshine Nursery"></div>
               <div class="ag-form-group"><label class="ag-label">Industry</label><input class="ag-input" id="cfg_industry" placeholder="e.g. Daycare"></div>
@@ -74,8 +88,8 @@
 
           <!-- B: Services -->
           <div class="cfg-section" id="tab_services">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">B. Services Offered</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">What the agent offers as next steps when a visitor enquires.</div>
+            <div class="cfg-section-title">B. Services Offered</div>
+            <div class="cfg-section-sub">What the agent offers as next steps when a visitor enquires.</div>
             <div id="servicesList"></div>
             <button class="btn btn--ghost btn--sm" onclick="addService()" style="margin-top:8px">+ Add Service</button>
             <div class="ag-divider"></div>
@@ -87,23 +101,23 @@
 
           <!-- C: FAQs -->
           <div class="cfg-section" id="tab_faqs">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">C. FAQs & Knowledge Inputs</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Information the agent uses to answer questions. More detail = better accuracy.</div>
+            <div class="cfg-section-title">C. FAQs & Knowledge Inputs</div>
+            <div class="cfg-section-sub">Information the agent uses to answer questions. More detail = better accuracy.</div>
             <div id="faqFields"></div>
           </div>
 
           <!-- D: Qualification -->
           <div class="cfg-section" id="tab_qualify">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">D. Qualification Questions</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Questions the agent asks to qualify a lead before creating a contact record.</div>
+            <div class="cfg-section-title">D. Qualification Questions</div>
+            <div class="cfg-section-sub">Questions the agent asks to qualify a lead before creating a contact record.</div>
             <div id="qualList"></div>
             <button class="btn btn--ghost btn--sm" onclick="addQualQ()" style="margin-top:10px">+ Add Question</button>
           </div>
 
           <!-- E: Tone -->
           <div class="cfg-section" id="tab_tone">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">E. Greeting & Tone</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">How the agent introduces itself and communicates.</div>
+            <div class="cfg-section-title">E. Greeting & Tone</div>
+            <div class="cfg-section-sub">How the agent introduces itself and communicates.</div>
             <div class="ag-form-row">
               <div class="ag-form-group"><label class="ag-label">Agent Display Name</label><input class="ag-input" id="cfg_agentName" placeholder="e.g. Ava"></div>
               <div class="ag-form-group"><label class="ag-label">Tone of Voice</label>
@@ -123,15 +137,15 @@
 
           <!-- F: Actions -->
           <div class="cfg-section" id="tab_actions">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">F. Next-step Actions</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Toggle the actions the agent can offer or trigger.</div>
+            <div class="cfg-section-title">F. Next-step Actions</div>
+            <div class="cfg-section-sub">Toggle the actions the agent can offer or trigger.</div>
             <div id="actionToggles"></div>
           </div>
 
           <!-- G: Escalation -->
           <div class="cfg-section" id="tab_rules">
-            <div style="font-size:.875rem;font-weight:700;color:var(--t1);margin-bottom:4px">G. Escalation Rules</div>
-            <div style="font-size:.8125rem;color:var(--t3);margin-bottom:20px">Define when the agent should flag a lead as high priority or alert a staff member.</div>
+            <div class="cfg-section-title">G. Escalation Rules</div>
+            <div class="cfg-section-sub">Define when the agent should flag a lead as high priority or alert a staff member.</div>
             <div id="rulesList"></div>
             <button class="btn btn--ghost btn--sm" onclick="addRule()" style="margin-top:8px">+ Add Rule</button>
           </div>
@@ -246,7 +260,8 @@ var QUAL_DEFAULTS = {
 function renderQual() {
   if(!_qualQs.length) _qualQs=_cfg.qualQs||QUAL_DEFAULTS[_curBiz.id]||['What brings you here today?','What is your name?','Best way to reach you (phone / email)?'];
   document.getElementById('qualList').innerHTML=_qualQs.map(function(q,i){
-    return '<div class="ql-item"><span style="width:20px;text-align:center;font-size:.75rem;color:var(--t4)">'+(i+1)+'</span>'+
+    return '<div class="ql-item">'+
+      '<span class="ql-num">'+(i+1)+'</span>'+
       '<input class="ag-input" value="'+q+'" oninput="_qualQs['+i+']=this.value" style="flex:1">'+
       '<button class="btn btn--danger btn--sm" onclick="_qualQs.splice('+i+',1);renderQual()">✕</button></div>';
   }).join('');

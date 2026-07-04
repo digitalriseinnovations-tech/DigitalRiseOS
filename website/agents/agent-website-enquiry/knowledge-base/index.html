@@ -6,27 +6,50 @@
   <title>Knowledge Base — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    .kb-layout { display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start }
+    .kb-layout { display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:start }
     @media(max-width:800px){.kb-layout{grid-template-columns:1fr}}
-    .kb-tabs { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:8px;position:sticky;top:80px }
-    .kb-tab { display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:.8125rem;font-weight:600;color:var(--t3);cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left }
-    .kb-tab:hover { background:var(--border-s);color:var(--t1) }
-    .kb-tab.active { background:var(--accent);color:#fff }
-    .kb-tab-ico { width:18px;text-align:center;font-size:.875rem }
+    .kb-tabs {
+      background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);
+      padding:8px;position:sticky;top:80px;
+    }
+    .kb-tab {
+      display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-radius:8px;
+      font-size:.8125rem;font-weight:500;color:var(--t3);cursor:pointer;
+      transition:all var(--transition);border:none;background:none;width:100%;text-align:left;
+      position:relative;
+    }
+    .kb-tab:hover { background:var(--border-s);color:var(--t2) }
+    .kb-tab.active {
+      background:var(--accent-bg);color:var(--accent);font-weight:650;
+    }
+    .kb-tab.active::before {
+      content:'';position:absolute;left:0;top:4px;bottom:4px;
+      width:2.5px;border-radius:99px;background:var(--accent);
+    }
+    .kb-tab-ico { width:18px;text-align:center;font-size:.875rem;flex-shrink:0 }
     .kb-section { display:none }
     .kb-section.active { display:block }
     .kb-field-row { margin-bottom:18px }
-    .kb-field-label { font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:6px }
+    .kb-field-label { font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:6px }
     .tag-list { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px }
-    .tag { display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--accent-bg);color:var(--accent);border-radius:99px;font-size:.75rem;font-weight:600 }
-    .tag-del { cursor:pointer;color:var(--accent);opacity:.6;font-size:.875rem;padding:0 2px }
+    .tag { display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--accent-bg);color:var(--accent);border-radius:99px;font-size:.75rem;font-weight:600;border:1px solid rgba(99,102,241,.2) }
+    .tag-del { cursor:pointer;color:var(--accent);opacity:.6;font-size:.875rem;padding:0 2px;transition:opacity var(--transition) }
     .tag-del:hover { opacity:1 }
     .tag-add { display:flex;gap:6px;margin-top:6px }
-    .kb-card { background:var(--border-s);border-radius:10px;padding:14px;margin-bottom:10px }
+    .kb-card { background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px }
     .link-row { display:flex;align-items:center;gap:10px;margin-bottom:8px }
-    .log-entry { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem }
+    .log-entry { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem }
     .log-entry:last-child { border:none }
-    .train-bar { background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap }
+    .train-bar {
+      background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 60%,#F0F4FF 100%);
+      border:1.5px solid #C7D2FE;border-radius:var(--radius-xl);
+      padding:20px 28px;display:flex;align-items:center;justify-content:space-between;
+      gap:16px;margin-bottom:20px;flex-wrap:wrap;position:relative;overflow:hidden;
+    }
+    .train-bar::after {
+      content:'🧠';position:absolute;right:24px;top:50%;transform:translateY(-50%);
+      font-size:4rem;opacity:.06;pointer-events:none;
+    }
   </style>
 </head>
 <body class="ag-body">
