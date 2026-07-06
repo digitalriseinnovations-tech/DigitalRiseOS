@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Base — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'knowledge-base', requireBiz:true });
+if (biz) render();
+
+function render() {
+  var fields = DRD.fieldsFor(biz.industryGroup);
+  var kb = biz.knowledge || {};
+  var filled = fields.filter(function(f){ return kb[f.id]; }).length;
+  var grp = DRD.group(biz.industryGroup);
+
+  var h = DRUI.pageHeader('Knowledge Base — '+DRUI.esc(biz.name),
+    filled+' of '+fields.length+' fields filled · agents answer from this knowledge',
+    '<button class="btn btn--ghost" onclick="retrain()">⚡ Save & Retrain Agents</button>' +
+    '<button class="btn btn--primary" onclick="saveKB()">💾 Save Knowledge</button>');
+
+  h += '<div style="background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 60%,#F0F4FF 100%);border:1px solid var(--accent-bg);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:.8125rem;color:var(--accent-d)">' +
+    '💡 The more you fill in, the smarter the agents get. '+(grp?grp.label:'')+'-specific fields are included below.</div>';
+
+  h += '<div class="ag-card" style="padding:24px"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">' +
+    fields.map(function(f){
+      var v = DRUI.esc(kb[f.id]||'');
+      var isIndustry = DRD.universalFields.indexOf(DRD.universalFields.find(function(u){return u.id===f.id;})) === -1 &&
+                       !DRD.universalFields.some(function(u){return u.id===f.id;});
+      return '<div class="ag-form-group"><label class="ag-label">'+f.label+
+        (DRD.universalFields.some(function(u){return u.id===f.id;}) ? '' : ' <span style="font-size:.5625rem;color:var(--accent);font-weight:800">· INDUSTRY</span>')+'</label>' +
+        (f.ta ? '<textarea class="ag-textarea" style="min-height:70px" id="kb_'+f.id+'" placeholder="'+f.ph+'">'+v+'</textarea>'
+              : '<input class="ag-input" id="kb_'+f.id+'" placeholder="'+f.ph+'" value="'+v+'">') + '</div>';
+    }).join('') + '</div></div>';
+
+  document.getElementById('content').innerHTML = h;
+}
+
+function collect() {
+  var kb = Object.assign({}, biz.knowledge||{});
+  DRD.fieldsFor(biz.industryGroup).forEach(function(f){
+    var el = document.getElementById('kb_'+f.id);
+    if (!el) return;
+    if (el.value.trim()) kb[f.id] = el.value.trim(); else delete kb[f.id];
+  });
+  return kb;
+}
+window.saveKB = function(){
+  biz = DRS.update('businesses', biz.id, { knowledge: collect() });
+  AG.toast('Knowledge saved for '+biz.name,'success');
+};
+window.retrain = function(){
+  biz = DRS.update('businesses', biz.id, { knowledge: collect() });
+  AG.toast('Knowledge saved — retraining agents…','info');
+  DRA.trainAll(biz.id, null, function(){ AG.toast('All agents retrained on latest knowledge!','success'); });
+};
+</script>
+</body>
+</html>

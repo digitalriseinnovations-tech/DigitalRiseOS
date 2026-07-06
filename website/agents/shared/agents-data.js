@@ -192,3 +192,269 @@ AD.kbDefaults = {
     escalation: 'Bridal packages → Manager Luna | Complex colour → book consult',
   },
 };
+
+
+/* ============================================================
+   DRD — DIGITAL RISE PLATFORM CATALOG (v2)
+   Static reference data: industries, business types, agent
+   catalog, knowledge field definitions. No stored state here.
+   ============================================================ */
+var DRD = (function () {
+  'use strict';
+
+  /* ── Industry groups & business types ─────────────────── */
+  var industryGroups = [
+    { id:'childcare',    label:'Childcare & Education',  icon:'🧸', color:'#7C3AED',
+      types:['Daycare','Preschool','Montessori','Tutoring Centre','Kids Activity Centre'] },
+    { id:'healthcare',   label:'Clinics & Healthcare',   icon:'🩺', color:'#0891B2',
+      types:['Dental Clinic','Eye Clinic','Physiotherapy Clinic','Chiropractic Clinic','Skin Clinic','Medical Clinic','Therapy Practice'] },
+    { id:'events',       label:'Events & Experiences',   icon:'🎉', color:'#DB2777',
+      types:['Event Planner','Wedding Planner','Party Rental Business','Birthday Decor Business','Corporate Event Agency','Conference Organiser','Exhibition Organiser','Venue'] },
+    { id:'beauty',       label:'Beauty & Wellness',      icon:'💅', color:'#EC4899',
+      types:['Hair Salon','Spa','Nail Salon','Lash Studio','Med Spa','Massage Clinic'] },
+    { id:'home',         label:'Home & Local Services',  icon:'🛠️', color:'#16A34A',
+      types:['Contractor','Cleaning Company','Plumbing','HVAC','Electrical','Landscaping','Roofing'] },
+    { id:'food',         label:'Food & Dining',          icon:'🍽️', color:'#D97706',
+      types:['Restaurant','Cafe','Bakery','Catering Business','Cloud Kitchen'] },
+    { id:'professional', label:'Professional Services',  icon:'💼', color:'#4F46E5',
+      types:['Law Firm','Accounting Firm','Consulting Firm','Insurance Agency','Marketing Agency'] },
+    { id:'realestate',   label:'Real Estate',            icon:'🏠', color:'#0D9488',
+      types:['Real Estate Agent','Property Management','Brokerage','Mortgage Broker'] },
+    { id:'retail',       label:'Retail',                 icon:'🛍️', color:'#9333EA',
+      types:['Boutique','Furniture Store','Electronics Store','Specialty Shop','Showroom'] },
+  ];
+
+  /* ── Universal agent types ─────────────────────────────── */
+  var agentTypes = [
+    { type:'website-enquiry',    name:'Website Enquiry Agent',      icon:'💬', channels:['website'],
+      desc:'Captures website visitors, answers FAQs, qualifies leads, collects contact details.' },
+    { type:'booking',            name:'Booking / Appointment Agent',icon:'📅', channels:['website','whatsapp'],
+      desc:'Books appointments, tours, consultations, reservations and site visits.' },
+    { type:'whatsapp-followup',  name:'WhatsApp Follow-up Agent',   icon:'📲', channels:['whatsapp'],
+      desc:'Sends follow-ups, reminders, quote follow-ups and recovers incomplete enquiries.' },
+    { type:'review',             name:'Review & Reputation Agent',  icon:'⭐', channels:['whatsapp','email'],
+      desc:'Requests Google reviews, detects unhappy feedback, creates staff alerts.' },
+    { type:'missed-call',        name:'Missed Call Recovery Agent', icon:'📞', channels:['phone','whatsapp'],
+      desc:'Follows up with missed callers and captures callback requests.' },
+    { type:'email-inbox',        name:'Email Inbox Agent',          icon:'📧', channels:['email'],
+      desc:'Replies to email enquiries, sends brochures, qualifies leads.' },
+    { type:'lead-qualification', name:'Lead Qualification Agent',   icon:'🎯', channels:['website'],
+      desc:'Scores leads, asks qualification questions, assigns next action.' },
+    { type:'marketing-content',  name:'Marketing Content Agent',    icon:'✨', channels:['internal'],
+      desc:'Creates simple social posts, email drafts, follow-up content and campaign ideas.' },
+  ];
+
+  /* ── Industry-specific naming + extra agents ───────────── */
+  var industryOverlays = {
+    childcare: {
+      rename: { 'website-enquiry':'Website Parent Enquiry Agent', 'booking':'Tour Booking Agent' },
+      extra: [
+        { type:'activity-planner',  name:'Activity Planner Agent',   icon:'🎨', channels:['internal'], desc:'Plans weekly activity themes and generates parent-friendly activity updates.' },
+        { type:'waitlist-followup', name:'Waitlist Follow-up Agent', icon:'⏳', channels:['whatsapp','email'], desc:'Keeps waitlisted families warm and notifies them when spots open.' },
+      ],
+      recommended: ['website-enquiry','booking','whatsapp-followup','review','missed-call','activity-planner'],
+    },
+    healthcare: {
+      rename: { 'website-enquiry':'Website Patient Enquiry Agent', 'booking':'Appointment Booking Agent' },
+      extra: [
+        { type:'treatment-followup', name:'Treatment Follow-up Agent', icon:'🩹', channels:['whatsapp','email'], desc:'Checks in after treatments and books follow-up appointments.' },
+      ],
+      recommended: ['website-enquiry','booking','treatment-followup','review','missed-call'],
+    },
+    events: {
+      rename: { 'website-enquiry':'Event Enquiry Agent', 'booking':'Consultation Booking Agent', 'whatsapp-followup':'WhatsApp Quote Follow-up Agent' },
+      extra: [
+        { type:'package-recommendation', name:'Package Recommendation Agent', icon:'🎁', channels:['website'], desc:'Recommends the right event package based on guest count, budget and occasion.' },
+        { type:'quote-followup',         name:'Quote Follow-up Agent',        icon:'💰', channels:['whatsapp','email'], desc:'Follows up on sent quotes and nudges undecided clients.' },
+      ],
+      recommended: ['website-enquiry','package-recommendation','booking','whatsapp-followup','review'],
+    },
+    beauty: {
+      rename: { 'booking':'Appointment Booking Agent' },
+      extra: [
+        { type:'rebooking-followup', name:'Rebooking Follow-up Agent', icon:'💇', channels:['whatsapp'], desc:'Reminds clients when they are due for their next appointment.' },
+      ],
+      recommended: ['website-enquiry','booking','rebooking-followup','review','missed-call'],
+    },
+    home: {
+      rename: { 'website-enquiry':'Quote Capture Agent', 'booking':'Site Visit Booking Agent' },
+      extra: [
+        { type:'estimate-followup', name:'Estimate Follow-up Agent', icon:'📐', channels:['whatsapp','email'], desc:'Follows up on estimates and answers scope questions.' },
+      ],
+      recommended: ['website-enquiry','booking','estimate-followup','review','missed-call'],
+    },
+    food: {
+      rename: { 'booking':'Reservation Agent' },
+      extra: [
+        { type:'catering-enquiry', name:'Catering Enquiry Agent', icon:'🥂', channels:['website','email'], desc:'Handles catering and private event enquiries and captures event details.' },
+      ],
+      recommended: ['website-enquiry','booking','catering-enquiry','review'],
+    },
+    professional: {
+      rename: { 'booking':'Consultation Booking Agent' },
+      extra: [],
+      recommended: ['website-enquiry','booking','lead-qualification','email-inbox','review'],
+    },
+    realestate: {
+      rename: { 'booking':'Viewing Booking Agent' },
+      extra: [],
+      recommended: ['website-enquiry','booking','whatsapp-followup','lead-qualification','review'],
+    },
+    retail: {
+      rename: { 'website-enquiry':'Product Enquiry Agent' },
+      extra: [],
+      recommended: ['website-enquiry','whatsapp-followup','review','email-inbox'],
+    },
+  };
+
+  /* ── Knowledge field definitions ───────────────────────── */
+  var universalFields = [
+    { id:'hours',        label:'Business Hours',      ph:'e.g. Mon–Fri 7:30am–6pm' },
+    { id:'services',     label:'Services',            ph:'List your main services…', ta:true },
+    { id:'pricing',      label:'Pricing Notes',       ph:'Starting prices, ranges, what affects cost…', ta:true },
+    { id:'faqs',         label:'FAQs',                ph:'Common questions and answers…', ta:true },
+    { id:'policies',     label:'Policies',            ph:'Cancellation, refunds, deposits…', ta:true },
+    { id:'bookingRules', label:'Booking Rules',       ph:'How bookings work, lead time, confirmation…', ta:true },
+    { id:'escalation',   label:'Escalation Contact',  ph:'Who handles complex questions? Name + phone/email' },
+    { id:'reviewLink',   label:'Google Review Link',  ph:'https://g.page/r/…' },
+    { id:'whatsapp',     label:'WhatsApp Number',     ph:'+1 …' },
+  ];
+  var industryFields = {
+    childcare: [
+      { id:'ageGroups',       label:'Age Groups',          ph:'e.g. Infants 6–18mo, Toddlers 18mo–2.5y, Preschool 2.5–4y' },
+      { id:'fees',            label:'Fees',                ph:'Daily/monthly rates per age group…', ta:true },
+      { id:'tourTimes',       label:'Tour Days & Times',   ph:'e.g. Tue & Thu 10am, Sat 9–11am' },
+      { id:'waitlistRules',   label:'Waitlist Rules',      ph:'Free to join? Deposit? Priority rules?' },
+      { id:'meals',           label:'Meals',               ph:'Meals & snacks provided, allergy policy…' },
+      { id:'curriculum',      label:'Curriculum',          ph:'Play-based, Montessori, HighScope…' },
+      { id:'safety',          label:'Safety',              ph:'Ratios, secured entry, cameras, first-aid…' },
+      { id:'siblingDiscount', label:'Sibling Discount',    ph:'e.g. 10% off second child' },
+      { id:'activityThemes',  label:'Activity Themes',     ph:'Weekly themes, special programs…' },
+    ],
+    healthcare: [
+      { id:'treatments',        label:'Treatments',              ph:'List treatments/services offered…', ta:true },
+      { id:'insurance',         label:'Insurance / Direct Billing', ph:'Providers accepted, direct billing…' },
+      { id:'emergency',         label:'Emergency Appointments',  ph:'Same-day policy, emergency line…' },
+      { id:'practitioners',     label:'Practitioners',           ph:'Dr. names & specialties…' },
+      { id:'appointmentTypes',  label:'Appointment Types',       ph:'New patient exam, cleaning, consult…' },
+      { id:'newPatientProcess', label:'New Patient Process',     ph:'Forms, first visit length, what to bring…' },
+    ],
+    events: [
+      { id:'eventTypes',    label:'Event Types',        ph:'Weddings, corporate, birthdays…' },
+      { id:'packages',      label:'Packages',           ph:'Package names, inclusions, prices…', ta:true },
+      { id:'addons',        label:'Add-ons',            ph:'Photo booth, florals, AV, catering…' },
+      { id:'serviceArea',   label:'Service Area',       ph:'Cities/regions covered' },
+      { id:'guestRange',    label:'Guest Count Range',  ph:'e.g. 20–500 guests' },
+      { id:'startingPrice', label:'Starting Price',     ph:'e.g. Packages from $2,500' },
+      { id:'depositRules',  label:'Deposit Rules',      ph:'e.g. 30% to secure date, balance 14 days before' },
+      { id:'setupRules',    label:'Setup Rules',        ph:'Setup/teardown timing, venue requirements…' },
+    ],
+    beauty: [
+      { id:'treatments',   label:'Treatments & Services', ph:'Cut, colour, lashes, massage…', ta:true },
+      { id:'stylists',     label:'Stylists / Practitioners', ph:'Team members & specialties' },
+      { id:'cancellation', label:'Cancellation Policy',   ph:'Notice period, no-show fee…' },
+    ],
+    home: [
+      { id:'serviceArea',  label:'Service Area',   ph:'Cities/regions covered' },
+      { id:'quoteProcess', label:'Quote Process',  ph:'Free quote? Site visit needed? Turnaround…' },
+      { id:'warranty',     label:'Warranty',       ph:'Workmanship guarantee, materials warranty…' },
+    ],
+    food: [
+      { id:'menu',          label:'Menu Highlights',  ph:'Signature dishes, dietary options…', ta:true },
+      { id:'reservations',  label:'Reservations',     ph:'Walk-ins? Max party size? Peak times…' },
+      { id:'privateEvents', label:'Private Events',   ph:'Private room capacity, minimum spend…' },
+      { id:'catering',      label:'Catering',         ph:'Catering menu, min order, delivery area…' },
+    ],
+    professional: [
+      { id:'practiceAreas', label:'Practice / Service Areas', ph:'Specialties and focus areas…', ta:true },
+      { id:'consultFees',   label:'Consultation Fees',        ph:'Free first consult? Hourly rates…' },
+    ],
+    realestate: [
+      { id:'areas',    label:'Areas Served',   ph:'Neighbourhoods/cities' },
+      { id:'viewings', label:'Viewings',       ph:'How viewings are booked, virtual tours…' },
+      { id:'listings', label:'Listings Info',  ph:'Where listings are published, update cadence…' },
+    ],
+    retail: [
+      { id:'products', label:'Products',           ph:'Main product categories…', ta:true },
+      { id:'returns',  label:'Returns Policy',     ph:'Return window, condition rules…' },
+      { id:'delivery', label:'Delivery & Pickup',  ph:'Shipping, local delivery, in-store pickup…' },
+    ],
+  };
+
+  /* ── Keyword map for rule-based tester engine ──────────── */
+  var keywordMap = [
+    { field:'hours',        kws:['hour','open','close','time','when are you'] },
+    { field:'fees',         kws:['fee','fees','cost','price','pricing','how much','rate'] },
+    { field:'pricing',      kws:['fee','fees','cost','price','pricing','how much','rate','quote','estimate'] },
+    { field:'services',     kws:['service','offer','what do you','provide'] },
+    { field:'treatments',   kws:['treatment','procedure','whitening','filling','cleaning','massage','facial','colour','color','cut'] },
+    { field:'tourTimes',    kws:['tour','visit','look around','see the'] },
+    { field:'bookingRules', kws:['book','appointment','reserve','schedule','reservation'] },
+    { field:'reservations', kws:['book','reserve','reservation','table'] },
+    { field:'waitlistRules',kws:['waitlist','wait list','waiting list'] },
+    { field:'ageGroups',    kws:['age','how old','infant','toddler','preschool'] },
+    { field:'meals',        kws:['meal','food','lunch','snack','allerg'] },
+    { field:'curriculum',   kws:['curriculum','learn','program','montessori','education'] },
+    { field:'safety',       kws:['safe','safety','ratio','secure','camera'] },
+    { field:'siblingDiscount', kws:['sibling','second child','discount','two kids'] },
+    { field:'insurance',    kws:['insurance','billing','coverage','covered'] },
+    { field:'emergency',    kws:['emergency','urgent','pain','same day','same-day'] },
+    { field:'practitioners',kws:['doctor','dentist','dr ','practitioner','who will'] },
+    { field:'newPatientProcess', kws:['new patient','first visit','first appointment'] },
+    { field:'packages',     kws:['package','bundle','include'] },
+    { field:'addons',       kws:['add-on','addon','extra','photo booth','floral'] },
+    { field:'serviceArea',  kws:['area','location','where do you','travel','come to'] },
+    { field:'guestRange',   kws:['guest','how many people','capacity','headcount'] },
+    { field:'depositRules', kws:['deposit','secure the date','hold the date','down payment'] },
+    { field:'startingPrice',kws:['start','minimum','cheapest','budget'] },
+    { field:'menu',         kws:['menu','dish','vegan','vegetarian','gluten'] },
+    { field:'privateEvents',kws:['private','party room','event room','group'] },
+    { field:'catering',     kws:['cater','catering'] },
+    { field:'quoteProcess', kws:['quote','estimate','site visit'] },
+    { field:'warranty',     kws:['warranty','guarantee'] },
+    { field:'cancellation', kws:['cancel','reschedule','no-show','no show'] },
+    { field:'policies',     kws:['policy','refund','cancel','term'] },
+    { field:'faqs',         kws:['question','faq'] },
+    { field:'returns',      kws:['return','refund','exchange'] },
+    { field:'delivery',     kws:['deliver','shipping','pickup','pick up'] },
+    { field:'escalation',   kws:['manager','complain','speak to someone','human','staff'] },
+  ];
+
+  /* ── Helpers ───────────────────────────────────────────── */
+  function group(id) { return industryGroups.find(function(g){ return g.id===id; }) || null; }
+
+  function agentsFor(groupId) {
+    var ov = industryOverlays[groupId] || { rename:{}, extra:[], recommended:[] };
+    var list = agentTypes.map(function(a){
+      return Object.assign({}, a, {
+        name: ov.rename[a.type] || a.name,
+        recommended: ov.recommended.indexOf(a.type) !== -1,
+      });
+    });
+    (ov.extra || []).forEach(function(a){
+      list.push(Object.assign({}, a, { recommended: ov.recommended.indexOf(a.type) !== -1, industrySpecific:true }));
+    });
+    return list;
+  }
+
+  function agentDef(groupId, type) {
+    return agentsFor(groupId).find(function(a){ return a.type===type; }) || null;
+  }
+
+  function fieldsFor(groupId) {
+    return universalFields.concat(industryFields[groupId] || []);
+  }
+
+  return {
+    industryGroups: industryGroups,
+    agentTypes: agentTypes,
+    industryOverlays: industryOverlays,
+    universalFields: universalFields,
+    industryFields: industryFields,
+    keywordMap: keywordMap,
+    group: group,
+    agentsFor: agentsFor,
+    agentDef: agentDef,
+    fieldsFor: fieldsFor,
+  };
+})();

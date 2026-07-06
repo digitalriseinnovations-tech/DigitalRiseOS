@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .bd-hero { display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:22px 24px;margin-bottom:22px;flex-wrap:wrap; }
+    .bd-tab-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:22px; }
+    .bd-tab { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .18s;text-decoration:none;display:block; }
+    .bd-tab:hover { transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent); }
+    .act-row { display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem; }
+    .act-row:last-child { border:none; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'overview', requireBiz:true });
+if (biz) render();
+
+function render() {
+  var s = DRA.bizStats(biz.id);
+  var grp = DRD.group(biz.industryGroup);
+  var ready = s.agents.filter(function(a){return a.trainingStatus==='ready';}).length;
+  var kbCount = Object.keys(biz.knowledge||{}).filter(function(k){return biz.knowledge[k];}).length;
+
+  var h = '<div class="bd-hero">' +
+    '<div class="av" style="background:'+biz.color+';width:52px;height:52px;font-size:1.125rem;border-radius:14px">'+biz.initial+'</div>' +
+    '<div style="flex:1;min-width:200px">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+        '<span style="font-size:1.375rem;font-weight:800;color:var(--t1);letter-spacing:-.01em">'+DRUI.esc(biz.name)+'</span>'+AG.statusBadge(biz.status)+'</div>' +
+      '<div style="font-size:.8125rem;color:var(--t3);margin-top:3px">'+(grp?grp.icon+' '+grp.label:'')+' · '+DRUI.esc(biz.businessType||'')+(biz.location?' · '+DRUI.esc(biz.location):'')+'</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<a class="btn btn--ghost btn--sm" href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'">📚 Edit Knowledge</a>' +
+      '<a class="btn btn--primary btn--sm" href="'+DRUI.bizUrl(biz.slug,'deploy')+'">🚀 Deploy</a>' +
+    '</div></div>';
+
+  h += DRUI.kpiRow([
+    { ico:'🤖', val:s.agents.length, label:'AI Agents ('+ready+' trained)', bg:'var(--accent-bg)' },
+    { ico:'🎯', val:s.leads.length, label:'Leads Captured', bg:'var(--green-bg)' },
+    { ico:'💬', val:s.conversations.length, label:'Conversations', bg:'#FDF2F8' },
+    { ico:'📅', val:s.bookings.length, label:'Bookings Created', bg:'#FEF3C7' },
+    { ico:'⭐', val:s.reviews.length, label:'Reviews', bg:'#EEF2FF' },
+  ]);
+
+  /* Tab cards */
+  var tabs = [
+    ['agents','🤖','AI Agents', s.agents.length+' deployed'],
+    ['knowledge-base','📚','Knowledge Base', kbCount+' fields filled'],
+    ['conversations','💬','Conversations', s.conversations.length+' logged'],
+    ['leads','🎯','Leads', s.leads.length+' captured'],
+    ['bookings','📅','Bookings', s.bookings.length+' created'],
+    ['reviews','⭐','Reviews', s.reviews.length+' collected'],
+    ['deploy','🚀','Deploy', 'Widget & channels'],
+  ];
+  h += '<div class="bd-tab-grid">'+tabs.map(function(t){
+    return '<a class="bd-tab" href="'+DRUI.bizUrl(biz.slug,t[0])+'">' +
+      '<div style="font-size:1.5rem;margin-bottom:8px">'+t[1]+'</div>' +
+      '<div style="font-size:.8438rem;font-weight:700;color:var(--t1)">'+t[2]+'</div>' +
+      '<div style="font-size:.6875rem;color:var(--t3);margin-top:2px">'+t[3]+'</div></a>';
+  }).join('')+'</div>';
+
+  /* Two-column: agents status + recent activity */
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="bd-cols">';
+
+  h += '<div class="ag-card" style="padding:20px"><div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:14px">Agent Status</div>';
+  if (!s.agents.length) h += '<div style="font-size:.8125rem;color:var(--t4)">No agents yet.</div>';
+  s.agents.forEach(function(a){
+    var def = DRD.agentDef(biz.industryGroup, a.agentType) || { icon:'🤖' };
+    h += '<div class="act-row"><span style="font-size:1.125rem">'+def.icon+'</span>' +
+      '<div style="flex:1"><a href="'+DRUI.agentUrl(biz.slug,a.id)+'" style="font-weight:700;color:var(--t1);text-decoration:none">'+DRUI.esc(a.agentName)+'</a>' +
+      '<div style="font-size:.6875rem;color:var(--t4)">'+a.channels.join(', ')+' · trained '+DRUI.timeAgo(a.lastTrained)+'</div></div>' +
+      DRUI.trainBadge(a.trainingStatus)+'</div>';
+  });
+  h += '</div>';
+
+  /* Recent activity — newest few records across collections */
+  var acts = [];
+  s.leads.slice(0,3).forEach(function(l){ acts.push({t:l.createdAt, ico:'🎯', txt:'Lead captured — <b>'+DRUI.esc(l.name||'Unknown')+'</b> ('+DRUI.esc(l.enquiryType||'enquiry')+')'}); });
+  s.bookings.slice(0,3).forEach(function(b){ acts.push({t:b.createdAt, ico:'📅', txt:'Booking — <b>'+DRUI.esc(b.service||'appointment')+'</b> · '+b.status}); });
+  s.conversations.slice(0,3).forEach(function(c){ acts.push({t:c.createdAt, ico:'💬', txt:'Conversation ('+c.messages.length+' messages)'+(c.leadCaptured?' · lead captured':'')}); });
+  s.reviews.slice(0,2).forEach(function(r){ acts.push({t:r.createdAt, ico:'⭐', txt:(r.rating||'?')+'★ review from <b>'+DRUI.esc(r.authorName||'customer')+'</b>'}); });
+  acts.sort(function(a,b){ return new Date(b.t)-new Date(a.t); });
+
+  h += '<div class="ag-card" style="padding:20px"><div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:14px">Recent Activity</div>';
+  if (!acts.length) h += '<div style="font-size:.8125rem;color:var(--t4)">No activity yet — test an agent to generate some!</div>';
+  acts.slice(0,8).forEach(function(a){
+    h += '<div class="act-row"><span>'+a.ico+'</span><div style="flex:1;color:var(--t2)">'+a.txt+'</div>' +
+      '<span style="font-size:.625rem;color:var(--t4);white-space:nowrap">'+DRUI.timeAgo(a.t)+'</span></div>';
+  });
+  h += '</div></div>';
+  h += '<style>@media(max-width:800px){.bd-cols{grid-template-columns:1fr!important}}</style>';
+
+  document.getElementById('content').innerHTML = h;
+}
+</script>
+</body>
+</html>

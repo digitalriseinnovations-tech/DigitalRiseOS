@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .dp-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:22px;margin-bottom:16px; }
+    .dp-code { background:#1E293B;border-radius:var(--radius);padding:14px 16px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;line-height:1.7;overflow-x:auto;white-space:pre;position:relative;margin-top:10px; }
+    .dp-copy { position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 10px;font-size:.6875rem;font-weight:600;color:#94A3B8;cursor:pointer; }
+    .dp-copy:hover { background:rgba(255,255,255,.16);color:#E2E8F0; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'deploy', requireBiz:true });
+if (biz) render();
+
+function esc(s){ return DRUI.esc(s); }
+
+function render() {
+  var agents = DRS.list('agents', { businessId: biz.id });
+  var has = function(t){ return agents.some(function(a){ return a.agentType===t; }); };
+  var ready = agents.filter(function(a){return a.trainingStatus==='ready';}).length;
+
+  var h = DRUI.pageHeader('Deploy — '+esc(biz.name),
+    'Deployment options for every channel. '+ready+' of '+agents.length+' agents trained and ready.');
+
+  if (ready < agents.length) {
+    h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;font-size:.8125rem;color:#92400E">' +
+      '⚠️ Some agents are not trained yet. <a href="'+DRUI.bizUrl(biz.slug,'agents')+'" style="font-weight:700;color:#92400E">Train them</a> before going live.</div>';
+  }
+
+  /* Website widget */
+  var primary = has('website-enquiry') ? 'website-enquiry' : (agents[0]?agents[0].agentType:'website-enquiry');
+  var snippet = '<script src="https://digital-rise-os.vercel.app/agents/widget/widget.js"\n' +
+    '        data-business="'+biz.slug+'"\n        data-agent="'+primary+'"><\/script>';
+  h += '<div class="dp-card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
+    '<span style="font-size:1.375rem">💻</span><div><div style="font-size:.9375rem;font-weight:800;color:var(--t1)">Website Widget' +
+    (has('website-enquiry')?' <span class="badge badge--green">Ready</span>':' <span class="badge badge--gray">No enquiry agent</span>')+'</div>' +
+    '<div style="font-size:.75rem;color:var(--t3)">Paste before &lt;/body&gt; on the client website — the chat bubble appears instantly.</div></div></div>' +
+    '<div class="dp-code" id="wCode"><button class="dp-copy" onclick="copyEl(\'wCode\')">Copy</button>'+esc(snippet)+'</div>' +
+    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<a class="btn btn--ghost btn--sm" href="/agents/widget/demo" target="_blank">👁 Preview Widget</a></div></div>';
+
+  /* WhatsApp */
+  h += dpCard('📲','WhatsApp Follow-up', has('whatsapp-followup'),
+    biz.whatsapp ? 'Connected number: <b>'+esc(biz.whatsapp)+'</b>. The agent sends follow-ups, reminders and quote nudges from this number.'
+                 : 'No WhatsApp number saved. <a href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'" style="font-weight:700">Add it in the Knowledge Base</a> to enable follow-ups.',
+    biz.whatsapp ? 'https://wa.me/'+biz.whatsapp.replace(/[^\d]/g,'') : null, 'WhatsApp chat link');
+
+  /* Email */
+  h += dpCard('📧','Email Reply Assistant', has('email-inbox'),
+    biz.email ? 'Enquiries to <b>'+esc(biz.email)+'</b> get AI-drafted replies. Forward the inbox or connect via integration (coming soon).'
+              : 'No enquiry email saved. Add it in the Knowledge Base.', null, null);
+
+  /* Review link */
+  h += dpCard('⭐','Review Request Link', has('review'),
+    biz.reviewLink ? 'Share this after each visit/job — the Review Agent also sends it automatically after positive interactions.'
+                   : 'No Google review link saved. Add it in the Knowledge Base to enable review requests.',
+    biz.reviewLink || null, 'Google review link');
+
+  /* Booking */
+  h += dpCard('📅','Booking Flow', has('booking'),
+    'The booking agent offers ' + (biz.industryGroup==='childcare'?'tours':'appointments') + ' inside chat and logs them to the <a href="'+DRUI.bizUrl(biz.slug,'bookings')+'" style="font-weight:700">Bookings page</a>.' +
+    (biz.bookingLink ? ' External booking link connected: <b>'+esc(biz.bookingLink)+'</b>' : ''),
+    biz.bookingLink || null, 'External booking link');
+
+  document.getElementById('content').innerHTML = h;
+}
+
+function dpCard(ico, title, enabled, desc, link, linkLabel) {
+  return '<div class="dp-card" style="'+(enabled?'':'opacity:.55')+'">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
+    '<span style="font-size:1.375rem">'+ico+'</span><div style="flex:1">' +
+    '<div style="font-size:.9375rem;font-weight:800;color:var(--t1)">'+title+' ' +
+    (enabled?'<span class="badge badge--green">Agent deployed</span>':'<span class="badge badge--gray">Agent not selected</span>')+'</div>' +
+    '<div style="font-size:.75rem;color:var(--t3);line-height:1.55;margin-top:3px">'+desc+'</div></div></div>' +
+    (link ? '<div class="dp-code" id="c'+title.replace(/\W/g,'')+'"><button class="dp-copy" onclick="copyEl(\'c'+title.replace(/\W/g,'')+'\')">Copy</button>'+DRUI.esc(link)+'</div>' : '') +
+  '</div>';
+}
+
+window.copyEl = function(id){
+  var el = document.getElementById(id);
+  var text = el.textContent.replace(/^Copy/,'').trim();
+  navigator.clipboard.writeText(text).then(function(){ AG.toast('Copied to clipboard!','success'); });
+};
+</script>
+</body>
+</html>

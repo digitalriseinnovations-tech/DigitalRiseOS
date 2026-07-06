@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'bookings', requireBiz:true });
+var BSTATUS = ['pending','confirmed','completed','cancelled','no-show'];
+if (biz) render();
+
+function render() {
+  var bookings = DRS.list('bookings', { businessId: biz.id });
+  var h = DRUI.pageHeader('Bookings — '+DRUI.esc(biz.name),
+    bookings.length+' booking'+(bookings.length===1?'':'s')+' created by AI agents');
+
+  var confirmed = bookings.filter(function(b){return b.status==='confirmed';}).length;
+  var upcoming = bookings.filter(function(b){return b.bookingDate && new Date(b.bookingDate) > new Date();}).length;
+  h += DRUI.kpiRow([
+    { ico:'📅', val:bookings.length, label:'Total Bookings', bg:'var(--accent-bg)' },
+    { ico:'✅', val:confirmed, label:'Confirmed', bg:'var(--green-bg)' },
+    { ico:'⏭️', val:upcoming, label:'Upcoming', bg:'#FEF3C7' },
+  ]);
+
+  if (!bookings.length) {
+    h += DRUI.empty('📅','No bookings yet','When an agent offers a booking in a conversation, it lands here.',
+      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Test an Agent</a>');
+  } else {
+    var rows = bookings.map(function(b){
+      var lead = b.leadId ? DRS.get('leads', b.leadId) : null;
+      var badgeColor = { pending:'amber', confirmed:'green', completed:'blue', cancelled:'gray', 'no-show':'red' }[b.status]||'gray';
+      return '<tr>' +
+        DRUI.td('<div style="font-weight:700;color:var(--t1)">'+DRUI.esc(b.service||'Booking')+'</div>' +
+          (b.notes?'<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.notes)+'</div>':'')) +
+        DRUI.td(lead ? DRUI.esc(lead.name||'—') : '—') +
+        DRUI.td(b.bookingDate ? DRUI.fmtDate(b.bookingDate) : '—') +
+        DRUI.td('<select class="ag-select" style="padding:4px 8px;font-size:.75rem" onchange="setBStatus(\''+b.id+'\',this.value)">' +
+          BSTATUS.map(function(s){return '<option'+(s===b.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>') +
+        DRUI.td('<span class="badge badge--'+badgeColor+'">'+b.status+'</span>') +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(b.createdAt)+'</span>') +
+      '</tr>';
+    }).join('');
+    h += DRUI.table(['Service','Customer','Date','Update','Status','Created'], rows);
+  }
+  document.getElementById('content').innerHTML = h;
+}
+
+window.setBStatus = function(id, status){
+  DRS.update('bookings', id, { status: status });
+  AG.toast('Booking marked '+status,'success');
+  render();
+};
+</script>
+</body>
+</html>

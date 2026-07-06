@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'reviews', requireBiz:true });
+if (biz) render();
+
+function stars(n){ n=n||0; var s=''; for(var i=1;i<=5;i++) s+= i<=n?'★':'☆'; return '<span style="color:#F59E0B;letter-spacing:1px">'+s+'</span>'; }
+
+function render() {
+  var reviews = DRS.list('reviews', { businessId: biz.id });
+  var avg = reviews.length ? (reviews.reduce(function(s,r){return s+(r.rating||0);},0)/reviews.length).toFixed(1) : '—';
+  var h = DRUI.pageHeader('Reviews — '+DRUI.esc(biz.name),
+    reviews.length+' review'+(reviews.length===1?'':'s')+' collected',
+    (biz.reviewLink ? '<button class="btn btn--ghost" onclick="copyReviewLink()">🔗 Copy Review Link</button>' : '') +
+    '<button class="btn btn--primary" onclick="simulateRequest()">⭐ Simulate Review Request</button>');
+
+  var flagged = reviews.filter(function(r){return r.status==='flagged';}).length;
+  h += DRUI.kpiRow([
+    { ico:'⭐', val:reviews.length, label:'Reviews Collected', bg:'#FEF3C7' },
+    { ico:'📊', val:avg, label:'Average Rating', bg:'var(--accent-bg)' },
+    { ico:'🚨', val:flagged, label:'Flagged (unhappy)', bg:'#FEE2E2' },
+  ]);
+
+  if (!biz.reviewLink) {
+    h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;font-size:.8125rem;color:#92400E">' +
+      '⚠️ No Google review link saved. <a href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'" style="font-weight:700;color:#92400E">Add it in the Knowledge Base</a> so the Review Agent can request reviews.</div>';
+  }
+
+  if (!reviews.length) {
+    h += DRUI.empty('⭐','No reviews yet','The Review Agent requests reviews after positive interactions. Simulate one to see the flow.',
+      '<button class="btn btn--primary" onclick="simulateRequest()">⭐ Simulate Review Request</button>');
+  } else {
+    var rows = reviews.map(function(r){
+      var badgeColor = { published:'green', pending:'amber', flagged:'red', responded:'blue' }[r.status]||'gray';
+      return '<tr>' +
+        DRUI.td('<div style="font-weight:700;color:var(--t1)">'+DRUI.esc(r.authorName||'Anonymous')+'</div>' +
+          '<div style="font-size:.75rem;color:var(--t3);margin-top:2px;max-width:380px">'+DRUI.esc(r.content||'')+'</div>') +
+        DRUI.td(stars(r.rating)) +
+        DRUI.td(DRUI.esc(r.platform||'google')) +
+        DRUI.td('<span class="badge badge--'+badgeColor+'">'+r.status+'</span>') +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(r.createdAt)+'</span>') +
+      '</tr>';
+    }).join('');
+    h += DRUI.table(['Review','Rating','Platform','Status','When'], rows);
+  }
+  document.getElementById('content').innerHTML = h;
+}
+
+window.copyReviewLink = function(){
+  navigator.clipboard.writeText(biz.reviewLink).then(function(){ AG.toast('Review link copied!','success'); });
+};
+window.simulateRequest = function(){
+  var names = ['Jordan M.','Priya S.','Alex T.','Sam K.','Dana R.'];
+  var rating = Math.random() < 0.8 ? 5 : 2;
+  var rec = DRA.addReview(biz, {
+    rating: rating,
+    authorName: names[Math.floor(Math.random()*names.length)],
+    content: rating >= 4 ? 'Great experience — the team was fantastic and the AI chat made everything easy!' : 'Not happy with my last visit. Waiting for someone to contact me.',
+    status: rating >= 4 ? 'published' : 'flagged',
+  });
+  if (rating < 4) AG.toast('⚠️ Unhappy feedback detected — staff alert created','error');
+  else AG.toast('Review request sent — 5★ review received!','success');
+  render();
+};
+</script>
+</body>
+</html>

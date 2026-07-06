@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'leads', requireBiz:true });
+var STATUSES = ['New','Qualified','Booked','Follow-up','Won','Lost'];
+if (biz) render();
+
+function render() {
+  var leads = DRS.list('leads', { businessId: biz.id });
+  var h = DRUI.pageHeader('Leads — '+DRUI.esc(biz.name),
+    leads.length+' lead'+(leads.length===1?'':'s')+' captured by AI agents');
+
+  var newC = leads.filter(function(l){return l.status==='New';}).length;
+  var qual = leads.filter(function(l){return ['Qualified','Booked','Won'].indexOf(l.status)!==-1;}).length;
+  h += DRUI.kpiRow([
+    { ico:'🎯', val:leads.length, label:'Total Leads', bg:'var(--accent-bg)' },
+    { ico:'🆕', val:newC, label:'New — needs action', bg:'#FEF3C7' },
+    { ico:'✅', val:qual, label:'Qualified or better', bg:'var(--green-bg)' },
+  ]);
+
+  if (!leads.length) {
+    h += DRUI.empty('🎯','No leads yet','Test an agent in the Tester tab — captured leads appear here instantly.',
+      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Open AI Agents</a>');
+  } else {
+    var rows = leads.map(function(l){
+      var ag = l.agentId ? DRS.get('agents', l.agentId) : null;
+      return '<tr>' +
+        DRUI.td('<div style="font-weight:700;color:var(--t1)">'+DRUI.esc(l.name||'Unknown')+'</div>' +
+          '<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(l.phone||'')+(l.email?' · '+DRUI.esc(l.email):'')+'</div>') +
+        DRUI.td(DRUI.esc(l.enquiryType||'—')) +
+        DRUI.td(ag ? '<span style="font-size:.75rem">'+DRUI.esc(ag.agentName)+'</span>' : '—') +
+        DRUI.td(l.qualScore ? AG.qualBadge(l.qualScore) : '—') +
+        DRUI.td('<select class="ag-select" style="padding:4px 8px;font-size:.75rem" onchange="setStatus(\''+l.id+'\',this.value)">' +
+          STATUSES.map(function(s){return '<option'+(s===l.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>') +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(l.createdAt)+'</span>') +
+        DRUI.td('<button class="btn btn--ghost btn--sm" onclick="viewLead(\''+l.id+'\')">View</button>') +
+      '</tr>';
+    }).join('');
+    h += DRUI.table(['Lead','Enquiry','Captured By','Quality','Status','When',''], rows);
+  }
+  document.getElementById('content').innerHTML = h;
+}
+
+window.setStatus = function(id, status){
+  DRS.update('leads', id, { status: status });
+  AG.toast('Lead marked as '+status,'success');
+};
+window.viewLead = function(id){
+  var l = DRS.get('leads', id);
+  var m = document.createElement('div');
+  m.className='ag-modal is-open'; m.id='leadM';
+  var kill = "document.getElementById('leadM').remove();document.body.style.overflow=''";
+  m.innerHTML = '<div class="ag-modal-overlay" onclick="'+kill+'"></div>' +
+    '<div class="ag-modal-box" style="max-width:460px"><div class="ag-modal-head">' +
+    '<div class="ag-modal-title">'+DRUI.esc(l.name||'Lead')+'</div>' +
+    '<button class="ag-modal-x" onclick="'+kill+'">✕</button></div>' +
+    '<div class="ag-modal-body" style="font-size:.8125rem;line-height:2">' +
+    '<b>Phone:</b> '+DRUI.esc(l.phone||'—')+'<br><b>Email:</b> '+DRUI.esc(l.email||'—')+'<br>' +
+    '<b>Enquiry:</b> '+DRUI.esc(l.enquiryType||'—')+'<br><b>Status:</b> '+AG.statusBadge(l.status)+'<br>' +
+    '<b>Quality score:</b> '+(l.qualScore||'—')+'<br><b>Captured:</b> '+DRUI.fmtDate(l.createdAt)+'<br>' +
+    (l.notes?'<b>Notes:</b> '+DRUI.esc(l.notes):'')+'</div></div>';
+  document.body.appendChild(m); document.body.style.overflow='hidden';
+};
+</script>
+</body>
+</html>

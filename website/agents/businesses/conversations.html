@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversations — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .cv-msg { max-width:80%;padding:8px 12px;border-radius:11px;font-size:.8125rem;line-height:1.5;margin-bottom:8px;white-space:pre-wrap; }
+    .cv-msg.in  { background:var(--bg-alt);border:1px solid var(--border);margin-right:auto;border-bottom-left-radius:3px; }
+    .cv-msg.out { background:var(--accent);color:#fff;margin-left:auto;border-bottom-right-radius:3px; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'conversations', requireBiz:true });
+if (biz) render();
+
+function render() {
+  var convs = DRS.list('conversations', { businessId: biz.id });
+  var h = DRUI.pageHeader('Conversations — '+DRUI.esc(biz.name),
+    convs.length+' conversation'+(convs.length===1?'':'s')+' handled by AI agents');
+
+  var withLead = convs.filter(function(c){return c.leadCaptured;}).length;
+  h += DRUI.kpiRow([
+    { ico:'💬', val:convs.length, label:'Total Conversations', bg:'var(--accent-bg)' },
+    { ico:'🎯', val:withLead, label:'Converted to Lead', bg:'var(--green-bg)' },
+    { ico:'📈', val:(convs.length?Math.round(withLead/convs.length*100)+'%':'—'), label:'Conversion Rate', bg:'#FEF3C7' },
+  ]);
+
+  if (!convs.length) {
+    h += DRUI.empty('💬','No conversations yet','Conversations from the widget and agent tester appear here.',
+      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Test an Agent</a>');
+  } else {
+    var rows = convs.map(function(c){
+      var ag = c.agentId ? DRS.get('agents', c.agentId) : null;
+      var preview = (c.messages && c.messages.length>1) ? c.messages[1].text : (c.messages[0]||{}).text || '';
+      return '<tr>' +
+        DRUI.td('<span style="font-size:.75rem;color:var(--t2)">'+DRUI.esc(String(preview).slice(0,70))+(String(preview).length>70?'…':'')+'</span>') +
+        DRUI.td(ag ? DRUI.esc(ag.agentName) : '—') +
+        DRUI.td(AG.chBadge(c.channel||'website')) +
+        DRUI.td('<b>'+(c.messages||[]).length+'</b> msgs') +
+        DRUI.td(c.leadCaptured?'<span class="badge badge--green">✓ Lead</span>':'<span class="badge badge--gray">No lead</span>') +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(c.createdAt)+'</span>') +
+        DRUI.td('<button class="btn btn--ghost btn--sm" onclick="viewConv(\''+c.id+'\')">Transcript</button>') +
+      '</tr>';
+    }).join('');
+    h += DRUI.table(['First Message','Agent','Channel','Length','Outcome','When',''], rows);
+  }
+  document.getElementById('content').innerHTML = h;
+}
+
+window.viewConv = function(id){
+  var c = DRS.get('conversations', id);
+  var kill = "document.getElementById('convM').remove();document.body.style.overflow=''";
+  var m = document.createElement('div');
+  m.className='ag-modal is-open'; m.id='convM';
+  m.innerHTML = '<div class="ag-modal-overlay" onclick="'+kill+'"></div>' +
+    '<div class="ag-modal-box" style="max-width:520px"><div class="ag-modal-head">' +
+    '<div class="ag-modal-title">Conversation Transcript</div>' +
+    '<button class="ag-modal-x" onclick="'+kill+'">✕</button></div>' +
+    '<div class="ag-modal-body" style="max-height:60vh;overflow:auto;display:flex;flex-direction:column">' +
+    (c.messages||[]).map(function(msg){
+      return '<div class="cv-msg '+(msg.role==='out'?'out':'in')+'">'+DRUI.esc(msg.text)+'</div>';
+    }).join('') + '</div></div>';
+  document.body.appendChild(m); document.body.style.overflow='hidden';
+};
+</script>
+</body>
+</html>

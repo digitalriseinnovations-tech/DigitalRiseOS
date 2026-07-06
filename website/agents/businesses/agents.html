@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .agent-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:20px;transition:all .18s;display:flex;flex-direction:column;gap:12px; }
+    .agent-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+    .ac-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px; }
+    .ac-stat { text-align:center;flex:1; }
+    .ac-stat b { display:block;font-size:1.125rem;color:var(--t1); }
+    .ac-stat span { font-size:.625rem;color:var(--t4);font-weight:600; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+var biz = DRUI.init({ nav:'businesses', bizNav:'agents', requireBiz:true });
+if (biz) render();
+
+function render() {
+  var agents = DRS.list('agents', { businessId: biz.id });
+  var h = DRUI.pageHeader('AI Agents — '+DRUI.esc(biz.name),
+    agents.length+' agent'+(agents.length===1?'':'s')+' deployed for this business',
+    '<button class="btn btn--ghost" onclick="trainAllNow()">⚡ Train All</button>' +
+    '<button class="btn btn--primary" onclick="addAgentModal()">+ Add Agent</button>');
+
+  if (!agents.length) {
+    h += DRUI.empty('🤖','No agents deployed','Add AI agents to start handling enquiries for this business.',
+      '<button class="btn btn--primary" onclick="addAgentModal()">+ Add Agent</button>');
+  } else {
+    h += '<div class="ac-grid">' + agents.map(function(a){
+      var def = DRD.agentDef(biz.industryGroup, a.agentType) || { icon:'🤖', desc:'' };
+      var st = DRA.agentStats(a.id);
+      var actionsOn = Object.keys(a.actionsEnabled||{}).filter(function(k){return a.actionsEnabled[k];}).length;
+      return '<div class="agent-card">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px">' +
+          '<div style="width:42px;height:42px;border-radius:11px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0">'+def.icon+'</div>' +
+          '<div style="flex:1;min-width:0"><div style="font-size:.9063rem;font-weight:800;color:var(--t1)">'+DRUI.esc(a.agentName)+'</div>' +
+          '<div style="font-size:.6875rem;color:var(--t4);margin-top:2px">'+a.agentType+' · '+a.channels.join(', ')+'</div></div>' +
+          DRUI.trainBadge(a.trainingStatus) + '</div>' +
+        '<div style="font-size:.75rem;color:var(--t3);line-height:1.5">'+ (def.desc||'') +'</div>' +
+        '<div style="display:flex;border-top:1px solid var(--border-s);border-bottom:1px solid var(--border-s);padding:10px 0">' +
+          '<div class="ac-stat"><b>'+st.leads.length+'</b><span>Leads</span></div>' +
+          '<div class="ac-stat"><b>'+st.conversations.length+'</b><span>Convos</span></div>' +
+          '<div class="ac-stat"><b>'+st.bookings.length+'</b><span>Bookings</span></div>' +
+          '<div class="ac-stat"><b>'+actionsOn+'</b><span>Actions</span></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<a class="btn btn--primary btn--sm" href="'+DRUI.agentUrl(biz.slug, a.id)+'" style="flex:1;text-align:center">Open Agent</a>' +
+          '<button class="btn btn--ghost btn--sm" onclick="trainOne(\''+a.id+'\')">⚡ Train</button>' +
+          '<button class="btn btn--ghost btn--sm" onclick="toggleStatus(\''+a.id+'\')">'+(a.status==='active'?'⏸':'▶')+'</button>' +
+        '</div>' +
+        '<div style="font-size:.625rem;color:var(--t4)">Last trained: '+DRUI.timeAgo(a.lastTrained)+' · '+AG.statusBadge(a.status)+'</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+  document.getElementById('content').innerHTML = h;
+}
+
+window.trainOne = function(id){
+  AG.toast('Training agent…','info');
+  DRA.trainAgent(id, function(){ AG.toast('Agent trained!','success'); render(); });
+  render();
+};
+window.trainAllNow = function(){
+  AG.toast('Training all agents…','info');
+  DRA.trainAll(biz.id, function(){ render(); }, function(){ AG.toast('All agents trained!','success'); render(); });
+};
+window.toggleStatus = function(id){
+  var a = DRS.get('agents', id);
+  DRS.update('agents', id, { status: a.status==='active'?'paused':'active' });
+  AG.toast(a.status==='active'?'Agent paused':'Agent activated','success');
+  render();
+};
+
+/* Add agent — pick from catalog agents not yet deployed */
+window.addAgentModal = function(){
+  var existing = DRS.list('agents',{businessId:biz.id}).map(function(a){return a.agentType;});
+  var avail = DRD.agentsFor(biz.industryGroup).filter(function(a){ return existing.indexOf(a.type)===-1; });
+  if (!avail.length) return AG.toast('All catalog agents are already deployed','info');
+  var m = document.createElement('div');
+  m.className='ag-modal is-open'; m.id='addAgentM';
+  m.innerHTML = '<div class="ag-modal-overlay" onclick="document.getElementById(\'addAgentM\').remove();document.body.style.overflow=\'\'"></div>' +
+    '<div class="ag-modal-box" style="max-width:520px"><div class="ag-modal-head"><div class="ag-modal-title">Add AI Agent</div>' +
+    '<button class="ag-modal-x" onclick="document.getElementById(\'addAgentM\').remove();document.body.style.overflow=\'\'">✕</button></div>' +
+    '<div class="ag-modal-body" style="max-height:60vh;overflow:auto">' +
+    avail.map(function(a){
+      return '<div style="display:flex;gap:11px;align-items:flex-start;padding:12px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer" onclick="deployAgent(\''+a.type+'\')">' +
+        '<span style="font-size:1.25rem">'+a.icon+'</span><div style="flex:1">' +
+        '<div style="font-size:.8125rem;font-weight:700;color:var(--t1)">'+a.name+'</div>' +
+        '<div style="font-size:.6875rem;color:var(--t3);margin-top:2px">'+a.desc+'</div></div>' +
+        '<span class="btn btn--primary btn--sm">+ Add</span></div>';
+    }).join('') + '</div></div>';
+  document.body.appendChild(m); document.body.style.overflow='hidden';
+};
+window.deployAgent = function(type){
+  var def = DRD.agentDef(biz.industryGroup, type);
+  DRS.create('agents', {
+    businessId: biz.id, agentType: type, agentName: def.name,
+    status:'active', channels: def.channels,
+    actionsEnabled:{ createLead:true, offerBooking:true, escalate:true },
+    trainingStatus:'not-trained', lastTrained:null,
+  });
+  var sel = (biz.selectedAgents||[]); if (sel.indexOf(type)===-1) sel.push(type);
+  DRS.update('businesses', biz.id, { selectedAgents: sel });
+  var mm = document.getElementById('addAgentM'); if (mm) mm.remove();
+  document.body.style.overflow='';
+  AG.toast(def.name+' deployed! Train it before testing.','success');
+  render();
+};
+</script>
+</body>
+</html>

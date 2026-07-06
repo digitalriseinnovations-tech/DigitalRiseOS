@@ -3,170 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Businesses — Digital Rise AI Employees</title>
+  <title>Businesses — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .biz-row { cursor:pointer;transition:background .12s; }
+    .biz-row:hover { background:var(--bg-alt); }
+  </style>
 </head>
 <body class="ag-body">
 <div class="ag-layout">
   <aside class="ag-sidebar" id="agSidebar"></aside>
   <div class="ag-main">
     <header class="ag-topbar" id="agTopbar"></header>
-    <main class="ag-content">
-
-      <div class="ag-ph">
-        <div>
-          <div class="ag-ph-title">Businesses</div>
-          <div class="ag-ph-sub">5 businesses · All AI employees managed from one place</div>
-        </div>
-        <div class="ag-ph-actions">
-          <a href="/agents/businesses/new" class="btn btn--primary">+ Add Business</a>
-        </div>
-      </div>
-
-      <!-- Summary stats -->
-      <div class="ag-grid-4 ag-section" id="bizStats"></div>
-
-      <!-- Filters -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-        <div style="display:flex;gap:6px" id="bizFilters">
-          <button class="btn btn--ghost btn--sm is-active" data-filter="all" onclick="filterBiz('all',this)">All (5)</button>
-          <button class="btn btn--ghost btn--sm" data-filter="active" onclick="filterBiz('active',this)">Active (4)</button>
-          <button class="btn btn--ghost btn--sm" data-filter="setup" onclick="filterBiz('setup',this)">In Setup (1)</button>
-        </div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <select class="ag-select" style="width:160px" id="industryFilter" onchange="filterBiz(document.querySelector('[data-filter].is-active')?.dataset.filter||'all')">
-            <option value="">All Industries</option>
-            <option>Daycare</option><option>Dental</option><option>Restaurant</option>
-            <option>Contractor</option><option>Beauty Salon</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Business cards -->
-      <div id="bizCards" style="display:grid;grid-template-columns:1fr;gap:12px"></div>
-
-    </main>
+    <main class="ag-content" id="content"></main>
   </div>
 </div>
 
-<!-- Detail panel -->
-<div class="ag-panel" id="bizPanel">
-  <div class="ag-panel-hd">
-    <span class="ag-panel-title" id="panelBizName">Business</span>
-    <button class="ag-panel-close" onclick="AG.closePanel('bizPanel')">${AG?.IC?.x||'✕'}</button>
-  </div>
-  <div class="ag-panel-body" id="panelBizBody"></div>
-</div>
-
-<script src="/agents/shared/agents-data.js"></script>
 <script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
 <script>
-AG.init({ page: 'businesses' });
+DRUI.init({ nav:'businesses' });
 
-/* Stats */
-var allLeads = AD.businesses.reduce(function(s,b){return s+b.leads;},0);
-var allBookings = AD.businesses.reduce(function(s,b){return s+b.bookings;},0);
-var allReviews = AD.businesses.reduce(function(s,b){return s+b.reviews;},0);
-document.getElementById('bizStats').innerHTML = [
-  {label:'Total Businesses',    val:AD.businesses.length,  ico:'🏢', col:'var(--accent)'},
-  {label:'Total Leads',         val:allLeads,              ico:'👥', col:'var(--green)'},
-  {label:'Total Bookings',      val:allBookings,           ico:'📅', col:'var(--blue)'},
-  {label:'Total Reviews',       val:allReviews,            ico:'⭐', col:'var(--amber)'},
-].map(function(s){
-  return '<div class="ag-stat"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="ag-stat-label">'+s.label+'</div><div style="font-size:1.25rem">'+s.ico+'</div></div><div class="ag-stat-val">'+s.val+'</div></div>';
-}).join('');
+function render() {
+  var businesses = DRS.list('businesses');
+  var h = DRUI.pageHeader('Businesses',
+    businesses.length + ' business' + (businesses.length===1?'':'es') + ' on the platform',
+    '<a class="btn btn--primary" href="/agents/businesses/new">+ Add Business</a>');
 
-var _filter = 'all';
-var _industry = '';
+  var totalLeads = DRS.list('leads').length;
+  var totalAgents = DRS.list('agents').length;
+  var totalConvs = DRS.list('conversations').length;
+  h += DRUI.kpiRow([
+    { ico:'🏢', val:businesses.length, label:'Businesses', bg:'var(--accent-bg)' },
+    { ico:'🤖', val:totalAgents, label:'AI Agents Deployed', bg:'var(--green-bg)' },
+    { ico:'🎯', val:totalLeads, label:'Total Leads', bg:'#FEF3C7' },
+    { ico:'💬', val:totalConvs, label:'Conversations', bg:'#FDF2F8' },
+  ]);
 
-function filterBiz(f, btn) {
-  if(btn){ document.querySelectorAll('[data-filter]').forEach(function(b){b.classList.remove('is-active')}); btn.classList.add('is-active'); }
-  _filter = f||_filter;
-  _industry = document.getElementById('industryFilter').value;
-  renderBiz();
+  if (!businesses.length) {
+    h += DRUI.empty('🏢','No businesses yet','Add your first business to deploy AI agents.',
+      '<a class="btn btn--primary" href="/agents/businesses/new">+ Add Business</a>');
+  } else {
+    var rows = businesses.map(function(b){
+      var grp = DRD.group(b.industryGroup);
+      var s = DRA.bizStats(b.id);
+      var ready = s.agents.filter(function(a){return a.trainingStatus==='ready';}).length;
+      return '<tr class="biz-row" onclick="window.location.href=\'/agents/businesses/'+b.slug+'\'">' +
+        DRUI.td('<div style="display:flex;align-items:center;gap:10px">'+AG.bizAv(b)+
+          '<div><div style="font-weight:700;color:var(--t1)">'+DRUI.esc(b.name)+'</div>'+
+          '<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.location||'')+'</div></div></div>') +
+        DRUI.td((grp?grp.icon+' '+grp.label:'—')+'<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.businessType||'')+'</div>') +
+        DRUI.td('<b>'+s.agents.length+'</b> <span style="color:var(--t4);font-size:.6875rem">('+ready+' trained)</span>') +
+        DRUI.td('<b>'+s.leads.length+'</b>') +
+        DRUI.td('<b>'+s.bookings.length+'</b>') +
+        DRUI.td(AG.statusBadge(b.status)) +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(b.createdAt)+'</span>') +
+      '</tr>';
+    }).join('');
+    h += DRUI.table(['Business','Industry','Agents','Leads','Bookings','Status','Added'], rows);
+  }
+  document.getElementById('content').innerHTML = h;
 }
-
-var planColors = { Professional:'badge--purple', Starter:'badge--blue', Enterprise:'badge--green' };
-
-function renderBiz() {
-  var list = AD.businesses.filter(function(b){
-    if(_filter!=='all' && b.status!==_filter) return false;
-    if(_industry && b.industry!==_industry) return false;
-    return true;
-  });
-  document.getElementById('bizCards').innerHTML = list.map(function(b){
-    var chHtml = b.channels.map(function(c){ return AG.chBadge(c); }).join(' ');
-    var empCount = (b.employeeIds||[]).length;
-    return '<div class="ag-card" style="padding:16px 20px;cursor:pointer" onclick="openBizPanel(\''+b.id+'\')">' +
-      '<div style="display:flex;align-items:center;gap:14px">' +
-      '<div class="av av-lg" style="background:'+b.color+'">'+b.initial+'</div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-          '<div style="font-size:.9375rem;font-weight:700;color:var(--t1)">'+b.name+'</div>' +
-          AG.statusBadge(b.status) +
-          '<span class="badge '+( planColors[b.plan]||'badge--gray' )+'">'+b.plan+'</span>' +
-        '</div>' +
-        '<div style="font-size:.75rem;color:var(--t3);margin-top:2px">'+b.industry+' · '+b.location+'</div>' +
-        '<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">'+chHtml+'</div>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;flex-shrink:0">' +
-        '<div style="text-align:center"><div style="font-size:1.125rem;font-weight:800;color:var(--t1)">'+empCount+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">AI Empl.</div></div>' +
-        '<div style="text-align:center"><div style="font-size:1.125rem;font-weight:800;color:var(--t1)">'+b.leads+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">Leads</div></div>' +
-        '<div style="text-align:center"><div style="font-size:1.125rem;font-weight:800;color:var(--t1)">'+b.bookings+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">Bookings</div></div>' +
-        '<div style="text-align:center"><div style="font-size:1.125rem;font-weight:800;color:var(--t1)">'+b.reviews+'</div><div style="font-size:.5625rem;font-weight:700;color:var(--t4);text-transform:uppercase">Reviews</div></div>' +
-      '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:12px">' +
-        '<button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();AG.toast(\'Opening workspace…\',\'info\')">Open Workspace</button>' +
-        '<button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();AG.toast(\'Configuring AI…\',\'info\')">Configure AI</button>' +
-      '</div>' +
-      '</div>' +
-      '<div style="margin-top:12px;display:flex;align-items:center;gap:8px">' +
-        '<div style="font-size:.6875rem;color:var(--t3)">Setup:</div>' +
-        '<div class="ag-progress" style="flex:1"><div class="ag-progress-fill" style="width:'+b.setupScore+'%;background:'+(b.setupScore>=80?'var(--green)':b.setupScore>=60?'var(--amber)':'var(--red)')+'"></div></div>' +
-        '<div style="font-size:.6875rem;font-weight:700;color:var(--t3)">'+b.setupScore+'%</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-  if (!list.length) document.getElementById('bizCards').innerHTML = '<div class="ag-empty"><div class="ag-empty-ico">🏢</div><div class="ag-empty-title">No businesses found</div><div class="ag-empty-sub">Try adjusting your filters</div></div>';
-}
-renderBiz();
-
-window.openBizPanel = function(id) {
-  var b = AD.businesses.find(function(x){return x.id===id;});
-  if (!b) return;
-  document.getElementById('panelBizName').textContent = b.name;
-  var emps = AD.employees.filter(function(e){return (b.employeeIds||[]).includes(e.id);});
-  document.getElementById('panelBizBody').innerHTML =
-    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">' +
-      '<div class="av av-lg" style="background:'+b.color+'">'+b.initial+'</div>' +
-      '<div><div style="font-size:1rem;font-weight:700;color:var(--t1)">'+b.name+'</div>' +
-        '<div style="font-size:.8125rem;color:var(--t3)">'+b.industry+' · '+b.location+'</div>' +
-        '<div style="margin-top:6px">'+AG.statusBadge(b.status)+'</div></div></div>' +
-    '<div class="ag-divider"></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
-      ['Website:'+b.website,'Phone:'+b.phone,'Email:'+b.email,'WhatsApp:'+b.whatsapp,'Plan:'+b.plan,'Setup:'+b.setupScore+'%'].map(function(kv){
-        var p=kv.split(':'); return '<div><div style="font-size:.625rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">'+p[0]+'</div><div style="font-size:.8125rem;color:var(--t1);margin-top:2px">'+p.slice(1).join(':')+'</div></div>';
-      }).join('') +
-    '</div>' +
-    '<div class="ag-divider"></div>' +
-    '<div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px">AI Employees ('+emps.length+')</div>' +
-    emps.map(function(e){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--border-s);border-radius:8px;margin-bottom:6px">' +
-        '<div class="av av-sm" style="background:'+e.color+'">'+e.name[0]+'</div>' +
-        '<div style="flex:1"><div style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+e.name+'</div><div style="font-size:.6875rem;color:var(--t3)">'+e.role+'</div></div>' +
-        AG.statusBadge(e.status)+'</div>';
-    }).join('') +
-    '<div class="ag-divider"></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
-      '<a href="/agents/leads" class="btn btn--ghost btn--sm">View Leads</a>' +
-      '<a href="/agents/conversations" class="btn btn--ghost btn--sm">Conversations</a>' +
-      '<a href="/agents/bookings" class="btn btn--ghost btn--sm">Bookings</a>' +
-      '<a href="/agents/reviews" class="btn btn--ghost btn--sm">Reviews</a>' +
-    '</div>';
-  AG.openPanel('bizPanel');
-};
-
-window.filterBiz = filterBiz;
+render();
 </script>
 </body>
 </html>

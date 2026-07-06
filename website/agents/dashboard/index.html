@@ -3,104 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Digital Rise AI Agents</title>
+  <title>Dashboard — Digital Rise AI Agent Platform</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    /* ── Hero banner ── */
     .dash-hero {
-      background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #F5F3FF 100%);
-      border: 1.5px solid #C7D2FE; border-radius: var(--radius-xl);
-      padding: 28px 32px; margin-bottom: 24px;
-      display: flex; align-items: center; justify-content: space-between; gap: 20px;
-      position: relative; overflow: hidden;
+      background: linear-gradient(120deg, #4F46E5 0%, #6366F1 55%, #8B5CF6 100%);
+      border-radius: var(--radius-xl); padding: 26px 28px; margin-bottom: 22px;
+      color: #fff; position: relative; overflow: hidden;
     }
-    .dash-hero::after {
-      content: ''; position: absolute; top: -60px; right: -60px;
-      width: 280px; height: 280px; border-radius: 50%;
-      background: rgba(99,102,241,.07); pointer-events: none;
+    .dash-hero::before {
+      content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px;
+      border-radius:50%; background:rgba(255,255,255,.08);
     }
-    .dash-hero-left { display: flex; align-items: center; gap: 20px; }
-    .dash-hero-mark {
-      width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
-      background: linear-gradient(135deg, #6366F1, #8B5CF6);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 8px 24px rgba(99,102,241,.3);
-    }
-    .dash-hero-mark svg { width: 26px; height: 26px; }
-    .dash-hero-title { font-size: 1.375rem; font-weight: 900; color: var(--t1); letter-spacing: -.03em; line-height: 1.15; }
-    .dash-hero-sub { font-size: .875rem; color: var(--t3); margin-top: 4px; line-height: 1.4; }
-    .dash-hero-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-    .dash-pill {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: 99px; font-size: .625rem; font-weight: 700;
-      letter-spacing: .04em;
-    }
-    .dash-pill--green { background: var(--green-bg); color: var(--green-t); border: 1px solid #A7F3D0; }
-    .dash-pill--accent { background: var(--accent-bg); color: var(--accent-t); border: 1px solid #C7D2FE; }
-    .dash-pill--amber  { background: var(--amber-bg);  color: var(--amber-t);  border: 1px solid #FDE68A; }
-    @media(max-width:700px){ .dash-hero { flex-direction:column; align-items:flex-start; } }
-
-    /* ── KPI Grid ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
-    @media(max-width:1100px){ .kpi-grid { grid-template-columns: repeat(2,1fr) } }
-    @media(max-width:600px)  { .kpi-grid { grid-template-columns: 1fr } }
-    .kpi-ico { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.125rem; margin-bottom:12px; }
-
-    /* ── Activity ── */
-    .act-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-s); }
-    .act-row:last-child { border:none }
-    .act-ico { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:.875rem; flex-shrink:0; }
-    .act-msg { font-size:.8125rem; color:var(--t2); flex:1; line-height:1.45; }
-    .act-time { font-size:.6875rem; color:var(--t4); white-space:nowrap; }
-    .act-biz { font-size:.5rem; font-weight:700; color:var(--accent); background:var(--accent-bg); padding:2px 7px; border-radius:4px; white-space:nowrap; letter-spacing:.04em; }
-
-    /* ── Q bars ── */
-    .q-bar { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-s); }
-    .q-bar:last-child { border:none }
-    .q-fill { height:5px; border-radius:99px; background:var(--accent); transition:width .8s cubic-bezier(.22,1,.36,1) }
-
-    /* ── Business rows ── */
-    .biz-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-s); }
-    .biz-row:last-child { border:none }
-
-    /* ── Setup alert ── */
-    .setup-alert {
-      display:flex; align-items:center; gap:12px; padding:13px 16px;
-      background:var(--amber-bg); border:1.5px solid #FDE68A; border-radius:var(--radius);
-      margin-bottom:14px;
-    }
-    .setup-alert-ico { font-size:1.125rem; flex-shrink:0 }
-    .setup-alert-txt { flex:1; font-size:.8125rem; color:var(--amber-t); font-weight:600; line-height:1.4 }
-    .setup-progress { height:5px; background:rgba(217,119,6,.15); border-radius:99px; overflow:hidden; margin-top:4px; }
-    .setup-progress-fill { height:100%; background:var(--amber); border-radius:99px; }
-
-    /* ── Agent status card ── */
-    .agent-live-badge {
-      display:inline-flex; align-items:center; gap:6px;
-      background:var(--green-bg); border:1.5px solid #A7F3D0;
-      padding:5px 12px; border-radius:99px; font-size:.6875rem; font-weight:700;
-      color:var(--green-t); margin-bottom:16px;
-    }
-    .agent-live-dot {
-      width:7px; height:7px; border-radius:50%; background:var(--green);
-      box-shadow:0 0 0 2px rgba(5,150,105,.2); animation:pulse 2.5s infinite;
-    }
-    .agent-stat-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-s); }
-    .agent-stat-row:last-child { border:none }
-
-    /* ── Quick Actions ── */
-    .qa-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    @media(max-width:700px){ .qa-grid { grid-template-columns:repeat(2,1fr) } }
-    .qa-btn {
-      display:flex; flex-direction:column; align-items:center; gap:7px; padding:20px 10px;
-      border:1.5px solid var(--border); border-radius:var(--radius-lg); background:var(--card);
-      cursor:pointer; transition:all var(--transition); text-decoration:none;
-      font-size:.625rem; font-weight:700; color:var(--t3); text-transform:uppercase;
-      letter-spacing:.06em; text-align:center;
-    }
-    .qa-btn:hover { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-md) }
-    .qa-ico-wrap { width:40px; height:40px; border-radius:10px; background:var(--border-s); display:flex; align-items:center; justify-content:center; font-size:1.25rem; transition:background var(--transition) }
-    .qa-btn:hover .qa-ico-wrap { background:rgba(99,102,241,.12) }
+    .hero-pill { display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:4px 12px;font-size:.6875rem;font-weight:700;margin:0 6px 6px 0; }
+    .hero-dot { width:6px;height:6px;border-radius:50%;background:#4ADE80; }
+    .biz-row { cursor:pointer;transition:background .12s; }
+    .biz-row:hover { background:var(--bg-alt); }
+    .dash-cols { display:grid;grid-template-columns:1.4fr 1fr;gap:16px; }
+    @media(max-width:900px){ .dash-cols{grid-template-columns:1fr} }
   </style>
 </head>
 <body class="ag-body">
@@ -108,224 +28,118 @@
   <aside class="ag-sidebar" id="agSidebar"></aside>
   <div class="ag-main">
     <header class="ag-topbar" id="agTopbar"></header>
-    <main class="ag-content">
-
-      <!-- Hero -->
-      <div class="dash-hero">
-        <div class="dash-hero-left">
-          <div class="dash-hero-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </div>
-          <div>
-            <div class="dash-hero-title" id="dashGreeting">AI Agent Command Centre</div>
-            <div class="dash-hero-sub">Website Enquiry Agent is live across 5 businesses — capturing leads 24/7</div>
-            <div class="dash-hero-pills">
-              <span class="dash-pill dash-pill--green"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block"></span>5 Agents Live</span>
-              <span class="dash-pill dash-pill--accent">827 Conversations</span>
-              <span class="dash-pill dash-pill--accent">126 Leads Captured</span>
-              <span class="dash-pill dash-pill--amber">1 Business Needs Setup</span>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
-          <a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost btn--sm">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Test Agent
-          </a>
-          <a href="/agents/agent-website-enquiry/business-config" class="btn btn--primary btn--sm">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l-1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
-            Configure
-          </a>
-        </div>
-      </div>
-
-      <!-- KPI Grid -->
-      <div class="kpi-grid" id="kpiGrid"></div>
-
-      <!-- Row 1: Activity + Questions -->
-      <div class="ag-row-6040 ag-section">
-        <div class="ag-card">
-          <div class="ag-card-hd">
-            <div><div class="ag-card-title">Recent Agent Activity</div><div class="ag-card-sub">Live feed across all businesses</div></div>
-            <a href="/agents/agent-website-enquiry/leads" class="ag-card-action">All Leads →</a>
-          </div>
-          <div id="actList"></div>
-        </div>
-        <div class="ag-card">
-          <div class="ag-card-hd">
-            <div><div class="ag-card-title">Top Questions This Week</div></div>
-            <a href="/agents/agent-website-enquiry/analytics" class="ag-card-action">Analytics →</a>
-          </div>
-          <div id="qList"></div>
-        </div>
-      </div>
-
-      <!-- Row 2: Businesses + Agent Status -->
-      <div class="ag-row-6040 ag-section">
-        <div class="ag-card">
-          <div class="ag-card-hd">
-            <div><div class="ag-card-title">Top Performing Businesses</div><div class="ag-card-sub">Ranked by leads captured this month</div></div>
-          </div>
-          <div id="setupAlert"></div>
-          <div id="bizPerf"></div>
-        </div>
-        <div class="ag-card">
-          <div class="ag-card-hd">
-            <div><div class="ag-card-title">Website Enquiry Agent</div><div class="ag-card-sub">Live performance — today</div></div>
-          </div>
-          <div id="agentStatus"></div>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="ag-card ag-section">
-        <div class="ag-card-hd">
-          <div><div class="ag-card-title">Quick Actions</div><div class="ag-card-sub">Jump to any part of the platform</div></div>
-        </div>
-        <div class="qa-grid">
-          <a href="/agents/agent-website-enquiry/business-config" class="qa-btn">
-            <div class="qa-ico-wrap">⚙</div>Configure Business
-          </a>
-          <a href="/agents/agent-website-enquiry/tester" class="qa-btn">
-            <div class="qa-ico-wrap">🧪</div>Open Agent Tester
-          </a>
-          <a href="/agents/agent-website-enquiry/leads" class="qa-btn">
-            <div class="qa-ico-wrap">👤</div>View All Leads
-          </a>
-          <a href="/agents/agent-website-enquiry/knowledge-base" class="qa-btn">
-            <div class="qa-ico-wrap">🧠</div>Edit Knowledge Base
-          </a>
-        </div>
-      </div>
-
-    </main>
+    <main class="ag-content" id="content"></main>
   </div>
 </div>
 
-<script src="/agents/shared/agents-data.js"></script>
 <script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
 <script>
-AG.init({ page:'dashboard' });
+DRUI.init({ nav:'dashboard' });
 
-/* ── Greeting ─────────────────────────────────────── */
-var h = new Date().getHours();
-document.getElementById('dashGreeting').textContent =
-  (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') +
-  ', Digital Rise';
+function render() {
+  var businesses = DRS.list('businesses');
+  var agents = DRS.list('agents');
+  var leads = DRS.list('leads');
+  var convs = DRS.list('conversations');
+  var bookings = DRS.list('bookings');
+  var reviews = DRS.list('reviews');
+  var ready = agents.filter(function(a){return a.trainingStatus==='ready';}).length;
+  var hr = new Date().getHours();
+  var greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
 
-/* ── KPIs ─────────────────────────────────────────── */
-var KPIS = [
-  { label:'Active Businesses',     val:AD.kpis.activeBusinesses,     delta:'↑ +1 this month',         ico:'🏢', bg:'var(--accent-bg)', col:'var(--accent)'  },
-  { label:'Agents Live',           val:AD.kpis.agentsLive,           delta:'All businesses covered',   ico:'🤖', bg:'var(--green-bg)',  col:'var(--green)'   },
-  { label:'Conversations',         val:AD.kpis.conversationsHandled, delta:'↑ +47 this week',          ico:'💬', bg:'var(--blue-bg)',   col:'var(--blue)'    },
-  { label:'Leads Captured',        val:AD.kpis.leadsCaptured,        delta:'↑ +12 this week',          ico:'👤', bg:'var(--purple-bg)', col:'var(--purple)'  },
-  { label:'Qualified Leads',       val:AD.kpis.qualifiedLeads,       delta:'63% qualification rate',   ico:'🎯', bg:'var(--green-bg)',  col:'var(--green)'   },
-  { label:'Avg Response Time',     val:AD.kpis.avgResponseTime,      delta:'vs 4–8hrs industry avg',   ico:'⚡', bg:'var(--accent-bg)', col:'var(--accent)'  },
-  { label:'Booking Conversion',    val:AD.kpis.conversionToBooking,  delta:'Enquiry → booked action',  ico:'📅', bg:'var(--amber-bg)',  col:'var(--amber)'   },
-  { label:'Needs Setup',           val:AD.kpis.needsSetup,           delta:'ProBuild at 55% — fix now',ico:'⚠',  bg:'var(--red-bg)',    col:'var(--red)'     },
-];
-document.getElementById('kpiGrid').innerHTML = KPIS.map(function(k) {
-  return '<div class="ag-stat">' +
-    '<div class="kpi-ico" style="background:' + k.bg + '">' + k.ico + '</div>' +
-    '<div class="ag-stat-label">' + k.label + '</div>' +
-    '<div class="ag-stat-val" style="color:' + k.col + '">' + k.val + '</div>' +
-    '<div style="font-size:.6875rem;color:var(--t3);margin-top:6px;line-height:1.3">' + k.delta + '</div>' +
-    '</div>';
-}).join('');
-
-/* ── Activity feed ────────────────────────────────── */
-var ACT_BG = { lead:'var(--accent-bg)', faq:'var(--green-bg)', booking:'var(--purple-bg)', callback:'var(--amber-bg)', training:'var(--border-s)' };
-document.getElementById('actList').innerHTML = AD.recentActivity.map(function(a) {
-  return '<div class="act-row">' +
-    '<div class="act-ico" style="background:' + (ACT_BG[a.type] || 'var(--border-s)') + '">' + a.ico + '</div>' +
-    '<div class="act-msg">' + a.msg + '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">' +
-      '<div class="act-time">' + a.time + '</div>' +
-      '<div class="act-biz">' + a.biz + '</div>' +
+  var h = '<div class="dash-hero">' +
+    '<div style="font-size:1.5rem;font-weight:800;letter-spacing:-.01em;position:relative">'+greet+', Digital Rise 👋</div>' +
+    '<div style="font-size:.8438rem;opacity:.85;margin:6px 0 14px;position:relative">Your AI employees are working across '+businesses.length+' business'+(businesses.length===1?'':'es')+'.</div>' +
+    '<div style="position:relative">' +
+      '<span class="hero-pill"><span class="hero-dot"></span>'+agents.length+' agents deployed</span>' +
+      '<span class="hero-pill"><span class="hero-dot"></span>'+ready+' trained & ready</span>' +
+      '<span class="hero-pill">🎯 '+leads.length+' leads</span>' +
+      '<span class="hero-pill">📅 '+bookings.length+' bookings</span>' +
     '</div>' +
-    '</div>';
-}).join('');
+    '<div style="margin-top:16px;position:relative;display:flex;gap:10px;flex-wrap:wrap">' +
+      '<a class="btn" href="/agents/businesses/new" style="background:#fff;color:var(--accent-d);font-weight:700">+ Add Business</a>' +
+      '<a class="btn" href="/agents/businesses" style="background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25)">View Businesses</a>' +
+    '</div></div>';
 
-/* ── Top questions ────────────────────────────────── */
-document.getElementById('qList').innerHTML = AD.topQuestions.map(function(q) {
-  return '<div class="q-bar">' +
-    '<div style="flex:1;min-width:0">' +
-      '<div style="font-size:.8125rem;color:var(--t1);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + q.q + '</div>' +
-      '<div style="background:var(--border-s);height:5px;border-radius:99px;overflow:hidden">' +
-        '<div class="q-fill" style="width:' + q.pct + '%"></div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="font-size:.75rem;font-weight:800;color:var(--t2);flex-shrink:0;margin-left:10px">' + q.count + '</div>' +
-    '</div>';
-}).join('');
+  h += DRUI.kpiRow([
+    { ico:'🏢', val:businesses.length, label:'Active Businesses', bg:'var(--accent-bg)' },
+    { ico:'🤖', val:agents.length, label:'AI Agents Live', bg:'var(--green-bg)' },
+    { ico:'🎯', val:leads.length, label:'Leads Captured', bg:'#FEF3C7' },
+    { ico:'💬', val:convs.length, label:'Conversations', bg:'#FDF2F8' },
+    { ico:'📅', val:bookings.length, label:'Bookings', bg:'#EEF2FF' },
+    { ico:'⭐', val:reviews.length, label:'Reviews', bg:'#FFF7ED' },
+  ]);
 
-/* ── Setup alert (ProBuild at 55%) ────────────────── */
-var setupBiz = AD.businesses.find(function(b) { return b.setupScore < 80; });
-if (setupBiz) {
-  document.getElementById('setupAlert').innerHTML =
-    '<div class="setup-alert">' +
-      '<span class="setup-alert-ico">⚠</span>' +
-      '<div style="flex:1">' +
-        '<div class="setup-alert-txt">' + setupBiz.name + ' is only ' + setupBiz.setupScore + '% configured — the agent may miss enquiries</div>' +
-        '<div class="setup-progress"><div class="setup-progress-fill" style="width:' + setupBiz.setupScore + '%"></div></div>' +
-      '</div>' +
-      '<a href="/agents/agent-website-enquiry/business-config" class="btn btn--ghost btn--sm" style="flex-shrink:0">Fix Now →</a>' +
-    '</div>';
+  /* Setup alerts: untrained agents */
+  var untrained = agents.filter(function(a){return a.trainingStatus!=='ready';});
+  if (untrained.length) {
+    var byBiz = {};
+    untrained.forEach(function(a){ byBiz[a.businessId] = (byBiz[a.businessId]||0)+1; });
+    Object.keys(byBiz).forEach(function(bid){
+      var b = DRS.get('businesses', bid);
+      if (!b) return;
+      h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:13px 18px;margin-bottom:10px;font-size:.8125rem;color:#92400E;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+        '<span>⚠️</span><span style="flex:1"><b>'+DRUI.esc(b.name)+'</b> has '+byBiz[bid]+' untrained agent'+(byBiz[bid]===1?'':'s')+' — they can\'t answer customers yet.</span>' +
+        '<a class="btn btn--sm" style="background:#92400E;color:#fff" href="'+DRUI.bizUrl(b.slug,'agents')+'">Fix Now →</a></div>';
+    });
+  }
+
+  h += '<div class="dash-cols">';
+
+  /* Business leaderboard */
+  h += '<div class="ag-card" style="padding:0;overflow:hidden">' +
+    '<div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">' +
+    '<span style="font-size:.875rem;font-weight:800;color:var(--t1)">Businesses</span>' +
+    '<a class="btn btn--ghost btn--sm" href="/agents/businesses">View all →</a></div>';
+  if (!businesses.length) {
+    h += '<div style="padding:30px;text-align:center;font-size:.8125rem;color:var(--t4)">No businesses yet — add your first one!</div>';
+  }
+  businesses.slice(0,6).forEach(function(b){
+    var s = DRA.bizStats(b.id);
+    h += '<div class="biz-row" style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border-s)" onclick="location.href=\'/agents/businesses/'+b.slug+'\'">' +
+      AG.bizAv(b) +
+      '<div style="flex:1;min-width:0"><div style="font-size:.8125rem;font-weight:700;color:var(--t1)">'+DRUI.esc(b.name)+'</div>' +
+      '<div style="font-size:.625rem;color:var(--t4)">'+DRUI.esc(b.businessType||'')+' · '+s.agents.length+' agents</div></div>' +
+      '<div style="text-align:right"><div style="font-size:.875rem;font-weight:800;color:var(--t1)">'+s.leads.length+'</div>' +
+      '<div style="font-size:.5625rem;color:var(--t4);font-weight:700">LEADS</div></div>' +
+      AG.statusBadge(b.status) + '</div>';
+  });
+  h += '</div>';
+
+  /* Recent activity across platform */
+  var acts = [];
+  leads.slice(0,5).forEach(function(l){
+    var b = DRS.get('businesses', l.businessId);
+    acts.push({t:l.createdAt, ico:'🎯', txt:'<b>'+DRUI.esc(l.name||'Lead')+'</b> captured'+(b?' · '+DRUI.esc(b.name):'')});
+  });
+  bookings.slice(0,4).forEach(function(bk){
+    var b = DRS.get('businesses', bk.businessId);
+    acts.push({t:bk.createdAt, ico:'📅', txt:'<b>'+DRUI.esc(bk.service||'Booking')+'</b> '+bk.status+(b?' · '+DRUI.esc(b.name):'')});
+  });
+  reviews.slice(0,3).forEach(function(r){
+    var b = DRS.get('businesses', r.businessId);
+    acts.push({t:r.createdAt, ico:'⭐', txt:(r.rating||'?')+'★ from <b>'+DRUI.esc(r.authorName||'customer')+'</b>'+(b?' · '+DRUI.esc(b.name):'')});
+  });
+  acts.sort(function(a,b){ return new Date(b.t)-new Date(a.t); });
+
+  h += '<div class="ag-card" style="padding:0;overflow:hidden">' +
+    '<div style="padding:16px 18px;border-bottom:1px solid var(--border)">' +
+    '<span style="font-size:.875rem;font-weight:800;color:var(--t1)">Recent Activity</span></div>';
+  if (!acts.length) h += '<div style="padding:30px;text-align:center;font-size:.8125rem;color:var(--t4)">No activity yet.</div>';
+  acts.slice(0,9).forEach(function(a){
+    h += '<div style="display:flex;gap:10px;align-items:flex-start;padding:11px 18px;border-bottom:1px solid var(--border-s);font-size:.75rem">' +
+      '<span>'+a.ico+'</span><span style="flex:1;color:var(--t2)">'+a.txt+'</span>' +
+      '<span style="font-size:.625rem;color:var(--t4);white-space:nowrap">'+DRUI.timeAgo(a.t)+'</span></div>';
+  });
+  h += '</div></div>';
+
+  document.getElementById('content').innerHTML = h;
 }
-
-/* ── Top businesses ───────────────────────────────── */
-var sorted = AD.businesses.map(function(b) {
-  return Object.assign({}, b, { stats: AD.agentStats[b.id] || {} });
-}).sort(function(a, b) { return (b.stats.leads || 0) - (a.stats.leads || 0); });
-
-document.getElementById('bizPerf').innerHTML = sorted.map(function(b, i) {
-  var st = b.stats;
-  var maxLeads = sorted[0].stats.leads || 1;
-  var barW = Math.round((st.leads || 0) / maxLeads * 100);
-  return '<div class="biz-row">' +
-    '<div style="width:18px;text-align:center;font-size:.6875rem;font-weight:800;color:var(--t4)">' + (i+1) + '</div>' +
-    '<div class="av av-sm" style="background:' + b.color + '">' + b.initial + '</div>' +
-    '<div style="flex:1;min-width:0">' +
-      '<div style="font-size:.875rem;font-weight:600;color:var(--t1);margin-bottom:3px">' + b.name + '</div>' +
-      '<div style="height:4px;background:var(--border-s);border-radius:99px;overflow:hidden">' +
-        '<div style="height:100%;width:' + barW + '%;background:' + b.color + ';border-radius:99px;transition:width .7s ease"></div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="text-align:right;flex-shrink:0;min-width:60px">' +
-      '<div style="font-size:.9375rem;font-weight:800;color:var(--t1)">' + (st.leads || 0) + '</div>' +
-      '<div style="font-size:.5rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">leads</div>' +
-    '</div>' +
-    '<div style="text-align:right;margin-left:10px;flex-shrink:0;min-width:44px">' +
-      '<div style="font-size:.875rem;font-weight:700;color:var(--green)">' + (st.conversion || 0) + '%</div>' +
-      '<div style="font-size:.5rem;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em">cvrt</div>' +
-    '</div>' +
-    '</div>';
-}).join('');
-
-/* ── Agent Status ─────────────────────────────────── */
-var todayStats = [
-  ['💬', 'Conversations today', '47'],
-  ['👤', 'Leads captured today', '8'],
-  ['🎯', 'Qualified today', '5'],
-  ['✅', 'FAQ resolution rate', '78%'],
-  ['⚡', 'Avg response time', '9s'],
-];
-document.getElementById('agentStatus').innerHTML =
-  '<div class="agent-live-badge"><span class="agent-live-dot"></span>Live — 5 businesses active</div>' +
-  todayStats.map(function(s) {
-    return '<div class="agent-stat-row">' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-        '<span style="font-size:.875rem">' + s[0] + '</span>' +
-        '<span style="font-size:.8125rem;color:var(--t2)">' + s[1] + '</span>' +
-      '</div>' +
-      '<span style="font-size:.9375rem;font-weight:800;color:var(--t1)">' + s[2] + '</span>' +
-      '</div>';
-  }).join('') +
-  '<div class="ag-divider" style="margin:14px 0 12px"></div>' +
-  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
-    '<a href="/agents/agent-website-enquiry/tester" class="btn btn--ghost btn--sm btn--full">🧪 Test Agent</a>' +
-    '<a href="/agents/agent-website-enquiry/overview" class="btn btn--primary btn--sm btn--full">View Details →</a>' +
-  '</div>';
+render();
 </script>
 </body>
 </html>

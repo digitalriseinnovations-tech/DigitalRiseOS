@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Industries — Digital Rise</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .ind-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:22px;transition:all .18s; }
+    .ind-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+    .ind-type { display:inline-block;font-size:.6875rem;font-weight:600;color:var(--t2);background:var(--bg-alt);border:1px solid var(--border);border-radius:99px;padding:3px 10px;margin:0 5px 5px 0; }
+  </style>
+</head>
+<body class="ag-body">
+<div class="ag-layout">
+  <aside class="ag-sidebar" id="agSidebar"></aside>
+  <div class="ag-main">
+    <header class="ag-topbar" id="agTopbar"></header>
+    <main class="ag-content" id="content"></main>
+  </div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+DRUI.init({ nav:'industries' });
+
+var businesses = DRS.list('businesses');
+var h = DRUI.pageHeader('Industries',
+  DRD.industryGroups.length+' industry groups supported, each with tailored agents and knowledge fields',
+  '<a class="btn btn--primary" href="/agents/businesses/new">+ Add Business</a>');
+
+h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">' +
+  DRD.industryGroups.map(function(g){
+    var count = businesses.filter(function(b){ return b.industryGroup===g.id; }).length;
+    var agents = DRD.agentsFor(g.id);
+    var specific = agents.filter(function(a){ return a.industrySpecific; });
+    return '<div class="ind-card">' +
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">' +
+      '<div style="width:44px;height:44px;border-radius:12px;background:'+g.color+'18;display:flex;align-items:center;justify-content:center;font-size:1.375rem">'+g.icon+'</div>' +
+      '<div style="flex:1"><div style="font-size:.9375rem;font-weight:800;color:var(--t1)">'+g.label+'</div>' +
+      '<div style="font-size:.6875rem;color:var(--t4)">'+count+' business'+(count===1?'':'es')+' on platform · '+agents.length+' agents available</div></div></div>' +
+      '<div style="margin-bottom:10px">'+g.types.map(function(t){ return '<span class="ind-type">'+t+'</span>'; }).join('')+'</div>' +
+      (specific.length ? '<div style="font-size:.6875rem;color:var(--t3);border-top:1px solid var(--border-s);padding-top:10px">' +
+        '<b style="color:var(--accent)">Industry agents:</b> '+specific.map(function(a){return a.icon+' '+a.name;}).join(' · ')+'</div>' : '') +
+    '</div>';
+  }).join('') + '</div>';
+
+document.getElementById('content').innerHTML = h;
+</script>
+</body>
+</html>
