@@ -27,14 +27,14 @@
   ],
   "rewrites": [
     { "source": "/api/config/:slug", "destination": "/api/config" },
-    { "source": "/agents/businesses/:slug/agents/:agentId", "destination": "/agents/businesses/agent-detail.html" },
-    { "source": "/agents/businesses/:slug/agents", "destination": "/agents/businesses/agents.html" },
-    { "source": "/agents/businesses/:slug/knowledge-base", "destination": "/agents/businesses/knowledge-base.html" },
-    { "source": "/agents/businesses/:slug/conversations", "destination": "/agents/businesses/conversations.html" },
-    { "source": "/agents/businesses/:slug/leads", "destination": "/agents/businesses/leads.html" },
-    { "source": "/agents/businesses/:slug/bookings", "destination": "/agents/businesses/bookings.html" },
-    { "source": "/agents/businesses/:slug/reviews", "destination": "/agents/businesses/reviews.html" },
-    { "source": "/agents/businesses/:slug/deploy", "destination": "/agents/businesses/deploy.html" },
-    { "source": "/agents/businesses/:slug", "destination": "/agents/businesses/detail.html" }
+    { "source": "/agents/businesses/:slug/agents/:agentId", "destination": "/agents/businesses/agent-detail" },
+    { "source": "/agents/businesses/:slug/agents", "destination": "/agents/businesses/agents" },
+    { "source": "/agents/businesses/:slug/knowledge-base", "destination": "/agents/businesses/knowledge-base" },
+    { "source": "/agents/businesses/:slug/conversations", "destination": "/agents/businesses/conversations" },
+    { "source": "/agents/businesses/:slug/leads", "destination": "/agents/businesses/leads" },
+    { "source": "/agents/businesses/:slug/bookings", "destination": "/agents/businesses/bookings" },
+    { "source": "/agents/businesses/:slug/reviews", "destination": "/agents/businesses/reviews" },
+    { "source": "/agents/businesses/:slug/deploy", "destination": "/agents/businesses/deploy" },
+    { "source": "/agents/businesses/:slug", "destination": "/agents/businesses/detail" }
   ]
 }
