@@ -64,6 +64,7 @@
           <div class="cfg-tab" data-tab="tone"      onclick="switchTab('tone',this)">E. Greeting & Tone</div>
           <div class="cfg-tab" data-tab="actions"   onclick="switchTab('actions',this)">F. Next-step Actions</div>
           <div class="cfg-tab" data-tab="rules"     onclick="switchTab('rules',this)">G. Escalation Rules</div>
+          <div class="cfg-tab" data-tab="install"   onclick="switchTab('install',this)" style="margin-top:8px;border-top:1px solid var(--border-s);padding-top:10px">🔌 Install Widget</div>
         </div>
         <div style="overflow:auto">
 
@@ -148,6 +149,51 @@
             <div class="cfg-section-sub">Define when the agent should flag a lead as high priority or alert a staff member.</div>
             <div id="rulesList"></div>
             <button class="btn btn--ghost btn--sm" onclick="addRule()" style="margin-top:8px">+ Add Rule</button>
+          </div>
+
+          <!-- Install Widget -->
+          <div class="cfg-section" id="tab_install">
+            <div class="cfg-section-title">🔌 Install Widget</div>
+            <div class="cfg-section-sub">Copy and paste this one snippet on your client's website to activate the AI chat widget.</div>
+
+            <div style="background:var(--bg-alt);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:20px">
+              <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:10px">Embed Code</div>
+              <div id="installCodeWrap" style="background:#1E293B;border-radius:var(--radius);padding:14px 14px 14px 16px;position:relative;font-family:'Consolas','Monaco',monospace;font-size:.75rem;color:#94A3B8;line-height:1.75;overflow-x:auto">
+                <button onclick="copyInstallCode()" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 10px;font-size:.6875rem;font-weight:600;color:#94A3B8;cursor:pointer">Copy</button>
+                <span id="installCodeInner"></span>
+              </div>
+            </div>
+
+            <div style="margin-bottom:20px">
+              <div class="ag-form-row">
+                <div class="ag-form-group">
+                  <label class="ag-label">Widget Position</label>
+                  <select class="ag-select" id="inst_pos" onchange="updateInstallCode()">
+                    <option value="right">Bottom Right</option>
+                    <option value="left">Bottom Left</option>
+                  </select>
+                </div>
+                <div class="ag-form-group">
+                  <label class="ag-label">Widget Colour</label>
+                  <input type="color" class="ag-input" id="inst_color" value="#6366F1" onchange="updateInstallCode()" style="height:40px;padding:4px">
+                </div>
+              </div>
+            </div>
+
+            <div style="background:var(--green-bg);border:1px solid #A7F3D0;border-radius:var(--radius);padding:14px;margin-bottom:20px">
+              <div style="font-size:.8125rem;font-weight:700;color:var(--green-t);margin-bottom:4px">✅ Where to paste this</div>
+              <div style="font-size:.75rem;color:var(--green-t);line-height:1.6">
+                <strong>WordPress:</strong> Appearance → Theme Editor → footer.php — paste before <code>&lt;/body&gt;</code><br>
+                <strong>Squarespace:</strong> Settings → Advanced → Code Injection → Footer<br>
+                <strong>Wix:</strong> Add Apps → Custom Code → Place in Body<br>
+                <strong>HTML site:</strong> Paste before <code>&lt;/body&gt;</code> in every page
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center">
+              <button class="btn btn--primary" onclick="window.open('/agents/widget/demo','_blank')">👁 Preview Widget</button>
+              <button class="btn btn--ghost" onclick="copyInstallCode()">📋 Copy Code</button>
+            </div>
           </div>
 
         </div>
@@ -328,6 +374,55 @@ window.saveConfig=function(){
   FAQ_FIELDS.forEach(function(f){var el=document.getElementById('faq_'+f.id);if(el)data[f.id]=el.value;});
   AD.store.set('cfg_'+_curBiz.id, data);
   AG.toast('Configuration saved for '+_curBiz.name+'!','success');
+};
+
+/* Install Widget tab */
+function updateInstallCode() {
+  var biz  = _curBiz;
+  var pos  = (document.getElementById('inst_pos')   || {}).value   || 'right';
+  var col  = (document.getElementById('inst_color') || {}).value   || biz.color || '#6366F1';
+  var slug = biz.slug || biz.id;
+  var lines = [
+    '<span style="color:#64748B">&lt;!-- Digital Rise AI Widget for ' + biz.name + ' --&gt;</span>',
+    '<span style="color:#818CF8">&lt;script</span>',
+    '  <span style="color:#4ADE80">src</span>=<span style="color:#4ADE80">"https://digital-rise-os.vercel.app/agents/widget/widget.js"</span>',
+    '  <span style="color:#4ADE80">data-biz</span>=<span style="color:#4ADE80">"' + slug + '"</span>',
+    '  <span style="color:#4ADE80">data-pos</span>=<span style="color:#4ADE80">"' + pos + '"</span>',
+    '  <span style="color:#4ADE80">data-color</span>=<span style="color:#4ADE80">"' + col + '"</span>',
+    '<span style="color:#818CF8">&gt;&lt;/script&gt;</span>',
+  ];
+  var inner = document.getElementById('installCodeInner');
+  if (inner) inner.innerHTML = lines.join('<br>');
+}
+window.copyInstallCode = function() {
+  var biz  = _curBiz;
+  var pos  = (document.getElementById('inst_pos')   || {}).value   || 'right';
+  var col  = (document.getElementById('inst_color') || {}).value   || biz.color || '#6366F1';
+  var slug = biz.slug || biz.id;
+  var text = [
+    '<!-- Digital Rise AI Widget for ' + biz.name + ' -->',
+    '<script',
+    '  src="https://digital-rise-os.vercel.app/agents/widget/widget.js"',
+    '  data-biz="' + slug + '"',
+    '  data-pos="' + pos + '"',
+    '  data-color="' + col + '"',
+    '></script>',
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(function() {
+    AG.toast('Embed code copied!', 'success');
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    AG.toast('Code copied!', 'success');
+  });
+};
+
+/* Refresh install code whenever biz changes */
+var _origLoadBiz = window.loadBiz;
+window.loadBiz = function(id) {
+  _origLoadBiz(id);
+  setTimeout(updateInstallCode, 50);
 };
 
 loadBiz(AD.businesses[0].id);

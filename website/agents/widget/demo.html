@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Widget Demo — Digital Rise</title>
+<link rel="stylesheet" href="../shared/agents.css">
+<style>
+  body { background: var(--bg); min-height: 100vh; font-family: 'Inter', sans-serif; }
+
+  .demo-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+
+  .demo-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .demo-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .demo-header p {
+    color: var(--text-muted);
+    font-size: .9375rem;
+  }
+  .demo-header .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green-bg);
+    border: 1px solid #A7F3D0;
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: .6875rem;
+    font-weight: 700;
+    color: var(--green-t);
+    margin-bottom: 16px;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 2px rgba(5,150,105,.2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}
+    70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}
+  }
+
+  /* Business selector */
+  .biz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .biz-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: center;
+  }
+  .biz-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+  .biz-card.active { border-color: var(--accent); background: var(--accent-bg); }
+  .biz-card .biz-em { font-size: 2rem; margin-bottom: 8px; }
+  .biz-card .biz-name { font-size: .75rem; font-weight: 700; color: var(--text); }
+  .biz-card .biz-ind  { font-size: .625rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* Embed code panel */
+  .embed-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .embed-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+  .embed-tab {
+    padding: 12px 16px;
+    font-size: .8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    margin-bottom: -1px;
+  }
+  .embed-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .embed-body { padding: 20px; }
+
+  .code-block {
+    background: #1E293B;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: .75rem;
+    color: #94A3B8;
+    overflow-x: auto;
+    line-height: 1.7;
+    position: relative;
+  }
+  .code-block .kw  { color: #818CF8; }
+  .code-block .str { color: #4ADE80; }
+  .code-block .cmt { color: #64748B; }
+  .copy-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: .6875rem;
+    font-weight: 600;
+    color: #94A3B8;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.15); color: #E2E8F0; }
+
+  /* Config builder */
+  .cfg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media(max-width:600px) { .cfg-grid { grid-template-columns: 1fr; } }
+  .cfg-field label {
+    display: block;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .cfg-field select,
+  .cfg-field input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-size: .875rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .cfg-field select:focus,
+  .cfg-field input:focus { border-color: var(--accent); }
+
+  .preview-cta {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: .875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 2px 8px rgba(99,102,241,.3);
+  }
+  .preview-cta:hover { background: var(--accent-d); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.35); }
+
+  /* Info cards */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .info-card .ic-ico {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.125rem; margin-bottom: 12px;
+  }
+  .info-card h4 { font-size: .875rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .info-card p  { font-size: .75rem; color: var(--text-muted); line-height: 1.55; }
+
+  .section-title {
+    font-size: .6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .section-heading {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: .875rem;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  /* Instructions */
+  .steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+  .step  { display: flex; gap: 16px; align-items: flex-start; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 99px;
+    background: var(--accent-bg); color: var(--accent);
+    font-size: .875rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-body h5 { font-size: .875rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .step-body p  { font-size: .8125rem; color: var(--text-muted); line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<div id="demo-topbar" style="height:52px"></div>
+
+<div class="demo-wrap">
+
+  <!-- Header -->
+  <div class="demo-header">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Widget Live — Try it in the bottom right corner
+    </div>
+    <h1>Website Enquiry Widget</h1>
+    <p>Drop one line of code on any client website to activate their AI Employee.</p>
+  </div>
+
+  <!-- Features -->
+  <div class="section-title">What the widget does</div>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="ic-ico" style="background:var(--accent-bg)">💬</div>
+      <h4>Engages Visitors Instantly</h4>
+      <p>AI-powered chat answers FAQs, pricing, availability 24/7 — no human needed.</p>
+    </div>
+    <div class="info-card">
+      <div class="ic-ico" style="background:var(--green-bg)">🎯</div>
+      <h4>Qualifies & Captures Leads</h4>
+      <p>Asks qualifying questions, captures name, phone, and email automatically.</p>
+    </div>
+    <div class="info-card">
+      <div class="ic-ico" style="background:#FEF3C7)">⚡</div>
+      <h4>Rule-Based + AI Ready</h4>
+      <p>Works out of the box with knowledge-base matching. Switch to GPT or Claude with one config change.</p>
+    </div>
+    <div class="info-card">
+      <div class="ic-ico" style="background:#FDF2F8">🔌</div>
+      <h4>One Script Tag Embed</h4>
+      <p>No dependencies, no NPM. Clients install with a single &lt;script&gt; tag in under 2 minutes.</p>
+    </div>
+  </div>
+
+  <!-- Business selector -->
+  <div class="section-title">Preview a business</div>
+  <div class="section-heading">Choose a demo business</div>
+  <div class="section-sub">Click a business to load their widget config and see it live.</div>
+
+  <div class="biz-grid" id="biz-grid">
+    <div class="biz-card active" data-slug="sunshine-nursery">
+      <div class="biz-em">🌞</div>
+      <div class="biz-name">Sunshine Nursery</div>
+      <div class="biz-ind">Daycare</div>
+    </div>
+    <div class="biz-card" data-slug="smile-dental-studio">
+      <div class="biz-em">🦷</div>
+      <div class="biz-name">Smile Dental</div>
+      <div class="biz-ind">Dental Clinic</div>
+    </div>
+    <div class="biz-card" data-slug="bellas-restaurant">
+      <div class="biz-em">🍝</div>
+      <div class="biz-name">Bella's Restaurant</div>
+      <div class="biz-ind">Restaurant</div>
+    </div>
+    <div class="biz-card" data-slug="glow-beauty-lounge">
+      <div class="biz-em">💅</div>
+      <div class="biz-name">Glow Beauty</div>
+      <div class="biz-ind">Beauty Salon</div>
+    </div>
+    <div class="biz-card" data-slug="probuild-contractors">
+      <div class="biz-em">🏗️</div>
+      <div class="biz-name">ProBuild</div>
+      <div class="biz-ind">Contractor</div>
+    </div>
+  </div>
+
+  <!-- Embed Code Generator -->
+  <div class="section-title">Get the embed code</div>
+  <div class="section-heading">Copy & paste to any website</div>
+  <div class="section-sub">One script tag is all it takes. Customise position and colour below.</div>
+
+  <div class="embed-panel">
+    <div class="embed-tabs">
+      <div class="embed-tab active" data-tab="basic">Basic</div>
+      <div class="embed-tab" data-tab="custom">Customised</div>
+      <div class="embed-tab" data-tab="advanced">Advanced</div>
+    </div>
+    <div class="embed-body">
+
+      <!-- Basic -->
+      <div id="tab-basic">
+        <div class="code-block" id="basic-code">
+          <button class="copy-btn" onclick="copyCode('basic-code')">Copy</button>
+          <span class="cmt">&lt;!-- Digital Rise AI Widget — paste before &lt;/body&gt; --&gt;</span><br>
+          <span class="kw">&lt;script</span> <span class="str">src</span>=<span class="str">"https://digital-rise-os.vercel.app/agents/widget/widget.js"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">data-biz</span>=<span class="str" id="code-slug">"sunshine-nursery"</span><span class="kw">&gt;&lt;/script&gt;</span>
+        </div>
+      </div>
+
+      <!-- Custom -->
+      <div id="tab-custom" style="display:none">
+        <div class="cfg-grid">
+          <div class="cfg-field">
+            <label>Position</label>
+            <select id="cfg-pos" onchange="updateCode()">
+              <option value="right">Bottom Right</option>
+              <option value="left">Bottom Left</option>
+            </select>
+          </div>
+          <div class="cfg-field">
+            <label>Widget Colour</label>
+            <input type="color" id="cfg-color" value="#6366F1" onchange="updateCode()">
+          </div>
+        </div>
+        <div class="code-block" id="custom-code">
+          <button class="copy-btn" onclick="copyCode('custom-code')">Copy</button>
+          <span id="custom-code-inner"></span>
+        </div>
+      </div>
+
+      <!-- Advanced -->
+      <div id="tab-advanced" style="display:none">
+        <p style="font-size:.8125rem;color:var(--text-muted);margin-bottom:16px;">Pass a full config via <code>data-config</code> (base64 JSON) to override KB and greeting without an API call.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyAdvanced()">Copy</button>
+<span class="cmt">// Build your config object</span><br>
+<span class="kw">const</span> config = {<br>
+&nbsp;&nbsp;name: <span class="str">"Your Business"</span>,<br>
+&nbsp;&nbsp;agentName: <span class="str">"Ava"</span>,<br>
+&nbsp;&nbsp;color: <span class="str">"#6366F1"</span>,<br>
+&nbsp;&nbsp;greeting: <span class="str">"Hi! How can I help?"</span>,<br>
+&nbsp;&nbsp;services: [<span class="str">"Get a Quote"</span>, <span class="str">"Book a Visit"</span>],<br>
+&nbsp;&nbsp;qualQs: [<span class="str">"What are you looking for?"</span>],<br>
+&nbsp;&nbsp;kb: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;hours: { answer: <span class="str">"Mon–Fri 9am–5pm"</span>, keywords: [<span class="str">"hours"</span>, <span class="str">"open"</span>] }<br>
+&nbsp;&nbsp;}<br>
+};<br><br>
+<span class="cmt">// Base64 encode and add to script tag</span><br>
+<span class="kw">const</span> encoded = btoa(JSON.stringify(config));<br><br>
+<span class="kw">&lt;script</span> <span class="str">src</span>=<span class="str">"…/widget.js"</span><br>
+&nbsp;&nbsp;<span class="str">data-biz</span>=<span class="str">"your-biz-slug"</span><br>
+&nbsp;&nbsp;<span class="str">data-config</span>=<span class="str">"{encoded}"</span><span class="kw">&gt;&lt;/script&gt;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install Steps -->
+  <div class="section-title">How to install</div>
+  <div class="section-heading">3-step installation</div>
+  <div class="section-sub">Works on any website — WordPress, Squarespace, Wix, or custom HTML.</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h5>Copy the embed snippet above</h5>
+        <p>Choose your business from the selector and click "Copy" on the code block.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h5>Paste before &lt;/body&gt; on your website</h5>
+        <p>In WordPress: Appearance → Theme Editor → footer.php. In Squarespace/Wix: Site settings → Custom code → Footer.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h5>The widget loads automatically</h5>
+        <p>No restart needed. Refresh your website and the chat bubble appears in the corner.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /demo-wrap -->
+
+<!-- Topbar via agents.js -->
+<script src="../shared/agents.js"></script>
+
+<!-- Widget itself — default to Sunshine Nursery -->
+<script
+  id="dr-widget-script"
+  src="./widget.js"
+  data-biz="sunshine-nursery"
+  data-pos="right"
+></script>
+
+<script>
+var currentSlug  = 'sunshine-nursery';
+var currentColor = '#6366F1';
+var currentPos   = 'right';
+
+/* Business selector */
+document.getElementById('biz-grid').addEventListener('click', function(e) {
+  var card = e.target.closest('.biz-card');
+  if (!card) return;
+  var slug = card.getAttribute('data-slug');
+  if (slug === currentSlug) return;
+
+  document.querySelectorAll('.biz-card').forEach(function(c) { c.classList.remove('active'); });
+  card.classList.add('active');
+  currentSlug = slug;
+  document.getElementById('code-slug').textContent = '"' + slug + '"';
+  updateCode();
+  reloadWidget(slug, currentPos, currentColor);
+});
+
+/* Tab switching */
+document.querySelectorAll('.embed-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.embed-tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var id = 'tab-' + tab.getAttribute('data-tab');
+    ['tab-basic','tab-custom','tab-advanced'].forEach(function(t) {
+      document.getElementById(t).style.display = t === id ? '' : 'none';
+    });
+  });
+});
+
+/* Update custom code */
+function updateCode() {
+  currentColor = document.getElementById('cfg-color').value;
+  currentPos   = document.getElementById('cfg-pos').value;
+  var html = [
+    '<span class="cmt">&lt;!-- Digital Rise AI Widget --&gt;</span><br>',
+    '<span class="kw">&lt;script</span>',
+    ' <span class="str">src</span>=<span class="str">"https://digital-rise-os.vercel.app/agents/widget/widget.js"</span><br>',
+    '       <span class="str">data-biz</span>=<span class="str">"' + currentSlug + '"</span><br>',
+    '       <span class="str">data-pos</span>=<span class="str">"' + currentPos + '"</span><br>',
+    '       <span class="str">data-color</span>=<span class="str">"' + currentColor + '"</span>',
+    '<span class="kw">&gt;&lt;/script&gt;</span>',
+  ].join('');
+  document.getElementById('custom-code-inner').innerHTML = html;
+}
+updateCode();
+
+/* Copy buttons */
+function copyCode(elId) {
+  var el = document.getElementById(elId);
+  var text = el.innerText.replace(/^Copy\n/, '').trim();
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = el.querySelector('.copy-btn');
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 2000);
+  }).catch(function() {
+    /* Fallback for older browsers */
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+function copyAdvanced() {
+  var advanced = document.querySelectorAll('#tab-advanced .code-block')[0];
+  copyCode ? copyCode('') : null;
+}
+
+/* Reload widget with new biz config */
+function reloadWidget(slug, pos, color) {
+  /* Remove existing widget */
+  var existing = document.getElementById('dr-widget');
+  if (existing) existing.remove();
+  var existingCSS = document.getElementById('dr-widget-css');
+  if (existingCSS) existingCSS.remove();
+  if (window.DigitalRiseWidget) window.DigitalRiseWidget = null;
+
+  /* Inject new script */
+  var s = document.createElement('script');
+  s.src = './widget.js?v=' + Date.now();
+  s.setAttribute('data-biz', slug);
+  s.setAttribute('data-pos', pos || 'right');
+  if (color) s.setAttribute('data-color', color);
+  document.body.appendChild(s);
+}
+</script>
+
+</body>
+</html>
