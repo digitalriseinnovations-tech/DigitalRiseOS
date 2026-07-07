@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deploy — Digital Rise</title>
+  <title>Connect Channels — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .dp-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:22px;margin-bottom:16px; }
@@ -60,8 +60,8 @@ function render() {
   var ready = agents.filter(function(a){return a.trainingStatus==='ready';}).length;
   var tasks = DRS.list('tasks', { businessId: biz.id });
 
-  var h = DRUI.pageHeader('Deploy — '+esc(biz.name),
-    'Channel deployments. Each channel is powered by a trained AI employee with its own workflows.');
+  var h = DRUI.pageHeader('Connect Channels — '+esc(biz.name),
+    'Your AI employee works behind every channel — website, WhatsApp, email, reviews, phone. Connect only what the business needs.');
 
   if (ready < agents.length) {
     h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:13px 18px;margin-bottom:16px;font-size:.8125rem;color:#92400E">' +

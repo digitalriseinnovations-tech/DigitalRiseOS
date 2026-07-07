@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leads — Digital Rise</title>
+  <title>Enquiries — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .flt { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center; }
@@ -58,13 +58,14 @@ function render() {
   var needAction = all.filter(function(l){ return ['new','callback-requested','escalated'].indexOf(l.status)!==-1 || l.status==='New'; }).length;
   var followupsDue = tasks.filter(function(t){ return t.status==='scheduled'; }).length;
 
-  var h = DRUI.pageHeader('Leads — '+DRUI.esc(biz.name),
-    all.length+' lead'+(all.length===1?'':'s')+' captured by AI employees');
+  var tm = DRD.terms(biz.industryGroup);
+  var h = DRUI.pageHeader(tm.enquiries+' — '+DRUI.esc(biz.name),
+    all.length+' '+(all.length===1?'enquiry':'enquiries')+' captured by your AI employees — nothing missed');
 
   h += DRUI.kpiRow([
-    { ico:'🎯', val:all.length, label:'Total Leads', bg:'var(--accent-bg)' },
-    { ico:'🔥', val:hot, label:'Hot Leads', bg:'#FEE2E2' },
-    { ico:'⚡', val:needAction, label:'Need Action', bg:'#FEF3C7' },
+    { ico:'🎯', val:all.length, label:tm.enquiries, bg:'var(--accent-bg)' },
+    { ico:'🔥', val:hot, label:'High Priority', bg:'#FEE2E2' },
+    { ico:'🤝', val:needAction, label:'Ready for Staff Handoff', bg:'#FEF3C7' },
     { ico:'📲', val:followupsDue, label:'Follow-ups Scheduled', bg:'var(--green-bg)' },
   ]);
 
@@ -81,10 +82,10 @@ function render() {
     '</div>';
 
   if (!all.length) {
-    h += DRUI.empty('🎯','No leads yet','Test an employee with a scenario — captured leads, booking requests and follow-up tasks land here instantly.',
+    h += DRUI.empty('🎯','No enquiries yet','Test an AI employee with a scenario — captured enquiries, booking requests and follow-ups land here instantly.',
       '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Open AI Employees</a>');
   } else if (!leads.length) {
-    h += DRUI.empty('🔍','No leads match these filters','Try clearing the filters.','');
+    h += DRUI.empty('🔍','No enquiries match these filters','Try clearing the filters.','');
   } else {
     var rows = leads.map(function(l){
       var ag = l.agentId ? DRS.get('agents', l.agentId) : null;

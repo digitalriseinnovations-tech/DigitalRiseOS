@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Templates — Digital Rise</title>
+  <title>AI Employee Templates — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .tp-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:20px;transition:all .18s; }
@@ -28,11 +28,11 @@
 DRUI.init({ nav:'templates' });
 
 var deployed = DRS.list('agents');
-var h = DRUI.pageHeader('Agent Templates',
-  'The universal AI agent catalog — every business can deploy these, with industry-specific naming and extras.',
-  '<a class="btn btn--primary" href="/agents/businesses/new">+ Deploy to a Business</a>');
+var h = DRUI.pageHeader('AI Employee Templates',
+  'Every role your AI team can fill — with industry-specific versions for each business type.',
+  '<a class="btn btn--primary" href="/agents/businesses/new">+ Add to a Business</a>');
 
-h += '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:12px">Universal agents (all industries)</div>';
+h += '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:12px">Core AI employees (all industries)</div>';
 h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px">' +
   DRD.agentTypes.map(function(a){
     var count = deployed.filter(function(d){ return d.agentType===a.type; }).length;
@@ -44,7 +44,7 @@ h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280
       '<div style="font-size:.75rem;color:var(--t3);line-height:1.55">'+a.desc+'</div></div>';
   }).join('') + '</div>';
 
-h += '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:12px">Industry-specific agents</div>';
+h += '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:12px">Industry-specific AI employees</div>';
 h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">' +
   DRD.industryGroups.map(function(g){
     var ov = DRD.industryOverlays[g.id] || { extra: [] };

@@ -37,10 +37,10 @@ function render() {
   var totalAgents = DRS.list('agents').length;
   var totalConvs = DRS.list('conversations').length;
   h += DRUI.kpiRow([
-    { ico:'🏢', val:businesses.length, label:'Businesses', bg:'var(--accent-bg)' },
-    { ico:'🤖', val:totalAgents, label:'AI Agents Deployed', bg:'var(--green-bg)' },
-    { ico:'🎯', val:totalLeads, label:'Total Leads', bg:'#FEF3C7' },
-    { ico:'💬', val:totalConvs, label:'Conversations', bg:'#FDF2F8' },
+    { ico:'🏢', val:businesses.length, label:'Businesses Supported', bg:'var(--accent-bg)' },
+    { ico:'🤖', val:totalAgents, label:'AI Employees Working', bg:'var(--green-bg)' },
+    { ico:'🎯', val:totalLeads, label:'Enquiries Captured', bg:'#FEF3C7' },
+    { ico:'💬', val:totalConvs, label:'Conversations Handled', bg:'#FDF2F8' },
   ]);
 
   if (!businesses.length) {
@@ -63,7 +63,7 @@ function render() {
         DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(b.createdAt)+'</span>') +
       '</tr>';
     }).join('');
-    h += DRUI.table(['Business','Industry','Agents','Leads','Bookings','Status','Added'], rows);
+    h += DRUI.table(['Business','Industry','AI Team','Enquiries','Bookings','Status','Added'], rows);
   }
   document.getElementById('content').innerHTML = h;
 }

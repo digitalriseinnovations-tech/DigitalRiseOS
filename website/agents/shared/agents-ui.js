@@ -60,12 +60,13 @@ var DRUI = (function () {
     html += navItem('/agents/settings',   'Settings',   'settings',   opts.nav);
 
     if (biz) {
+      var tm = (window.DRD && DRD.terms) ? DRD.terms(biz.industryGroup) : { enquiries:'Enquiries', conversations:'Conversations', bookings:'Bookings' };
       html += '<div class="ag-nav-section" style="color:var(--accent);display:flex;align-items:center;gap:6px;margin-top:14px">' +
         '<div class="av av-sm" style="background:' + biz.color + ';width:18px;height:18px;font-size:.5rem">' + biz.initial + '</div>' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + biz.name.toUpperCase() + '</span></div>';
-      [['overview','Overview',''],['agents','AI Agents','agents'],['knowledge-base','Knowledge Base','knowledge-base'],
-       ['conversations','Conversations','conversations'],['leads','Leads','leads'],['bookings','Bookings','bookings'],
-       ['reviews','Reviews','reviews'],['deploy','Deploy','deploy']].forEach(function (it) {
+      [['overview','Overview',''],['agents','AI Employees','agents'],['knowledge-base','Knowledge & Training','knowledge-base'],
+       ['conversations',tm.conversations,'conversations'],['leads',tm.enquiries,'leads'],['bookings',tm.bookings,'bookings'],
+       ['reviews','Reviews & Reputation','reviews'],['deploy','Connect Channels','deploy']].forEach(function (it) {
         html += navItem(bizUrl(biz.slug, it[2]), it[1], it[0], opts.bizNav);
       });
     }
@@ -76,12 +77,12 @@ var DRUI = (function () {
     el.innerHTML =
       '<div class="ag-logo"><a href="/agents/dashboard" class="ag-logo-link">' +
         '<div class="ag-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>' +
-        '<div><div class="ag-logo-name">Digital Rise</div><div class="ag-logo-sub">AI Agent Platform</div></div>' +
+        '<div><div class="ag-logo-name">Digital Rise</div><div class="ag-logo-sub">AI Employee Suite</div></div>' +
       '</a></div>' +
       '<div class="ag-nav-wrap">' + html + '</div>' +
       '<div class="ag-sb-footer"><div class="ag-sb-status"><div class="ag-sb-dot"></div><div>' +
-        '<div class="ag-sb-status-text">' + liveAgents + ' AI Agents Active</div>' +
-        '<div class="ag-sb-status-sub">' + bizCount + ' business' + (bizCount === 1 ? '' : 'es') + ' on platform</div>' +
+        '<div class="ag-sb-status-text">' + liveAgents + ' AI Employees working</div>' +
+        '<div class="ag-sb-status-sub">' + bizCount + ' business' + (bizCount === 1 ? '' : 'es') + ' supported</div>' +
       '</div></div></div>';
   }
 
@@ -95,12 +96,12 @@ var DRUI = (function () {
       '<div class="ag-tb-left">' +
         '<button class="ag-hamburger" id="agBurger">' + AG.IC.menu + '</button>' +
         '<div class="ag-search"><span class="ag-search-ico">' + AG.IC.search + '</span>' +
-        '<input class="ag-search-input" type="text" placeholder="Search businesses, leads, agents…"></div>' +
+        '<input class="ag-search-input" type="text" placeholder="Search businesses, enquiries, conversations…"></div>' +
       '</div>' +
       '<div class="ag-tb-right">' +
         '<div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--green-bg);border-radius:99px;border:1px solid #A7F3D0">' +
           '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 2px rgba(5,150,105,.2)"></div>' +
-          '<span style="font-size:.625rem;font-weight:700;color:var(--green-t)">' + liveAgents + ' Agents Live</span></div>' +
+          '<span style="font-size:.625rem;font-weight:700;color:var(--green-t)">' + liveAgents + ' AI Employees working</span></div>' +
         '<button class="ag-tb-btn" onclick="AG.toast(\'No new notifications\',\'info\')" title="Notifications">' + AG.IC.bell + '<span class="ag-tb-notif-dot"></span></button>' +
         '<button class="ag-tb-btn" id="agThemeBtn" onclick="AG.toggleTheme()" title="Toggle theme">' + (theme === 'dark' ? AG.IC.sun : AG.IC.moon) + '</button>' +
         '<div class="ag-tb-avatar" title="Digital Rise Admin">DR</div>' +

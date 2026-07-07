@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Agents — Digital Rise</title>
+  <title>AI Employees — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .agent-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:20px;transition:all .18s;display:flex;flex-direction:column;gap:12px; }
@@ -34,14 +34,14 @@ if (biz) render();
 
 function render() {
   var agents = DRS.list('agents', { businessId: biz.id });
-  var h = DRUI.pageHeader('AI Agents — '+DRUI.esc(biz.name),
-    agents.length+' agent'+(agents.length===1?'':'s')+' deployed for this business',
+  var h = DRUI.pageHeader('AI Employees — '+DRUI.esc(biz.name),
+    agents.length+' AI employee'+(agents.length===1?'':'s')+' on the team',
     '<button class="btn btn--ghost" onclick="trainAllNow()">⚡ Train All</button>' +
-    '<button class="btn btn--primary" onclick="addAgentModal()">+ Add Agent</button>');
+    '<button class="btn btn--primary" onclick="addAgentModal()">+ Add AI Employee</button>');
 
   if (!agents.length) {
-    h += DRUI.empty('🤖','No agents deployed','Add AI agents to start handling enquiries for this business.',
-      '<button class="btn btn--primary" onclick="addAgentModal()">+ Add Agent</button>');
+    h += DRUI.empty('🤖','No AI employees yet','Add an AI employee to start answering enquiries and supporting the team.',
+      '<button class="btn btn--primary" onclick="addAgentModal()">+ Add AI Employee</button>');
   } else {
     h += '<div class="ac-grid">' + agents.map(function(a){
       var def = DRD.agentDef(biz.industryGroup, a.agentType) || { icon:'🤖', desc:'' };
@@ -96,7 +96,7 @@ window.addAgentModal = function(){
   var m = document.createElement('div');
   m.className='ag-modal is-open'; m.id='addAgentM';
   m.innerHTML = '<div class="ag-modal-overlay" onclick="document.getElementById(\'addAgentM\').remove();document.body.style.overflow=\'\'"></div>' +
-    '<div class="ag-modal-box" style="max-width:520px"><div class="ag-modal-head"><div class="ag-modal-title">Add AI Agent</div>' +
+    '<div class="ag-modal-box" style="max-width:520px"><div class="ag-modal-head"><div class="ag-modal-title">Add AI Employee</div>' +
     '<button class="ag-modal-x" onclick="document.getElementById(\'addAgentM\').remove();document.body.style.overflow=\'\'">✕</button></div>' +
     '<div class="ag-modal-body" style="max-height:60vh;overflow:auto">' +
     avail.map(function(a){

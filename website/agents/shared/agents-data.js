@@ -810,3 +810,52 @@ var DRD = (function () {
     ],
   };
 })();
+
+
+/* ============================================================
+   DRD.terms — AI Employee Suite terminology (industry-aware)
+   The product is an AI Employee for the business, not a CRM.
+   Labels centre on people served and support given.
+   ============================================================ */
+(function () {
+  'use strict';
+  var P = {
+    childcare:   { person:'parent',   people:'Parents',   enquiries:'Parent Enquiries',   conversations:'Parent Conversations',  bookings:'Tours & Bookings',  satisfaction:'Parent satisfaction' },
+    healthcare:  { person:'patient',  people:'Patients',  enquiries:'Patient Enquiries',  conversations:'Patient Conversations', bookings:'Appointments',      satisfaction:'Patient satisfaction' },
+    events:      { person:'client',   people:'Clients',   enquiries:'Event Enquiries',    conversations:'Client Conversations',  bookings:'Consultations',     satisfaction:'Client satisfaction' },
+    beauty:      { person:'client',   people:'Clients',   enquiries:'Client Enquiries',   conversations:'Client Conversations',  bookings:'Appointments',      satisfaction:'Client satisfaction' },
+    home:        { person:'customer', people:'Customers', enquiries:'Quote Enquiries',    conversations:'Customer Conversations',bookings:'Site Visits',       satisfaction:'Customer satisfaction' },
+    food:        { person:'guest',    people:'Guests',    enquiries:'Guest Enquiries',    conversations:'Guest Conversations',   bookings:'Reservations',      satisfaction:'Guest satisfaction' },
+    professional:{ person:'client',   people:'Clients',   enquiries:'Client Enquiries',   conversations:'Client Conversations',  bookings:'Consultations',     satisfaction:'Client satisfaction' },
+    realestate:  { person:'client',   people:'Clients',   enquiries:'Client Enquiries',   conversations:'Client Conversations',  bookings:'Viewings',          satisfaction:'Client satisfaction' },
+    retail:      { person:'customer', people:'Customers', enquiries:'Customer Enquiries', conversations:'Customer Conversations',bookings:'Orders & Pickups',  satisfaction:'Customer satisfaction' },
+  };
+  var FALLBACK = { person:'customer', people:'Customers', enquiries:'Enquiries', conversations:'Conversations', bookings:'Bookings', satisfaction:'Customer satisfaction' };
+  DRD.terms = function (groupId) { return P[groupId] || FALLBACK; };
+
+  /* Support areas the AI employee provides, mapped from deployed agent types */
+  DRD.supportAreas = function (groupId, agentTypes) {
+    var t = DRD.terms(groupId);
+    var map = [
+      ['website-enquiry',    '💬', 'Instant answers for ' + t.people.toLowerCase()],
+      ['booking',            '📅', (groupId === 'childcare' ? 'Tour support' : t.bookings + ' support')],
+      ['whatsapp-followup',  '📲', 'Follow-up support'],
+      ['review',             '⭐', 'Review & reputation support'],
+      ['missed-call',        '📞', 'Missed-call recovery'],
+      ['email-inbox',        '📧', 'Inbox support'],
+      ['lead-qualification', '🎯', 'Enquiry qualification'],
+      ['marketing-content',  '✨', 'Content & communication support'],
+      ['activity-planner',   '🎨', 'Activity planning support'],
+      ['waitlist-followup',  '⏳', 'Waitlist support'],
+      ['lead-reactivation',  '🔄', 'Re-engagement support'],
+      ['treatment-followup', '🩹', 'Care follow-up support'],
+      ['package-recommendation','🎁','Package guidance'],
+      ['quote-followup',     '💰', 'Quote follow-up support'],
+      ['estimate-followup',  '📐', 'Estimate follow-up support'],
+      ['rebooking-followup', '💇', 'Rebooking support'],
+      ['catering-enquiry',   '🥂', 'Catering enquiry support'],
+    ];
+    return map.filter(function (m) { return (agentTypes || []).indexOf(m[0]) !== -1; })
+              .map(function (m) { return { icon: m[1], label: m[2] }; });
+  };
+})();

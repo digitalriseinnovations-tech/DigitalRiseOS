@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Digital Rise AI Agent Platform</title>
+  <title>Dashboard — Digital Rise AI Employee Suite</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .dash-hero {
@@ -51,14 +51,15 @@ function render() {
   var hr = new Date().getHours();
   var greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
 
+  var tasksDone = agents.reduce(function(s,a){ return s + (a.tasksCompleted||0); }, 0);
   var h = '<div class="dash-hero">' +
     '<div style="font-size:1.5rem;font-weight:800;letter-spacing:-.01em;position:relative">'+greet+', Digital Rise 👋</div>' +
-    '<div style="font-size:.8438rem;opacity:.85;margin:6px 0 14px;position:relative">Your AI employees are working across '+businesses.length+' business'+(businesses.length===1?'':'es')+'.</div>' +
+    '<div style="font-size:.8438rem;opacity:.85;margin:6px 0 14px;position:relative">Your AI employees are supporting '+businesses.length+' business'+(businesses.length===1?'':'es')+' — answering instantly, following up, and handing off to staff when it matters.</div>' +
     '<div style="position:relative">' +
-      '<span class="hero-pill"><span class="hero-dot"></span>'+agents.length+' agents deployed</span>' +
+      '<span class="hero-pill"><span class="hero-dot"></span>'+agents.length+' AI employees on the team</span>' +
       '<span class="hero-pill"><span class="hero-dot"></span>'+ready+' trained & ready</span>' +
-      '<span class="hero-pill">🎯 '+leads.length+' leads</span>' +
-      '<span class="hero-pill">📅 '+bookings.length+' bookings</span>' +
+      '<span class="hero-pill">✅ '+(tasksDone+leads.length)+' tasks handled</span>' +
+      '<span class="hero-pill">📅 '+bookings.length+' bookings supported</span>' +
     '</div>' +
     '<div style="margin-top:16px;position:relative;display:flex;gap:10px;flex-wrap:wrap">' +
       '<a class="btn" href="/agents/businesses/new" style="background:#fff;color:var(--accent-d);font-weight:700">+ Add Business</a>' +
@@ -66,12 +67,12 @@ function render() {
     '</div></div>';
 
   h += DRUI.kpiRow([
-    { ico:'🏢', val:businesses.length, label:'Active Businesses', bg:'var(--accent-bg)' },
-    { ico:'🤖', val:agents.length, label:'AI Agents Live', bg:'var(--green-bg)' },
-    { ico:'🎯', val:leads.length, label:'Leads Captured', bg:'#FEF3C7' },
-    { ico:'💬', val:convs.length, label:'Conversations', bg:'#FDF2F8' },
-    { ico:'📅', val:bookings.length, label:'Bookings', bg:'#EEF2FF' },
-    { ico:'⭐', val:reviews.length, label:'Reviews', bg:'#FFF7ED' },
+    { ico:'🏢', val:businesses.length, label:'Businesses Supported', bg:'var(--accent-bg)' },
+    { ico:'🤖', val:agents.length, label:'AI Employees Working', bg:'var(--green-bg)' },
+    { ico:'🎯', val:leads.length, label:'Enquiries Captured', bg:'#FEF3C7' },
+    { ico:'💬', val:convs.length, label:'Conversations Handled', bg:'#FDF2F8' },
+    { ico:'📅', val:bookings.length, label:'Bookings Supported', bg:'#EEF2FF' },
+    { ico:'⭐', val:reviews.length, label:'Reviews Supported', bg:'#FFF7ED' },
   ]);
 
   /* Setup alerts: untrained agents */

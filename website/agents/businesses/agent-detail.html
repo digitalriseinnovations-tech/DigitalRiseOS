@@ -97,7 +97,7 @@ function render() {
     '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'deploy')+'">🚀 Deploy</a>');
 
   h += DRUI.kpiRow([
-    { ico:'🎯', val:st.leads.length, label:'Leads Handled', bg:'var(--green-bg)' },
+    { ico:'🎯', val:st.leads.length, label:'Enquiries Handled', bg:'var(--green-bg)' },
     { ico:'📅', val:st.bookings.length, label:'Bookings Influenced', bg:'#FEF3C7' },
     { ico:'📲', val:tasks.length, label:'Follow-ups Triggered', bg:'var(--accent-bg)' },
     { ico:'✅', val:agent.tasksCompleted||0, label:'Tasks Completed', bg:'#FDF2F8' },
@@ -325,7 +325,7 @@ window.tSend = function(){
       (lead ? '<div class="chk-row"><span>Final lead status</span><span class="badge badge--'+(lead.status==='escalated'?'red':'green')+'">'+lead.status+'</span></div>' : '') +
       (res.actions.length?'<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:10px 0 6px">Actions taken</div>'+
         res.actions.map(function(a){ return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:7px;font-size:.71875rem;font-weight:600;color:var(--green-t);margin-bottom:5px">'+a.icon+' '+a.label+'</div>'; }).join(''):'') +
-      (lead ? '<a class="btn btn--ghost btn--sm" style="margin-top:10px;width:100%" href="'+DRUI.bizUrl(biz.slug,'leads')+'">View in Leads →</a>' : '');
+      (lead ? '<a class="btn btn--ghost btn--sm" style="margin-top:10px;width:100%" href="'+DRUI.bizUrl(biz.slug,'leads')+'">View in Enquiries →</a>' : '');
     if (c.leadCaptured && !tConvSaved) {
       DRA.logConversation(biz, agent, tMsgs, tCtx.leadId);
       tConvSaved = true;
