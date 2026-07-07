@@ -7,53 +7,45 @@
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .wz-steps { display:flex;gap:4px;margin-bottom:26px;overflow-x:auto;padding-bottom:4px; }
-    .wz-step {
-      display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;
-      font-size:.6875rem;font-weight:700;color:var(--t4);white-space:nowrap;
-      background:var(--bg-alt);border:1.5px solid transparent;transition:all .2s;
-    }
-    .wz-step .n {
-      width:18px;height:18px;border-radius:50%;background:var(--border);color:var(--t3);
-      display:flex;align-items:center;justify-content:center;font-size:.5625rem;font-weight:800;flex-shrink:0;
-    }
+    .wz-step { display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:.6875rem;font-weight:700;color:var(--t4);white-space:nowrap;background:var(--bg-alt);border:1.5px solid transparent;transition:all .2s; }
+    .wz-step .n { width:18px;height:18px;border-radius:50%;background:var(--border);color:var(--t3);display:flex;align-items:center;justify-content:center;font-size:.5625rem;font-weight:800;flex-shrink:0; }
     .wz-step.is-active { background:var(--accent-bg);color:var(--accent);border-color:var(--accent); }
     .wz-step.is-active .n { background:var(--accent);color:#fff; }
     .wz-step.is-done { color:var(--green-t);background:var(--green-bg); }
     .wz-step.is-done .n { background:var(--green);color:#fff; }
-
-    .wz-panel { display:none; }
-    .wz-panel.is-active { display:block;animation:wzIn .25s ease; }
+    .wz-panel { display:none; } .wz-panel.is-active { display:block;animation:wzIn .25s ease; }
     @keyframes wzIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-
     .wz-title { font-size:1.25rem;font-weight:800;color:var(--t1);margin-bottom:4px;letter-spacing:-.01em; }
     .wz-sub { font-size:.8438rem;color:var(--t3);margin-bottom:22px; }
-
     .wz-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px; }
-    .wz-card {
-      background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);
-      padding:18px 16px;cursor:pointer;transition:all .18s;position:relative;
-    }
+    .wz-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 16px;cursor:pointer;transition:all .18s;position:relative; }
     .wz-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent); }
     .wz-card.is-selected { border-color:var(--accent);background:var(--accent-bg); }
-    .wz-card.is-selected::after {
-      content:'✓';position:absolute;top:10px;right:12px;width:20px;height:20px;border-radius:50%;
-      background:var(--accent);color:#fff;font-size:.6875rem;font-weight:800;
-      display:flex;align-items:center;justify-content:center;
-    }
+    .wz-card.is-selected::after { content:'✓';position:absolute;top:10px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6875rem;font-weight:800;display:flex;align-items:center;justify-content:center; }
     .wz-card .ico { font-size:1.75rem;margin-bottom:10px; }
     .wz-card .lbl { font-size:.8125rem;font-weight:700;color:var(--t1); }
     .wz-card .sb  { font-size:.6875rem;color:var(--t3);margin-top:3px;line-height:1.45; }
 
-    .wz-agent {
-      display:flex;align-items:flex-start;gap:13px;background:var(--card);
-      border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:15px 16px;
-      margin-bottom:10px;transition:all .15s;
-    }
+    /* Import console */
+    .imp-console { background:#0F172A;border-radius:var(--radius-xl);padding:20px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;min-height:260px;max-height:340px;overflow-y:auto;line-height:1.9; }
+    .imp-line { display:flex;gap:8px;align-items:center;animation:wzIn .2s ease; }
+    .imp-ok { color:#4ADE80; } .imp-warn { color:#FBBF24; } .imp-head { color:#818CF8;font-weight:700;margin-top:6px; }
+    .imp-summary { display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:16px; }
+    .imp-stat { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center; }
+    .imp-stat b { display:block;font-size:1.25rem;color:var(--t1); }
+    .imp-stat span { font-size:.625rem;color:var(--t4);font-weight:700; }
+
+    /* Review sections */
+    .rv-sec { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px; }
+    .rv-sec .rv-h { display:flex;align-items:center;gap:8px;font-size:.8125rem;font-weight:800;color:var(--t1);margin-bottom:8px; }
+    .rv-src { font-size:.5625rem;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--accent-bg);color:var(--accent);letter-spacing:.04em; }
+
+    /* Agent toggles */
+    .wz-agent { display:flex;align-items:flex-start;gap:13px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:15px 16px;margin-bottom:10px;transition:all .15s; }
     .wz-agent.is-on { border-color:var(--accent);background:var(--accent-bg); }
     .wz-agent .aico { width:38px;height:38px;border-radius:10px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0; }
     .wz-agent.is-on .aico { background:#fff; }
     .wz-rec { font-size:.5625rem;font-weight:800;color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent);border-radius:99px;padding:1px 7px;letter-spacing:.04em; }
-
     .sw { position:relative;width:36px;height:20px;flex-shrink:0;margin-left:auto;margin-top:2px;cursor:pointer; }
     .sw input { opacity:0;width:0;height:0; }
     .sw .tr { position:absolute;inset:0;background:var(--border);border-radius:99px;transition:.2s; }
@@ -61,22 +53,27 @@
     .sw input:checked + .tr { background:var(--accent); }
     .sw input:checked + .tr::before { transform:translateX(16px); }
 
+    /* Training */
     .tr-row { display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:9px; }
     .tr-bar { flex:1;height:5px;border-radius:99px;background:var(--border-s);overflow:hidden;max-width:180px; }
     .tr-bar > div { height:100%;border-radius:99px;background:var(--accent);width:0%;transition:width 1.1s ease; }
 
-    .wz-chat { display:grid;grid-template-columns:1fr 260px;gap:14px; }
-    @media(max-width:760px){ .wz-chat{grid-template-columns:1fr} }
-    .wz-chat-main { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);display:flex;flex-direction:column;height:400px;overflow:hidden; }
+    /* Scenario tester */
+    .sc-chips { display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px; }
+    .sc-chip { padding:6px 12px;border:1.5px solid var(--accent);border-radius:99px;font-size:.71875rem;font-weight:600;color:var(--accent);background:var(--card);cursor:pointer;transition:all .15s; }
+    .sc-chip:hover { background:var(--accent);color:#fff; }
+    .wz-chat { display:grid;grid-template-columns:1fr 290px;gap:14px; }
+    @media(max-width:800px){ .wz-chat{grid-template-columns:1fr} }
+    .wz-chat-main { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);display:flex;flex-direction:column;height:420px;overflow:hidden; }
     .wz-chat-body { flex:1;overflow-y:auto;padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:9px; }
     .wz-msg { max-width:80%;padding:9px 13px;border-radius:12px;font-size:.8125rem;line-height:1.5;white-space:pre-wrap; }
     .wz-msg.in  { background:var(--card);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px; }
     .wz-msg.out { background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:3px; }
-    .wz-actions { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:16px; }
-    .wz-act { display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:8px;font-size:.75rem;font-weight:600;color:var(--green-t);margin-bottom:7px;animation:wzIn .25s ease; }
+    .chk-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-s);font-size:.71875rem; }
+    .chk-row:last-child { border:none; }
+    .chk-yes { color:var(--green-t);font-weight:800; } .chk-no { color:var(--t4);font-weight:700; }
 
-    .wz-code { background:#1E293B;border-radius:var(--radius);padding:14px 16px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;line-height:1.7;position:relative;overflow-x:auto;white-space:pre; }
-
+    .wz-code { background:#1E293B;border-radius:var(--radius);padding:14px 16px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;line-height:1.7;overflow-x:auto;white-space:pre; }
     .wz-footer { display:flex;justify-content:space-between;align-items:center;margin-top:26px;padding-top:18px;border-top:1px solid var(--border); }
   </style>
 </head>
@@ -101,24 +98,24 @@
 <script src="/agents/shared/agents-data.js"></script>
 <script src="/agents/shared/agents-storage.js"></script>
 <script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-import.js"></script>
 <script src="/agents/shared/agents-ui.js"></script>
 <script>
 DRUI.init({ nav:'businesses' });
 document.getElementById('ph').innerHTML = DRUI.pageHeader('Add a Business',
-  'Onboard a new business and deploy its AI employees in 8 steps.');
+  'Onboard a business, auto-import its knowledge, and deploy its AI employees.');
 
-/* ── Wizard state ─────────────────────────────────────────── */
 var W = {
   step: 1,
-  industryGroup: null, businessType: null,
-  name:'', website:'', phone:'', email:'', whatsapp:'', location:'', reviewLink:'', bookingLink:'',
+  name:'', website:'', industryGroup:null, businessType:null,
+  location:'', phone:'', email:'', whatsapp:'', reviewLink:'', bookingLink:'', notes:'',
+  social: { instagram:'', facebook:'', linkedin:'', tiktok:'', youtube:'' },
+  intel: null, importDone:false, importing:false,
   selectedAgents: [],
-  knowledge: {},
-  trained: false,
-  createdBiz: null,
-  testerMsgs: [], testerLead: null,
+  trained: false, createdBiz: null,
+  testerCtx: {}, testerMsgs: [], testOutcomes: [],
 };
-var STEPS = ['Industry','Business Type','Details','AI Agents','Knowledge','Train','Test','Deploy'];
+var STEPS = ['Basics','Import','Review','AI Employees','Train','Test','Deploy'];
 
 function renderSteps() {
   document.getElementById('wzSteps').innerHTML = STEPS.map(function(s,i){
@@ -128,143 +125,193 @@ function renderSteps() {
   }).join('');
   document.getElementById('btnBack').style.visibility = (W.step === 1 || W.createdBiz) ? 'hidden' : 'visible';
   var next = document.getElementById('btnNext');
-  next.textContent = W.step === 8 ? '✓ Finish — Open Business' : W.step === 5 ? 'Save Knowledge & Continue →' : 'Continue →';
+  next.textContent = W.step === 7 ? '✓ Finish — Open Business'
+    : W.step === 2 ? (W.importDone ? 'Review Import →' : 'Run Import') : 'Continue →';
 }
-
-function panel(n, html) {
-  return '<div class="wz-panel'+(n===W.step?' is-active':'')+'" id="wz'+n+'">'+html+'</div>';
+function panel(n, html) { return '<div class="wz-panel'+(n===W.step?' is-active':'')+'" id="wz'+n+'">'+html+'</div>'; }
+function fld(id,label,ph,half) {
+  return '<div class="ag-form-group"><label class="ag-label">'+label+'</label>'+
+    '<input class="ag-input" id="f_'+id+'" placeholder="'+ph+'" value="'+DRUI.esc(id.indexOf('soc_')===0 ? W.social[id.slice(4)] : (W[id]||''))+'"></div>';
 }
 
 function render() {
   renderSteps();
-  var P = document.getElementById('wzPanels');
   var h = '';
-
-  /* Step 1 — Industry group */
-  h += panel(1,
-    '<div class="wz-title">Select Industry Group</div>'+
-    '<div class="wz-sub">Which industry does this business belong to? This decides the recommended AI agents and knowledge fields.</div>'+
-    '<div class="wz-grid">'+ DRD.industryGroups.map(function(g){
-      return '<div class="wz-card'+(W.industryGroup===g.id?' is-selected':'')+'" onclick="pickGroup(\''+g.id+'\')">'+
-        '<div class="ico">'+g.icon+'</div><div class="lbl">'+g.label+'</div>'+
-        '<div class="sb">'+g.types.slice(0,3).join(', ')+'…</div></div>';
-    }).join('')+'</div>');
-
-  /* Step 2 — Business type */
   var grp = DRD.group(W.industryGroup);
+
+  /* 1 — Basics */
+  h += panel(1,
+    '<div class="wz-title">Business Basics</div>'+
+    '<div class="wz-sub">Everything the import engine and AI employees need to represent this business.</div>'+
+    '<div class="ag-form-row">'+fld('name','Business Name *','e.g. Sunshine Nursery')+fld('website','Website URL *','e.g. sunshinenursery.ca')+'</div>'+
+    '<div class="ag-form-row"><div class="ag-form-group"><label class="ag-label">Industry Group *</label>'+
+      '<select class="ag-select" id="f_industry" onchange="pickGroup(this.value)"><option value="">Select industry…</option>'+
+      DRD.industryGroups.map(function(g){ return '<option value="'+g.id+'"'+(W.industryGroup===g.id?' selected':'')+'>'+g.icon+' '+g.label+'</option>'; }).join('')+'</select></div>'+
+      '<div class="ag-form-group"><label class="ag-label">Business Type *</label>'+
+      '<select class="ag-select" id="f_type"><option value="">Select type…</option>'+
+      (grp ? grp.types.map(function(t){ return '<option'+(W.businessType===t?' selected':'')+'>'+t+'</option>'; }).join('') : '')+'</select></div></div>'+
+    '<div class="ag-form-row">'+fld('location','City / Location','City, Province')+fld('phone','Phone','+1 …')+'</div>'+
+    '<div class="ag-form-row">'+fld('email','Email','hello@…')+fld('whatsapp','WhatsApp Number','+1 …')+'</div>'+
+    '<div class="ag-form-row">'+fld('reviewLink','Google Review Link','https://g.page/r/…')+fld('bookingLink','Booking Link (if any)','https://…')+'</div>'+
+    '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:16px 0 10px">Social profiles (optional — improves tone import)</div>'+
+    '<div class="ag-form-row">'+fld('soc_instagram','Instagram','https://instagram.com/…')+fld('soc_facebook','Facebook','https://facebook.com/…')+'</div>'+
+    '<div class="ag-form-row">'+fld('soc_linkedin','LinkedIn','https://linkedin.com/company/…')+fld('soc_tiktok','TikTok','https://tiktok.com/@…')+'</div>'+
+    '<div class="ag-form-group"><label class="ag-label">Notes</label><textarea class="ag-textarea" id="f_notes" style="min-height:52px" placeholder="Anything the AI employees should know…">'+DRUI.esc(W.notes)+'</textarea></div>');
+
+  /* 2 — Import */
   h += panel(2,
-    '<div class="wz-title">Select Business Type</div>'+
-    '<div class="wz-sub">'+(grp ? 'Business types in <b>'+grp.label+'</b>:' : 'Select an industry group first.')+'</div>'+
-    '<div class="wz-grid">'+ (grp ? grp.types.map(function(t){
-      return '<div class="wz-card'+(W.businessType===t?' is-selected':'')+'" onclick="pickType(\''+t.replace(/'/g,"\\'")+'\')">'+
-        '<div class="ico">'+grp.icon+'</div><div class="lbl">'+t+'</div></div>';
-    }).join('') : '')+'</div>');
+    '<div class="wz-title">Business Intelligence Import</div>'+
+    '<div class="wz-sub">Importing knowledge from <b>'+DRUI.esc(W.website||'the website')+'</b>, public business profile, and social channels — so agents start smart instead of blank.</div>'+
+    '<div class="imp-console" id="impConsole"><div style="color:#64748B">▸ Ready to import. Click "Run Import" below.</div></div>'+
+    '<div class="imp-summary" id="impSummary"></div>');
 
-  /* Step 3 — Details */
-  h += panel(3,
-    '<div class="wz-title">Business Details</div>'+
-    '<div class="wz-sub">Core contact info the AI agents will use when talking to customers.</div>'+
-    '<div class="ag-form-row">'+
-      fld('name','Business Name *','e.g. Sunshine Nursery')+fld('website','Website','e.g. sunshinenursery.ca')+
-    '</div><div class="ag-form-row">'+
-      fld('phone','Phone','+1 …')+fld('email','Email','hello@…')+
-    '</div><div class="ag-form-row">'+
-      fld('whatsapp','WhatsApp','+1 …')+fld('location','Location','City, Province')+
-    '</div><div class="ag-form-row">'+
-      fld('reviewLink','Google Review Link','https://g.page/r/…')+fld('bookingLink','Booking Link (if any)','https://…')+
-    '</div>');
+  /* 3 — Review */
+  h += panel(3, renderReview());
 
-  /* Step 4 — Agents */
+  /* 4 — AI Employees */
   var agents = W.industryGroup ? DRD.agentsFor(W.industryGroup) : [];
   h += panel(4,
-    '<div class="wz-title">Choose AI Agents</div>'+
-    '<div class="wz-sub">Recommended agents for a <b>'+(W.businessType||'business')+'</b> are pre-selected. Toggle any on or off.</div>'+
+    '<div class="wz-title">Choose AI Employees</div>'+
+    '<div class="wz-sub">Recommended employees for a <b>'+(W.businessType||'business')+'</b> are pre-selected. Each has a defined job, allowed actions and escalation rules.</div>'+
     agents.map(function(a){
       var on = W.selectedAgents.indexOf(a.type) !== -1;
+      var job = DRD.jobFor(a.type);
       return '<div class="wz-agent'+(on?' is-on':'')+'" id="wzag_'+a.type+'">'+
         '<div class="aico">'+a.icon+'</div>'+
         '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
           '<span style="font-size:.8438rem;font-weight:700;color:var(--t1)">'+a.name+'</span>'+
           (a.recommended?'<span class="wz-rec">RECOMMENDED</span>':'')+
-          (a.industrySpecific?'<span class="wz-rec" style="color:var(--green-t);border-color:var(--green);background:var(--green-bg)">INDUSTRY</span>':'')+
-        '</div>'+
-        '<div style="font-size:.75rem;color:var(--t3);margin-top:3px;line-height:1.5">'+a.desc+'</div>'+
-        '<div style="font-size:.625rem;color:var(--t4);margin-top:5px;font-weight:600">Channels: '+a.channels.join(', ')+'</div></div>'+
+          (a.industrySpecific?'<span class="wz-rec" style="color:var(--green-t);border-color:var(--green);background:var(--green-bg)">INDUSTRY</span>':'')+'</div>'+
+        '<div style="font-size:.75rem;color:var(--t3);margin-top:3px;line-height:1.5"><b>'+job.role+'</b> — '+job.purpose+'</div>'+
+        '<div style="font-size:.625rem;color:var(--t4);margin-top:5px;font-weight:600">Channels: '+a.channels.join(', ')+' · Actions: '+Object.keys(job.actions).filter(function(k){return job.actions[k];}).length+'</div></div>'+
         '<label class="sw"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleAgent(\''+a.type+'\',this.checked)"><span class="tr"></span></label>'+
       '</div>';
     }).join(''));
 
-  /* Step 5 — Knowledge */
-  var fields = W.industryGroup ? DRD.fieldsFor(W.industryGroup) : [];
+  /* 5 — Train */
   h += panel(5,
-    '<div class="wz-title">Business Knowledge</div>'+
-    '<div class="wz-sub">This is what the AI agents learn. Universal fields plus <b>'+(grp?grp.label:'')+'</b>-specific fields. Fill in what you know — you can edit later.</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">'+
-    fields.map(function(f){
-      var v = DRUI.esc(W.knowledge[f.id]||'');
-      return '<div class="ag-form-group"><label class="ag-label">'+f.label+'</label>'+
-        (f.ta ? '<textarea class="ag-textarea" style="min-height:64px" id="kb_'+f.id+'" placeholder="'+f.ph+'">'+v+'</textarea>'
-              : '<input class="ag-input" id="kb_'+f.id+'" placeholder="'+f.ph+'" value="'+v+'">')+
-      '</div>';
-    }).join('')+'</div>');
-
-  /* Step 6 — Train */
-  h += panel(6,
-    '<div class="wz-title">Train Agents</div>'+
-    '<div class="wz-sub">Each selected agent is trained on the business knowledge you provided.</div>'+
+    '<div class="wz-title">Train AI Employees</div>'+
+    '<div class="wz-sub">Each employee is trained on the imported intelligence, business rules and its job definition.</div>'+
     '<div id="trainRows">'+ W.selectedAgents.map(function(t){
       var def = DRD.agentDef(W.industryGroup, t) || {name:t, icon:'🤖'};
-      return '<div class="tr-row" id="tr_'+t+'">'+
-        '<span style="font-size:1.125rem">'+def.icon+'</span>'+
+      return '<div class="tr-row"><span style="font-size:1.125rem">'+def.icon+'</span>'+
         '<span style="flex:1;font-size:.8125rem;font-weight:700;color:var(--t1)">'+def.name+'</span>'+
         '<div class="tr-bar"><div id="trb_'+t+'"></div></div>'+
-        '<span id="trs_'+t+'">'+DRUI.trainBadge(W.trained?'ready':'not-trained')+'</span>'+
-      '</div>';
+        '<span id="trs_'+t+'">'+DRUI.trainBadge(W.trained?'ready':'not-trained')+'</span></div>';
     }).join('')+'</div>'+
-    '<button class="btn btn--primary" id="btnTrain" onclick="trainNow()" '+(W.trained?'disabled':'')+' style="margin-top:14px">'+(W.trained?'✓ All Agents Trained':'⚡ Train All Agents')+'</button>');
+    '<button class="btn btn--primary" id="btnTrain" onclick="trainNow()" '+(W.trained?'disabled':'')+' style="margin-top:14px">'+(W.trained?'✓ All Employees Trained':'⚡ Train All Employees')+'</button>');
 
-  /* Step 7 — Test */
-  var agentOpts = W.selectedAgents.map(function(t){
-    var def = DRD.agentDef(W.industryGroup, t)||{name:t};
-    return '<option value="'+t+'">'+def.name+'</option>';
-  }).join('');
-  h += panel(7,
-    '<div class="wz-title">Test Agents</div>'+
-    '<div class="wz-sub">Ask sample questions — the agent answers from the knowledge you saved. Give it a name + phone number to see lead capture.</div>'+
-    '<div style="margin-bottom:12px"><select class="ag-select" id="testAgent" style="width:280px">'+agentOpts+'</select></div>'+
+  /* 6 — Scenario Test */
+  var scenarios = DRD.scenarios[W.industryGroup] || [];
+  h += panel(6,
+    '<div class="wz-title">Test with Real Scenarios</div>'+
+    '<div class="wz-sub">Click a scenario or type your own. Watch the outcome panel — every test creates real structured records (saved to the business when you finish).</div>'+
+    '<div class="sc-chips">'+scenarios.map(function(s){
+      return '<div class="sc-chip" onclick="runScenario(this.textContent)">'+s+'</div>';
+    }).join('')+'</div>'+
     '<div class="wz-chat"><div class="wz-chat-main">'+
       '<div class="wz-chat-body" id="testBody"></div>'+
       '<div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)">'+
-        '<input class="ag-input" id="testInput" placeholder="e.g. What are your fees?" style="flex:1" onkeydown="if(event.key===\'Enter\')testSend()">'+
-        '<button class="btn btn--primary" onclick="testSend()">Send</button>'+
-      '</div></div>'+
-      '<div class="wz-actions"><div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:10px">Agent Actions</div>'+
-      '<div id="testActions"><div style="font-size:.75rem;color:var(--t4)">Actions appear here as the agent works…</div></div></div>'+
+        '<input class="ag-input" id="testInput" placeholder="Type as a customer…" style="flex:1" onkeydown="if(event.key===\'Enter\')testSend()">'+
+        '<button class="btn btn--primary" onclick="testSend()">Send</button></div></div>'+
+      '<div class="ag-card" style="padding:16px;height:420px;overflow-y:auto">'+
+        '<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:8px">Outcome Analysis</div>'+
+        '<div id="testChecks"><div style="font-size:.75rem;color:var(--t4)">Run a scenario to see intent, actions and saved records…</div></div></div>'+
     '</div>');
 
-  /* Step 8 — Deploy */
-  h += panel(8, renderDeploy());
+  /* 7 — Deploy */
+  h += panel(7, renderDeploy());
 
-  P.innerHTML = h;
-  if (W.step === 7 && !W.testerMsgs.length) testGreet();
+  document.getElementById('wzPanels').innerHTML = h;
+  if (W.step === 6 && !W.testerMsgs.length) testGreet();
 }
 
-function fld(id,label,ph) {
-  return '<div class="ag-form-group"><label class="ag-label">'+label+'</label>'+
-    '<input class="ag-input" id="f_'+id+'" placeholder="'+ph+'" value="'+DRUI.esc(W[id]||'')+'"></div>';
-}
-
-/* ── Step interactions ────────────────────────────────────── */
-window.pickGroup = function(id){
-  if (W.industryGroup !== id) { W.businessType = null; W.selectedAgents = []; }
-  W.industryGroup = id; render();
-};
-window.pickType = function(t){
-  W.businessType = t;
-  if (!W.selectedAgents.length) {
-    W.selectedAgents = DRD.agentsFor(W.industryGroup).filter(function(a){return a.recommended;}).map(function(a){return a.type;});
+/* ── Review step ─────────────────────────────────────────── */
+function renderReview() {
+  if (!W.intel) return '<div class="wz-title">Review Imported Knowledge</div><div class="wz-sub">Run the import first.</div>';
+  var i = W.intel;
+  function sec(icon, title, src, inner) {
+    return '<div class="rv-sec"><div class="rv-h">'+icon+' '+title+' <span class="rv-src">'+src+'</span></div>'+inner+'</div>';
   }
-  render();
+  function ta(id, val, rows) {
+    return '<textarea class="ag-textarea" id="rv_'+id+'" style="min-height:'+(rows||52)+'px">'+DRUI.esc(val||'')+'</textarea>';
+  }
+  return '<div class="wz-title">Review Imported Knowledge</div>'+
+    '<div class="wz-sub">Edit anything before saving — this becomes the business knowledge every AI employee works from.</div>'+
+    (i.missing && i.missing.length ? '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:14px;font-size:.78125rem;color:#92400E"><b>⚠️ Missing:</b> '+i.missing.join(' · ')+' — add manually if available.</div>' : '')+
+    sec('🏢','Business Summary','WEBSITE', ta('summary', i.summary, 64))+
+    sec('🛠️','Services Detected','WEBSITE', ta('services', (i.services||[]).join('\n'), 84))+
+    sec('❓','FAQs Detected ('+(i.faqs||[]).length+')','WEBSITE', ta('faqs', (i.faqs||[]).map(function(f){return 'Q: '+f.q+'\nA: '+f.a;}).join('\n\n'), 130))+
+    sec('🕐','Hours','WEBSITE + GOOGLE', ta('hours', i.hours))+
+    sec('💰','Pricing Notes','WEBSITE', ta('pricingNotes', i.pricingNotes))+
+    sec('📋','Policies','WEBSITE', ta('policies', i.policies))+
+    sec('📍','Location / Service Area','WEBSITE', ta('serviceArea', i.serviceArea))+
+    sec('⭐','Google Profile','PUBLIC PROFILE',
+      '<div style="font-size:.78125rem;color:var(--t2);line-height:1.9">Rating: <b>'+(i.google||{}).rating+'★</b> ('+(i.google||{}).reviewCount+' reviews) · Categories: '+((i.google||{}).categories||[]).join(', ')+'</div>')+
+    sec('📣','Tone & Social Notes','SOCIAL',
+      '<div style="font-size:.78125rem;color:var(--t2);line-height:1.9">Tone: <b>'+((i.social||{}).tone||'—')+'</b><br>Themes: '+((i.social||{}).serviceMentions||[]).join(' · ')+'<br>Style: '+((i.social||{}).promoStyle||'—')+'</div>')+
+    sec('🚨','Escalation Contact','MANUAL', '<input class="ag-input" id="rv_escalation" placeholder="Who handles complex issues? Name + phone" value="">');
+}
+function saveReview() {
+  if (!W.intel) return;
+  var g = function(id){ var el = document.getElementById('rv_'+id); return el ? el.value.trim() : null; };
+  W.intel.summary = g('summary') || W.intel.summary;
+  var sv = g('services'); if (sv !== null) W.intel.services = sv.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  var fq = g('faqs');
+  if (fq !== null) {
+    W.intel.faqs = fq.split(/\n\s*\n/).map(function(block){
+      var m = block.match(/Q:\s*([\s\S]*?)\nA:\s*([\s\S]*)/);
+      return m ? { q:m[1].trim(), a:m[2].trim() } : null;
+    }).filter(Boolean);
+  }
+  ['hours','pricingNotes','policies','serviceArea'].forEach(function(k){ var v = g(k); if (v !== null) W.intel[k] = v; });
+  var esc2 = g('escalation'); if (esc2) W.escalation = esc2;
+}
+
+/* ── Import runner ───────────────────────────────────────── */
+function runImportNow() {
+  if (W.importing) return;
+  W.importing = true;
+  var con = document.getElementById('impConsole');
+  con.innerHTML = '<div class="imp-head">▸ Starting Business Intelligence Import for '+DRUI.esc(W.name)+'…</div>';
+  function line(html){ var d=document.createElement('div'); d.className='imp-line'; d.innerHTML=html; con.appendChild(d); con.scrollTop=con.scrollHeight; }
+  var headers = { website:false, google:false, social:false };
+  DRI.runImport(W, W.social, function(mod, item, ok){
+    if (!headers[mod]) {
+      headers[mod] = true;
+      line('<span class="imp-head">'+(mod==='website'?'▸ Crawling website pages…':mod==='google'?'▸ Importing public business profile…':'▸ Analysing social profiles…')+'</span>');
+    }
+    line(ok ? '<span class="imp-ok">✓</span> '+item+' — imported' : '<span class="imp-warn">⚠</span> '+item+' — not found, skipped');
+  }).then(function(intel){
+    W.intel = intel; W.importDone = true; W.importing = false;
+    line('<span class="imp-head">▸ Extraction complete.</span>');
+    line('<span class="imp-ok">✓</span> '+intel.services.length+' services · '+intel.faqs.length+' FAQs · hours · pricing · '+intel.testimonials.length+' trust signals');
+    if (intel.missing.length) line('<span class="imp-warn">⚠</span> Missing: '+intel.missing.join(', '));
+    document.getElementById('impSummary').innerHTML = [
+      ['📄', intel.pagesFound.length, 'Pages crawled'], ['🛠️', intel.services.length, 'Services'],
+      ['❓', intel.faqs.length, 'FAQs'], ['⭐', intel.google.rating+'★', 'Google rating'],
+      ['📣', Object.keys(W.social).filter(function(k){return W.social[k];}).length, 'Social profiles'],
+    ].map(function(s){ return '<div class="imp-stat"><b>'+s[1]+'</b><span>'+s[0]+' '+s[2]+'</span></div>'; }).join('');
+    renderSteps();
+    AG.toast('Import complete — review the results','success');
+  });
+}
+
+/* ── Basics collection ───────────────────────────────────── */
+function saveBasics() {
+  ['name','website','location','phone','email','whatsapp','reviewLink','bookingLink'].forEach(function(k){
+    var el = document.getElementById('f_'+k); if (el) W[k] = el.value.trim();
+  });
+  Object.keys(W.social).forEach(function(k){
+    var el = document.getElementById('f_soc_'+k); if (el) W.social[k] = el.value.trim();
+  });
+  var n = document.getElementById('f_notes'); if (n) W.notes = n.value.trim();
+  var t = document.getElementById('f_type'); if (t && t.value) W.businessType = t.value;
+}
+window.pickGroup = function(id){
+  saveBasics();
+  if (W.industryGroup !== id) { W.businessType = null; W.selectedAgents = []; }
+  W.industryGroup = id || null; render();
 };
 window.toggleAgent = function(type, on){
   var i = W.selectedAgents.indexOf(type);
@@ -274,25 +321,10 @@ window.toggleAgent = function(type, on){
   if (row) row.classList.toggle('is-on', on);
 };
 
-function saveDetails() {
-  ['name','website','phone','email','whatsapp','location','reviewLink','bookingLink'].forEach(function(k){
-    var el = document.getElementById('f_'+k); if (el) W[k] = el.value.trim();
-  });
-}
-function saveKnowledge() {
-  DRD.fieldsFor(W.industryGroup).forEach(function(f){
-    var el = document.getElementById('kb_'+f.id);
-    if (el && el.value.trim()) W.knowledge[f.id] = el.value.trim();
-    else if (el) delete W.knowledge[f.id];
-  });
-  if (W.reviewLink && !W.knowledge.reviewLink) W.knowledge.reviewLink = W.reviewLink;
-  if (W.whatsapp && !W.knowledge.whatsapp)   W.knowledge.whatsapp   = W.whatsapp;
-}
-
-/* ── Training ─────────────────────────────────────────────── */
+/* ── Training ────────────────────────────────────────────── */
 window.trainNow = function(){
   var btn = document.getElementById('btnTrain');
-  btn.disabled = true; btn.textContent = 'Training…';
+  btn.disabled = true; btn.textContent = 'Training on imported intelligence…';
   W.selectedAgents.forEach(function(t,i){
     setTimeout(function(){
       document.getElementById('trs_'+t).innerHTML = DRUI.trainBadge('training');
@@ -301,107 +333,144 @@ window.trainNow = function(){
         document.getElementById('trs_'+t).innerHTML = DRUI.trainBadge('ready');
         if (i === W.selectedAgents.length-1) {
           W.trained = true;
-          btn.textContent = '✓ All Agents Trained';
-          AG.toast('All agents trained successfully!','success');
+          btn.textContent = '✓ All Employees Trained';
+          AG.toast('All employees trained on the imported knowledge!','success');
         }
       }, 1200);
     }, i*400);
   });
 };
 
-/* ── Tester ───────────────────────────────────────────────── */
-function fakeBiz(){ return { id:'preview', name:W.name||'Your Business', knowledge:W.knowledge, whatsapp:W.whatsapp, reviewLink:W.reviewLink }; }
+/* ── Scenario tester (uses real engine on preview business) ─ */
+function previewBiz(){
+  return { id:'preview', name:W.name||'Your Business', industryGroup:W.industryGroup,
+    businessType:W.businessType, phone:W.phone, whatsapp:W.whatsapp, reviewLink:W.reviewLink,
+    knowledge:{ escalation: W.escalation||'' }, intel:W.intel, manualRules:[] };
+}
+function previewAgent(){
+  var type = W.selectedAgents[0] || 'website-enquiry';
+  var def = DRD.agentDef(W.industryGroup, type) || { name:'Website Enquiry Agent', channels:['website'] };
+  return { id:'preview-agent', agentType:type, agentName:def.name, channels:def.channels,
+    actionsEnabled:{}, tasksCompleted:0 };
+}
 function addTestMsg(role, text){
   W.testerMsgs.push({role:role,text:text});
-  var b = document.getElementById('testBody');
+  var b = document.getElementById('testBody'); if(!b) return;
   var d = document.createElement('div'); d.className = 'wz-msg '+role; d.textContent = text;
   b.appendChild(d); b.scrollTop = b.scrollHeight;
 }
 function testGreet(){
-  addTestMsg('in', "Hi there! 👋 I'm the AI assistant for "+(W.name||'your business')+". Ask me anything a customer would ask!");
+  addTestMsg('in', "Hi! 👋 I'm your new AI employee for "+(W.name||'this business')+". Test me with a real customer question — or click a scenario above.");
 }
+window.runScenario = function(text){
+  var inp = document.getElementById('testInput'); inp.value = text; testSend();
+};
 window.testSend = function(){
   var inp = document.getElementById('testInput');
   var v = inp.value.trim(); if(!v) return;
   inp.value='';
   addTestMsg('out', v);
-  var type = document.getElementById('testAgent').value;
-  var def = DRD.agentDef(W.industryGroup, type);
-  var res = DRA.respond(fakeBiz(), {agentName: def?def.name:'Agent'}, v);
+  /* Simulate save-to-real-records at finish: run engine against preview with in-memory ctx */
+  var res = DRA.converse(previewBiz(), previewAgent(), v, W.testerCtx);
+  /* preview business isn't saved yet, so remove any records created against 'preview' */
+  ['leads','bookings','tasks'].forEach(function(col){
+    DRS.list(col, { businessId:'preview' }).forEach(function(r){
+      W.testOutcomes.push({ col: col, rec: r });
+      DRS.remove(col, r.id);
+    });
+  });
   setTimeout(function(){
     addTestMsg('in', res.reply);
-    if (res.actions.length) {
-      var box = document.getElementById('testActions');
-      if (box.querySelector('div[style]')) box.innerHTML='';
-      res.actions.forEach(function(a){
-        box.innerHTML += '<div class="wz-act"><span>'+a.icon+'</span>'+a.label+'</div>';
-        if (a.type==='lead' && !W.testerLead) {
-          var phone = (v.match(/\+?[\d][\d\s\-().]{6,}/)||[null])[0];
-          W.testerLead = { name: phone ? v.replace(phone,'').replace(/[,.]/g,'').trim() || 'Tester Lead' : 'Tester Lead',
-                           phone: phone || '', enquiryType: 'Wizard Test', notes: 'Captured during onboarding test' };
-        }
-      });
-    }
-  }, 600);
+    var c = res.checks;
+    function yn(v){ return v ? '<span class="chk-yes">YES</span>' : '<span class="chk-no">no</span>'; }
+    document.getElementById('testChecks').innerHTML =
+      '<div class="chk-row"><span>Intent detected</span><b style="color:var(--accent);font-size:.71875rem">'+res.intentLabel+'</b></div>'+
+      (res.knowledgeSource?'<div class="chk-row"><span>Knowledge used</span><b style="font-size:.65625rem;color:var(--t2)">'+res.knowledgeSource+'</b></div>':'')+
+      '<div class="chk-row"><span>Lead captured</span>'+yn(c.leadCaptured)+'</div>'+
+      '<div class="chk-row"><span>Booking offered</span>'+yn(c.bookingOffered)+'</div>'+
+      '<div class="chk-row"><span>Follow-up suggested</span>'+yn(c.followUpSuggested)+'</div>'+
+      '<div class="chk-row"><span>Escalation needed</span>'+yn(c.escalationNeeded)+'</div>'+
+      '<div class="chk-row"><span>Data saved to record</span>'+yn(c.dataSaved)+'</div>'+
+      (res.actions.length?'<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:10px 0 6px">Actions taken</div>'+
+        res.actions.map(function(a){ return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:7px;font-size:.71875rem;font-weight:600;color:var(--green-t);margin-bottom:5px">'+a.icon+' '+a.label+'</div>'; }).join(''):'');
+  }, 550);
 };
 
-/* ── Deploy panel ─────────────────────────────────────────── */
+/* ── Deploy step ─────────────────────────────────────────── */
 function renderDeploy() {
   var slug = W.createdBiz ? W.createdBiz.slug : DRA.slugify(W.name||'your-business');
-  var primary = W.selectedAgents[0] || 'website-enquiry';
+  var primary = W.selectedAgents.indexOf('website-enquiry')!==-1 ? 'website-enquiry' : (W.selectedAgents[0]||'website-enquiry');
   var snippet = '&lt;script src="https://digital-rise-os.vercel.app/agents/widget/widget.js"\n        data-business="'+slug+'"\n        data-agent="'+primary+'"&gt;&lt;/script&gt;';
-  var opts = [
-    { ico:'💻', t:'Website Widget',        s:'One script tag on the client website — chat bubble appears instantly.', on:W.selectedAgents.indexOf('website-enquiry')!==-1 },
-    { ico:'📲', t:'WhatsApp Follow-up',    s:'Connect the business WhatsApp number for automated follow-ups.', on:W.selectedAgents.indexOf('whatsapp-followup')!==-1 },
-    { ico:'📧', t:'Email Reply Assistant', s:'Forward the enquiry inbox — the agent drafts replies.', on:W.selectedAgents.indexOf('email-inbox')!==-1 },
-    { ico:'⭐', t:'Review Request Link',   s:'Share after each job/visit to collect Google reviews.', on:W.selectedAgents.indexOf('review')!==-1 },
-    { ico:'📅', t:'Booking Flow',          s:'Agent offers tours/appointments and logs them to the dashboard.', on:W.selectedAgents.indexOf('booking')!==-1 },
+  var channels = [
+    ['💻','Website Widget','website-enquiry','Chat bubble captures and qualifies every visitor'],
+    ['📅','Booking Flow','booking','Turns interest into booking requests inside chat'],
+    ['📲','WhatsApp Follow-up','whatsapp-followup','3-touch follow-up sequence on captured leads'],
+    ['⭐','Review Engine','review','Requests reviews, intercepts unhappy feedback'],
+    ['📞','Missed Call Recovery','missed-call','Auto-texts missed callers within 1 minute'],
+    ['🔄','Lead Reactivation','lead-reactivation','30/60-day re-engagement of cold leads'],
   ];
   return '<div class="wz-title">Deploy</div>'+
-    '<div class="wz-sub">Deployment options for <b>'+DRUI.esc(W.name||'this business')+'</b>. The website widget is live the moment the snippet is installed.</div>'+
-    '<div class="wz-grid" style="margin-bottom:20px">'+opts.map(function(o){
-      return '<div class="wz-card" style="cursor:default;'+(o.on?'':'opacity:.45')+'"><div class="ico">'+o.ico+'</div>'+
-        '<div class="lbl">'+o.t+' '+(o.on?'<span class="badge badge--green" style="margin-left:4px">Enabled</span>':'<span class="badge badge--gray" style="margin-left:4px">Not selected</span>')+'</div>'+
-        '<div class="sb">'+o.s+'</div></div>';
+    '<div class="wz-sub">Channel deployments for <b>'+DRUI.esc(W.name||'this business')+'</b>. Full per-channel configuration lives in the business Deploy page after you finish.</div>'+
+    '<div class="wz-grid" style="margin-bottom:20px">'+channels.map(function(c){
+      var on = W.selectedAgents.indexOf(c[2])!==-1;
+      return '<div class="wz-card" style="cursor:default;'+(on?'':'opacity:.45')+'"><div class="ico">'+c[0]+'</div>'+
+        '<div class="lbl">'+c[1]+' '+(on?'<span class="badge badge--green">Active</span>':'<span class="badge badge--gray">Not selected</span>')+'</div>'+
+        '<div class="sb">'+c[3]+'</div></div>';
     }).join('')+'</div>'+
-    '<div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:8px">Website widget snippet</div>'+
+    '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:8px">Website widget snippet</div>'+
     '<div class="wz-code" id="deployCode">'+snippet+'</div>'+
     '<button class="btn btn--ghost btn--sm" style="margin-top:10px" onclick="copyDeploy()">📋 Copy Snippet</button>';
 }
 window.copyDeploy = function(){
-  var el = document.getElementById('deployCode');
-  navigator.clipboard.writeText(el.textContent).then(function(){ AG.toast('Snippet copied!','success'); });
+  navigator.clipboard.writeText(document.getElementById('deployCode').textContent).then(function(){ AG.toast('Snippet copied!','success'); });
 };
 
-/* ── Navigation ───────────────────────────────────────────── */
-window.wzBack = function(){ if (W.step>1){ if(W.step===3)saveDetails(); if(W.step===5)saveKnowledge(); W.step--; render(); } };
+/* ── Navigation ──────────────────────────────────────────── */
+window.wzBack = function(){
+  if (W.step<=1) return;
+  if (W.step===1) saveBasics();
+  if (W.step===3) saveReview();
+  W.step--; render();
+};
 window.wzNext = function(){
-  if (W.step===1 && !W.industryGroup) return AG.toast('Select an industry group','error');
-  if (W.step===2 && !W.businessType)  return AG.toast('Select a business type','error');
-  if (W.step===3) {
-    saveDetails();
+  if (W.step===1) {
+    saveBasics();
     if (!W.name) return AG.toast('Business name is required','error');
+    if (!W.website) return AG.toast('Website URL is required — it powers the import','error');
+    if (!W.industryGroup) return AG.toast('Select an industry group','error');
+    if (!W.businessType) return AG.toast('Select a business type','error');
+    if (!W.selectedAgents.length) {
+      W.selectedAgents = DRD.agentsFor(W.industryGroup).filter(function(a){return a.recommended;}).map(function(a){return a.type;});
+    }
   }
-  if (W.step===4 && !W.selectedAgents.length) return AG.toast('Select at least one AI agent','error');
-  if (W.step===5) { saveKnowledge(); AG.toast('Knowledge saved','success'); }
-  if (W.step===6 && !W.trained) return AG.toast('Click "Train All Agents" first','error');
-
-  if (W.step===8) { finish(); return; }
+  if (W.step===2) {
+    if (!W.importDone) { runImportNow(); return; }
+  }
+  if (W.step===3) { saveReview(); AG.toast('Imported knowledge saved','success'); }
+  if (W.step===4 && !W.selectedAgents.length) return AG.toast('Select at least one AI employee','error');
+  if (W.step===5 && !W.trained) return AG.toast('Click "Train All Employees" first','error');
+  if (W.step===7) { finish(); return; }
   W.step++; render();
 };
 
 function finish() {
   if (!W.createdBiz) {
+    W.knowledge = { escalation: W.escalation||'' };
+    W.manualRules = W.notes ? [W.notes] : [];
     W.createdBiz = DRA.createBusiness(W);
-    if (W.testerMsgs.length > 1) {
-      var agents = DRS.list('agents', { businessId: W.createdBiz.id });
-      var firstAgent = agents[agents.length-1] || null;
-      var leadRec = null;
-      if (W.testerLead) leadRec = DRA.captureLead(W.createdBiz, firstAgent, W.testerLead);
-      DRA.logConversation(W.createdBiz, firstAgent, W.testerMsgs, leadRec ? leadRec.id : null);
-    }
+    /* Re-home tester outcomes + conversation onto the real business */
+    var agents = DRS.list('agents', { businessId: W.createdBiz.id });
+    var firstAgent = agents.filter(function(a){ return a.agentType === (W.selectedAgents[0]||'website-enquiry'); })[0] || agents[0];
+    var leadId = null;
+    W.testOutcomes.forEach(function(o){
+      var rec = Object.assign({}, o.rec, { businessId: W.createdBiz.id, agentId: firstAgent ? firstAgent.id : null });
+      delete rec.id;
+      var saved = DRS.create(o.col, rec);
+      if (o.col === 'leads') leadId = saved.id;
+    });
+    if (W.testerMsgs.length > 1) DRA.logConversation(W.createdBiz, firstAgent, W.testerMsgs, leadId);
   }
-  AG.toast('Business created! Opening dashboard…','success');
+  AG.toast('Business created with '+W.selectedAgents.length+' AI employees!','success');
   setTimeout(function(){ window.location.href = '/agents/businesses/' + W.createdBiz.slug; }, 700);
 }
 

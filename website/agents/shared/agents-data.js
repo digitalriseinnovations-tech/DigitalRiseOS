@@ -458,3 +458,355 @@ var DRD = (function () {
     fieldsFor: fieldsFor,
   };
 })();
+
+
+/* ============================================================
+   DRD v3 EXTENSIONS — Intents, Agent Jobs, Scenarios, Layers
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ── Intent catalog (detection keywords, ordered) ──────── */
+  DRD.intents = [
+    { id:'complaint',    label:'Complaint / unhappy',    kws:['complaint','unhappy','angry','terrible','awful','disappointed','refund','worst','never again'] },
+    { id:'emergency',    label:'Emergency / urgent',     kws:['emergency','urgent','asap','right now','in pain','injury','injured','bleeding'] },
+    { id:'speak-human',  label:'Wants a human',          kws:['speak to','talk to someone','real person','human','manager','call me back','callback'] },
+    { id:'quote',        label:'Quote request',          kws:['quote','estimate','ballpark','how much would it cost for','price for my'] },
+    { id:'tour',         label:'Tour request',           kws:['tour','visit','look around','come see','see the place','open house'] },
+    { id:'reservation',  label:'Reservation',            kws:['reservation','reserve a table','book a table','table for'] },
+    { id:'booking',      label:'Wants to book',          kws:['book','appointment','schedule','sign up','enrol','enroll','register'] },
+    { id:'waitlist',     label:'Waitlist',               kws:['waitlist','wait list','waiting list'] },
+    { id:'subsidy',      label:'Subsidy / funding',      kws:['subsidy','cwelcc','funding','government program','financial assistance'] },
+    { id:'insurance',    label:'Insurance',              kws:['insurance','direct billing','coverage','covered by'] },
+    { id:'price',        label:'Asking price',           kws:['price','pricing','cost','fee','fees','how much','rates','rate card'] },
+    { id:'availability', label:'Availability',           kws:['availability','available','space','spot','opening','vacancy','do you have room','capacity'] },
+    { id:'hours',        label:'Opening hours',          kws:['hours','open','close','what time','when are you'] },
+    { id:'meals',        label:'Meals / food',           kws:['meal','meals','food','lunch','snack','allerg','vegan','vegetarian','gluten','menu'] },
+    { id:'ages',         label:'Age groups',             kws:['age','year old','yr old','month old','toddler','infant','preschool','my son','my daughter','my child'] },
+    { id:'review',       label:'Review opportunity',     kws:['review','feedback','rate you','loved it','amazing experience','great experience'] },
+    { id:'services',     label:'Services enquiry',       kws:['service','services','do you do','do you offer','can you do','offer'] },
+    { id:'location',     label:'Location / area',        kws:['where are you','address','located','directions','service area','do you cover','travel to'] },
+    { id:'contact-info', label:'Sharing contact info',   kws:[] }, /* detected via regex */
+    { id:'greeting',     label:'Greeting',               kws:['hi','hello','hey','good morning','good afternoon','good evening'] },
+    { id:'thanks',       label:'Thanks',                 kws:['thank','thanks','perfect','great, ','awesome'] },
+  ];
+
+  /* ── Agent job definitions (role, purpose, behavior) ───── */
+  var JOBS = {
+    'website-enquiry': {
+      role: 'Front-desk enquiry assistant',
+      purpose: 'Greet website visitors, answer business questions instantly, qualify interest and capture contact details so no enquiry is lost.',
+      intents: ['greeting','price','availability','services','hours','location','booking','tour','speak-human','complaint'],
+      actions: { captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:true, sendReviewLink:false, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Visitor is upset or mentions a complaint', 'Visitor asks a question with no knowledge available twice', 'Visitor explicitly asks for a human'],
+      style: { tone:'warm', length:'short', cta:'soft', qualifyFirst:false, afterHours:'capture' },
+      mustAsk: ['Name before ending chat', 'Phone or email before promising follow-up'],
+      mustNot: ['Quote exact custom prices not in knowledge', 'Make medical/legal claims', 'Promise availability without checking'],
+      followUp: 'If contact captured but no booking: suggest WhatsApp follow-up within 24h.',
+    },
+    'booking': {
+      role: 'Booking coordinator',
+      purpose: 'Convert interest into confirmed bookings — tours, appointments, consultations — with the fewest possible steps.',
+      intents: ['booking','tour','reservation','availability','hours','price'],
+      actions: { captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:true, sendReviewLink:false, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Requested slot conflicts or urgent same-day booking', 'Group/complex booking beyond standard options'],
+      style: { tone:'warm', length:'short', cta:'direct', qualifyFirst:true, afterHours:'capture' },
+      mustAsk: ['Preferred day/time', 'Name and phone before confirming'],
+      mustNot: ['Confirm a slot as guaranteed — always say it will be confirmed by the team'],
+      followUp: 'Send confirmation + reminder 24h before the booking.',
+    },
+    'whatsapp-followup': {
+      role: 'Follow-up specialist',
+      purpose: 'Recover incomplete enquiries and nudge quotes, waitlists and bookings forward over WhatsApp.',
+      intents: ['booking','quote','waitlist','price','thanks'],
+      actions: { captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:true, sendReviewLink:true, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Recipient replies unhappy or asks to stop messages'],
+      style: { tone:'friendly', length:'short', cta:'soft', qualifyFirst:false, afterHours:'queue' },
+      mustAsk: ['Whether now is a good time before long messages'],
+      mustNot: ['Send more than 2 unanswered follow-ups', 'Message outside allowed hours'],
+      followUp: 'Sequence: +24h gentle nudge, +72h final check-in, then stop.',
+    },
+    'review': {
+      role: 'Reputation manager',
+      purpose: 'Ask happy customers for Google reviews at the right moment, and intercept unhappy feedback before it goes public.',
+      intents: ['review','thanks','complaint'],
+      actions: { captureLead:false, createBooking:false, createCallback:true, whatsappFollowup:true, sendReviewLink:true, escalate:true, markHotLead:false, internalNote:true },
+      escalation: ['Any negative sentiment — route internally, never to the public review link'],
+      style: { tone:'grateful', length:'short', cta:'direct', qualifyFirst:false, afterHours:'queue' },
+      mustAsk: ['How their experience was BEFORE sharing the review link'],
+      mustNot: ['Send the review link to an unhappy customer', 'Offer incentives for reviews'],
+      followUp: 'One reminder after 3 days if the review link was not used.',
+    },
+    'missed-call': {
+      role: 'Missed-call recovery agent',
+      purpose: 'Text back missed callers within a minute so the business never loses a caller to a competitor.',
+      intents: ['speak-human','booking','price','availability'],
+      actions: { captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:true, sendReviewLink:false, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Caller indicates emergency', 'Caller is an existing customer with an active issue'],
+      style: { tone:'apologetic-warm', length:'short', cta:'direct', qualifyFirst:false, afterHours:'capture' },
+      mustAsk: ['What they were calling about', 'Best time for a callback'],
+      mustNot: ['Leave a missed call without a follow-up message'],
+      followUp: 'If no reply in 2h, one final SMS with booking link.',
+    },
+    'email-inbox': {
+      role: 'Inbox assistant',
+      purpose: 'Draft instant, on-brand replies to email enquiries, attach the right info, and flag anything needing a human.',
+      intents: ['price','services','booking','quote','complaint','hours'],
+      actions: { captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:false, sendReviewLink:false, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Legal, refund or complaint emails', 'Attachments requiring human review'],
+      style: { tone:'professional', length:'medium', cta:'soft', qualifyFirst:false, afterHours:'queue' },
+      mustAsk: ['Missing details needed to answer fully'],
+      mustNot: ['Send legally binding confirmations', 'Reply to obvious spam'],
+      followUp: 'Bump unanswered enquiry replies after 48h.',
+    },
+    'lead-qualification': {
+      role: 'Lead qualifier',
+      purpose: 'Score and segment every lead with 2–3 smart questions so the team calls the hottest ones first.',
+      intents: ['price','availability','booking','quote','services'],
+      actions: { captureLead:true, createBooking:false, createCallback:true, whatsappFollowup:true, sendReviewLink:false, escalate:true, markHotLead:true, internalNote:true },
+      escalation: ['Lead matches VIP criteria — notify staff immediately'],
+      style: { tone:'curious', length:'short', cta:'soft', qualifyFirst:true, afterHours:'capture' },
+      mustAsk: ['Timeline', 'Budget range where appropriate', 'Decision readiness'],
+      mustNot: ['Ask more than 3 qualification questions in a row'],
+      followUp: 'Hot leads: immediate staff alert. Warm: 24h follow-up.',
+    },
+    'marketing-content': {
+      role: 'Content assistant',
+      purpose: 'Draft social posts, follow-up messages and simple campaign ideas grounded in real business knowledge.',
+      intents: ['services'],
+      actions: { captureLead:false, createBooking:false, createCallback:false, whatsappFollowup:false, sendReviewLink:false, escalate:false, markHotLead:false, internalNote:true },
+      escalation: [],
+      style: { tone:'brand-matched', length:'medium', cta:'direct', qualifyFirst:false, afterHours:'queue' },
+      mustAsk: ['Goal of the content before drafting'],
+      mustNot: ['Invent offers or prices not in knowledge'],
+      followUp: 'Weekly content suggestions based on imported social themes.',
+    },
+    /* Industry-specific */
+    'activity-planner': { role:'Activity planner', purpose:'Plan weekly activity themes and draft parent-friendly updates.', intents:['services'], actions:{ internalNote:true }, escalation:[], style:{ tone:'playful', length:'medium', cta:'soft', qualifyFirst:false, afterHours:'queue' }, mustAsk:['Age group before planning'], mustNot:['Suggest activities conflicting with safety policy'], followUp:'Weekly theme suggestions.' },
+    'waitlist-followup': { role:'Waitlist manager', purpose:'Keep waitlisted families warm and convert them the moment a spot opens.', intents:['waitlist','availability','ages'], actions:{ captureLead:true, createBooking:true, whatsappFollowup:true, escalate:true, internalNote:true }, escalation:['Family reports changed circumstances needing urgent placement'], style:{ tone:'warm', length:'short', cta:'direct', qualifyFirst:false, afterHours:'queue' }, mustAsk:['Whether they are still interested each check-in'], mustNot:['Promise a specific opening date'], followUp:'Monthly check-in until placed or removed.' },
+    'treatment-followup': { role:'Care follow-up assistant', purpose:'Check in after treatments, catch issues early and book the next visit.', intents:['booking','emergency','thanks'], actions:{ createBooking:true, createCallback:true, escalate:true, sendReviewLink:true, internalNote:true }, escalation:['Any report of pain, swelling or complications — escalate immediately'], style:{ tone:'caring', length:'short', cta:'soft', qualifyFirst:false, afterHours:'queue' }, mustAsk:['How they are feeling post-treatment'], mustNot:['Give medical advice beyond booking guidance'], followUp:'48h post-treatment check-in, then recall reminder.' },
+    'package-recommendation': { role:'Package advisor', purpose:'Match every enquiry to the right event package by guest count, budget and occasion.', intents:['quote','price','services','availability'], actions:{ captureLead:true, createBooking:true, whatsappFollowup:true, markHotLead:true, internalNote:true }, escalation:['Requests far outside standard packages'], style:{ tone:'enthusiastic', length:'medium', cta:'direct', qualifyFirst:true, afterHours:'capture' }, mustAsk:['Occasion','Guest count','Date','Budget range'], mustNot:['Discount without approval'], followUp:'Send package PDF, follow up in 48h.' },
+    'quote-followup': { role:'Quote closer', purpose:'Follow up every sent quote until it becomes a yes, a no, or a scheduled call.', intents:['quote','price','thanks','booking'], actions:{ createCallback:true, whatsappFollowup:true, markHotLead:true, escalate:true, internalNote:true }, escalation:['Customer disputes quote contents'], style:{ tone:'helpful', length:'short', cta:'direct', qualifyFirst:false, afterHours:'queue' }, mustAsk:['Whether the quote covered everything they needed'], mustNot:['Pressure after a clear no'], followUp:'+48h and +5d nudges, then close as lost.' },
+    'rebooking-followup': { role:'Rebooking assistant', purpose:'Bring clients back when they are due for their next appointment.', intents:['booking','thanks'], actions:{ createBooking:true, whatsappFollowup:true, sendReviewLink:true, internalNote:true }, escalation:[], style:{ tone:'friendly', length:'short', cta:'direct', qualifyFirst:false, afterHours:'queue' }, mustAsk:['Preferred day/time'], mustNot:['Message more than once per cycle'], followUp:'Due-date reminder based on service cycle.' },
+    'estimate-followup': { role:'Estimate closer', purpose:'Answer scope questions and follow up estimates to win the job.', intents:['quote','price','booking'], actions:{ createCallback:true, whatsappFollowup:true, markHotLead:true, escalate:true, internalNote:true }, escalation:['Scope change requests — route to estimator'], style:{ tone:'straightforward', length:'short', cta:'direct', qualifyFirst:false, afterHours:'queue' }, mustAsk:['Timeline and decision date'], mustNot:['Change quoted prices'], followUp:'+72h nudge with financing mention if available.' },
+    'catering-enquiry': { role:'Catering coordinator', purpose:'Capture event details and turn catering enquiries into quotes.', intents:['quote','services','price','availability'], actions:{ captureLead:true, createBooking:true, createCallback:true, markHotLead:true, internalNote:true }, escalation:['Events above max capacity'], style:{ tone:'warm', length:'medium', cta:'direct', qualifyFirst:true, afterHours:'capture' }, mustAsk:['Date','Guest count','Dietary requirements','Budget'], mustNot:['Confirm availability without checking the events calendar'], followUp:'Quote within 24h, follow up in 48h.' },
+  };
+  DRD.agentJobs = JOBS;
+  DRD.jobFor = function (type) {
+    return JOBS[type] || {
+      role:'AI assistant', purpose:'Assist customers for this business.',
+      intents:['greeting','services','price','hours'],
+      actions:{ captureLead:true, escalate:true, internalNote:true },
+      escalation:['Customer asks for a human'],
+      style:{ tone:'warm', length:'short', cta:'soft', qualifyFirst:false, afterHours:'capture' },
+      mustAsk:['Name and contact before ending'], mustNot:['Invent facts'], followUp:'',
+    };
+  };
+
+  /* ── Scenario library (per industry group) ─────────────── */
+  DRD.scenarios = {
+    childcare: [
+      'Do you have space for my 3 year old?',
+      'How much are your fees?',
+      'Can I book a tour?',
+      'Do you offer subsidy?',
+      'What meals do you provide?',
+      'My daughter has a nut allergy — can you handle that?',
+      'I am very unhappy with how pickup was handled today',
+    ],
+    healthcare: [
+      'Do you accept insurance?',
+      'I need a cleaning appointment.',
+      'Do you do emergency appointments? I am in pain',
+      'How much is whitening?',
+      'Are you taking new patients?',
+      'I want to speak to someone about my bill',
+    ],
+    events: [
+      'I need a birthday party setup for 30 kids.',
+      'Do you do baby showers?',
+      'Can I get a quote for next month?',
+      'What is included in your packages?',
+      'Do you travel to Hamilton?',
+      'How much deposit do you need?',
+    ],
+    beauty: [
+      'How much is a full colour?',
+      'Can I book for Saturday?',
+      'Do you take walk-ins?',
+      'What is your cancellation policy?',
+      'I loved my visit last week!',
+    ],
+    home: [
+      'How much would a new deck cost?',
+      'Are you licensed and insured?',
+      'Can someone come give me a quote this week?',
+      'How soon can you start a basement reno?',
+      'The crew left a mess and I am not happy',
+    ],
+    food: [
+      'Table for 6 on Saturday at 7?',
+      'Do you cater office lunches?',
+      'Do you have vegan options?',
+      'Can we book the private room?',
+      'What are your hours on Sunday?',
+    ],
+    professional: [
+      'Do you offer a free consultation?',
+      'How do your fees work?',
+      'I need help with a deadline this week — urgent',
+      'What areas do you specialise in?',
+    ],
+    realestate: [
+      'What is my home worth?',
+      'Can I book a viewing for the listing on Main St?',
+      'Do you do virtual tours?',
+      'What commission do you charge?',
+    ],
+    retail: [
+      'Do you have this in stock?',
+      'What is your return policy?',
+      'Do you deliver to Oakville?',
+      'When do new arrivals come in?',
+    ],
+  };
+
+  /* ── Layered knowledge defaults ────────────────────────── */
+  DRD.industryLayer = {
+    childcare:   { tone:'Warm, reassuring, parent-to-parent. Always acknowledge the child by age/name.', flow:'Answer → reassure on safety/quality → guide to tour or waitlist → capture parent contact.' },
+    healthcare:  { tone:'Calm, professional, empathetic. Never alarm; never diagnose.', flow:'Answer → check urgency → guide to appointment → capture patient contact.' },
+    events:      { tone:'Enthusiastic and visual. Mirror the excitement of their occasion.', flow:'Congratulate/acknowledge occasion → qualify (date, guests, budget) → recommend package → book consult.' },
+    beauty:      { tone:'Stylish, personal, confidence-building.', flow:'Answer → suggest the right service → offer earliest slot → capture contact.' },
+    home:        { tone:'Straightforward, trust-first. Lead with licensing, insurance and guarantees.', flow:'Scope the job briefly → offer free quote/site visit → capture address + contact.' },
+    food:        { tone:'Appetising and welcoming.', flow:'Answer → offer reservation or catering quote → capture party size + contact.' },
+    professional:{ tone:'Credible, plain-language, zero jargon.', flow:'Understand the matter → offer intro call → capture contact.' },
+    realestate:  { tone:'Confident and data-backed.', flow:'Understand buy/sell/invest intent → offer valuation or viewing → capture contact.' },
+    retail:      { tone:'Helpful and product-savvy.', flow:'Answer → suggest alternatives if unavailable → offer delivery/pickup → capture contact for restock alerts.' },
+  };
+  DRD.typeLayer = function (group, type) {
+    var fields = (DRD.industryFields[group] || []).map(function (f) { return f.label; });
+    return { fields: fields, note: (type||'This business type') + ' uses ' + (fields.length ? fields.join(', ').toLowerCase() : 'the universal fields') + ' on top of universal business knowledge.' };
+  };
+})();
+
+
+/* ============================================================
+   DRD v3.1 — Lead-field presets, reactivation agent, workflows
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* Lead Reactivation AI — universal agent type */
+  DRD.agentTypes.push({
+    type:'lead-reactivation', name:'Lead Reactivation Agent', icon:'🔄', channels:['whatsapp','email'],
+    desc:'Re-engages older leads that never converted — availability nudges, seasonal offers, "still looking?" check-ins.',
+  });
+  DRD.agentJobs['lead-reactivation'] = {
+    role:'Reactivation specialist',
+    purpose:'Bring cold leads back to life with well-timed, personal check-ins tied to real availability and offers.',
+    intents:['availability','booking','price','thanks'],
+    actions:{ captureLead:true, createBooking:true, createCallback:true, whatsappFollowup:true, sendReviewLink:false, escalate:false, markHotLead:true, internalNote:true },
+    escalation:['Lead asks to be removed — honor immediately and log'],
+    style:{ tone:'casual-warm', length:'short', cta:'soft', qualifyFirst:false, afterHours:'queue' },
+    mustAsk:['Whether they are still looking before pitching'],
+    mustNot:['Contact leads who opted out','Reactivate more than twice'],
+    followUp:'One reactivation touch at 30 days, one at 60, then archive.',
+  };
+
+  /* ── Industry lead-capture field presets ───────────────── */
+  DRD.leadFields = {
+    childcare: [
+      { id:'name',      label:'Parent name',        req:true  },
+      { id:'phone',     label:'Phone',              req:true  },
+      { id:'email',     label:'Email',              req:false },
+      { id:'childAge',  label:'Child age',          req:true  },
+      { id:'startDate', label:'Start date',         req:false },
+      { id:'schedule',  label:'Full-time / part-time', req:false },
+    ],
+    healthcare: [
+      { id:'name',      label:'Patient name',       req:true  },
+      { id:'phone',     label:'Phone',              req:true  },
+      { id:'email',     label:'Email',              req:false },
+      { id:'treatment', label:'Treatment type',     req:true  },
+      { id:'timing',    label:'Preferred timing',   req:false },
+      { id:'urgency',   label:'Urgency',            req:false },
+    ],
+    events: [
+      { id:'name',      label:'Name',               req:true  },
+      { id:'phone',     label:'Phone',              req:true  },
+      { id:'email',     label:'Email',              req:false },
+      { id:'eventType', label:'Event type',         req:true  },
+      { id:'eventDate', label:'Event date',         req:true  },
+      { id:'guests',    label:'Guest count',        req:false },
+      { id:'budget',    label:'Budget range',       req:false },
+    ],
+    home: [
+      { id:'name',      label:'Name',               req:true  },
+      { id:'phone',     label:'Phone',              req:true  },
+      { id:'project',   label:'Project type',       req:true  },
+      { id:'area',      label:'Address / area',     req:false },
+      { id:'budget',    label:'Budget',             req:false },
+      { id:'timeline',  label:'Timeline',           req:false },
+    ],
+    food: [
+      { id:'name',      label:'Name',               req:true  },
+      { id:'phone',     label:'Phone',              req:true  },
+      { id:'date',      label:'Date',               req:false },
+      { id:'partySize', label:'Party size',         req:false },
+      { id:'eventType', label:'Event type (catering)', req:false },
+    ],
+    beauty:       [ { id:'name',label:'Name',req:true }, { id:'phone',label:'Phone',req:true }, { id:'service',label:'Service wanted',req:false }, { id:'timing',label:'Preferred time',req:false } ],
+    professional: [ { id:'name',label:'Name',req:true }, { id:'phone',label:'Phone',req:true }, { id:'email',label:'Email',req:true }, { id:'matter',label:'Matter / need',req:false } ],
+    realestate:   [ { id:'name',label:'Name',req:true }, { id:'phone',label:'Phone',req:true }, { id:'intent',label:'Buy / sell / invest',req:false }, { id:'area',label:'Area',req:false } ],
+    retail:       [ { id:'name',label:'Name',req:true }, { id:'phone',label:'Phone',req:false }, { id:'email',label:'Email',req:false }, { id:'product',label:'Product interest',req:false } ],
+  };
+
+  /* ── Workflow trigger/action catalog (automation engine) ─ */
+  DRD.workflowTriggers = [
+    { id:'new-lead',          label:'New website lead' },
+    { id:'booking-incomplete',label:'Booking not completed' },
+    { id:'missed-call',       label:'Missed call' },
+    { id:'quote-sent',        label:'Quote sent' },
+    { id:'no-reply',          label:'No reply after X days' },
+    { id:'post-service',      label:'Post-service review request' },
+    { id:'after-hours',       label:'After-hours enquiry' },
+    { id:'abandoned',         label:'Abandoned conversation' },
+    { id:'waitlist',          label:'Waitlist follow-up' },
+  ];
+  DRD.workflowActions = [
+    { id:'whatsapp-followup', label:'Send WhatsApp follow-up', icon:'📲' },
+    { id:'email-followup',    label:'Send email follow-up',    icon:'📧' },
+    { id:'callback-task',     label:'Create callback task',    icon:'📞' },
+    { id:'booking-request',   label:'Create booking request',  icon:'📅' },
+    { id:'mark-hot',          label:'Mark hot lead',           icon:'🔥' },
+    { id:'review-request',    label:'Send review request',     icon:'⭐' },
+    { id:'notify-admin',      label:'Notify admin',            icon:'🔔' },
+    { id:'escalate',          label:'Escalate issue',          icon:'🚨' },
+  ];
+
+  /* Default follow-up sequences per agent type (shown in deploy/config) */
+  DRD.followUpSequences = {
+    'whatsapp-followup': [
+      { delay:'+2h',  msg:'Thanks for your enquiry today! Would you like me to help you get booked in this week?' },
+      { delay:'+24h', msg:'Just checking in — still happy to help whenever you are ready. Any questions I can answer?' },
+      { delay:'+72h', msg:'Last check-in from me! If you would like, I can hold your spot / send our latest options. Just reply here.' },
+    ],
+    'missed-call': [
+      { delay:'+1min', msg:'Hi! Sorry we missed your call — how can we help? Reply here and we will sort it out right away.' },
+      { delay:'+2h',   msg:'Still here if you need us! Want me to book you a callback at a time that suits you?' },
+    ],
+    'review': [
+      { delay:'+3h', msg:'Thanks for visiting us today! How was everything? (1 = not great, 5 = amazing)' },
+      { delay:'on-5', msg:'Amazing! 🌟 Would you mind sharing that in a quick Google review? It really helps: {reviewLink}' },
+      { delay:'on-low', msg:'Sorry to hear that — the manager will contact you personally to make it right. (Routed internally, review link NOT sent.)' },
+    ],
+    'quote-followup': [
+      { delay:'+48h', msg:'Hi {name}, did the quote we sent cover everything you needed? Happy to walk through it on a quick call.' },
+      { delay:'+5d',  msg:'Just closing the loop on your quote — should I keep it active, or adjust anything to make it work?' },
+    ],
+    'lead-reactivation': [
+      { delay:'+30d', msg:'Hi {name}! Are you still looking? We have new availability this month — want me to grab you a spot?' },
+      { delay:'+60d', msg:'Last note from me — if the timing is right later this year, just reply here and I will take care of you.' },
+    ],
+  };
+})();

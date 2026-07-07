@@ -10,7 +10,7 @@ var DRS = (function () {
 
   var NS = 'drp_';                 /* key namespace */
   var driver = 'local';            /* 'local' | 'supabase' (future) */
-  var COLS = ['businesses','agents','leads','conversations','bookings','reviews'];
+  var COLS = ['businesses','agents','leads','conversations','bookings','reviews','tasks'];
 
   /* ── Primitives ────────────────────────────────────────── */
   function uid() {

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leads — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .flt { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center; }
+    .score-hot  { color:#DC2626;font-weight:800;font-size:.6875rem; }
+    .score-warm { color:#D97706;font-weight:800;font-size:.6875rem; }
+    .score-cold { color:#64748B;font-weight:800;font-size:.6875rem; }
+    .due-over { color:#DC2626;font-weight:700; }
+  </style>
 </head>
 <body class="ag-body">
 <div class="ag-layout">
@@ -22,63 +29,115 @@
 <script src="/agents/shared/agents-ui.js"></script>
 <script>
 var biz = DRUI.init({ nav:'businesses', bizNav:'leads', requireBiz:true });
-var STATUSES = ['New','Qualified','Booked','Follow-up','Won','Lost'];
+var STATUSES = ['new','qualified','booking-requested','callback-requested','quote-requested','follow-up-scheduled','won','lost','escalated'];
+var SB = { 'new':'blue','qualified':'purple','booking-requested':'green','callback-requested':'amber',
+           'quote-requested':'amber','follow-up-scheduled':'blue','won':'green','lost':'gray','escalated':'red',
+           /* legacy values */ 'New':'blue','Qualified':'purple','Booked':'green','Follow-up':'amber','Won':'green','Lost':'gray','Escalated':'red' };
+var FLT = { status:'', agent:'', channel:'' };
 if (biz) render();
 
-function render() {
-  var leads = DRS.list('leads', { businessId: biz.id });
-  var h = DRUI.pageHeader('Leads — '+DRUI.esc(biz.name),
-    leads.length+' lead'+(leads.length===1?'':'s')+' captured by AI agents');
+function statusBadge(s){ return '<span class="badge badge--'+(SB[s]||'gray')+'">'+s+'</span>'; }
+function scoreOf(l){
+  if (l.score) return l.score;
+  return (l.qualScore||0) >= 80 ? 'hot' : (l.qualScore||0) >= 55 ? 'warm' : 'cold';
+}
 
-  var newC = leads.filter(function(l){return l.status==='New';}).length;
-  var qual = leads.filter(function(l){return ['Qualified','Booked','Won'].indexOf(l.status)!==-1;}).length;
+function render() {
+  var all = DRS.list('leads', { businessId: biz.id });
+  var agents = DRS.list('agents', { businessId: biz.id });
+  var tasks = DRS.list('tasks', { businessId: biz.id });
+
+  var leads = all.filter(function(l){
+    if (FLT.status && (l.status||'new') !== FLT.status) return false;
+    if (FLT.agent && l.agentId !== FLT.agent) return false;
+    if (FLT.channel && (l.channel||'website') !== FLT.channel) return false;
+    return true;
+  });
+
+  var hot = all.filter(function(l){ return scoreOf(l)==='hot'; }).length;
+  var needAction = all.filter(function(l){ return ['new','callback-requested','escalated'].indexOf(l.status)!==-1 || l.status==='New'; }).length;
+  var followupsDue = tasks.filter(function(t){ return t.status==='scheduled'; }).length;
+
+  var h = DRUI.pageHeader('Leads — '+DRUI.esc(biz.name),
+    all.length+' lead'+(all.length===1?'':'s')+' captured by AI employees');
+
   h += DRUI.kpiRow([
-    { ico:'🎯', val:leads.length, label:'Total Leads', bg:'var(--accent-bg)' },
-    { ico:'🆕', val:newC, label:'New — needs action', bg:'#FEF3C7' },
-    { ico:'✅', val:qual, label:'Qualified or better', bg:'var(--green-bg)' },
+    { ico:'🎯', val:all.length, label:'Total Leads', bg:'var(--accent-bg)' },
+    { ico:'🔥', val:hot, label:'Hot Leads', bg:'#FEE2E2' },
+    { ico:'⚡', val:needAction, label:'Need Action', bg:'#FEF3C7' },
+    { ico:'📲', val:followupsDue, label:'Follow-ups Scheduled', bg:'var(--green-bg)' },
   ]);
 
-  if (!leads.length) {
-    h += DRUI.empty('🎯','No leads yet','Test an agent in the Tester tab — captured leads appear here instantly.',
-      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Open AI Agents</a>');
+  /* Filters */
+  var channels = ['website','whatsapp','email','phone'];
+  h += '<div class="flt">' +
+    '<select class="ag-select" style="width:190px" onchange="FLT.status=this.value;render()">' +
+      '<option value="">All statuses</option>'+STATUSES.map(function(s){ return '<option'+(FLT.status===s?' selected':'')+' value="'+s+'">'+s+'</option>'; }).join('')+'</select>' +
+    '<select class="ag-select" style="width:220px" onchange="FLT.agent=this.value;render()">' +
+      '<option value="">All employees</option>'+agents.map(function(a){ return '<option'+(FLT.agent===a.id?' selected':'')+' value="'+a.id+'">'+DRUI.esc(a.agentName)+'</option>'; }).join('')+'</select>' +
+    '<select class="ag-select" style="width:150px" onchange="FLT.channel=this.value;render()">' +
+      '<option value="">All channels</option>'+channels.map(function(c){ return '<option'+(FLT.channel===c?' selected':'')+' value="'+c+'">'+c+'</option>'; }).join('')+'</select>' +
+    ((FLT.status||FLT.agent||FLT.channel)?'<button class="btn btn--ghost btn--sm" onclick="FLT={status:\'\',agent:\'\',channel:\'\'};render()">✕ Clear</button>':'') +
+    '</div>';
+
+  if (!all.length) {
+    h += DRUI.empty('🎯','No leads yet','Test an employee with a scenario — captured leads, booking requests and follow-up tasks land here instantly.',
+      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Open AI Employees</a>');
+  } else if (!leads.length) {
+    h += DRUI.empty('🔍','No leads match these filters','Try clearing the filters.','');
   } else {
     var rows = leads.map(function(l){
       var ag = l.agentId ? DRS.get('agents', l.agentId) : null;
+      var sc = scoreOf(l);
+      var due = l.nextFollowUpDue ? new Date(l.nextFollowUpDue) : null;
+      var overdue = due && due < new Date();
+      var flags = [l.bookingRequested?'📅':null, l.quoteRequested?'💰':null, l.escalated?'🚨':null, l.reviewRequested?'⭐':null].filter(Boolean).join(' ');
       return '<tr>' +
-        DRUI.td('<div style="font-weight:700;color:var(--t1)">'+DRUI.esc(l.name||'Unknown')+'</div>' +
+        DRUI.td('<div style="font-weight:700;color:var(--t1)">'+DRUI.esc(l.name||'Unknown')+' '+flags+'</div>' +
           '<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(l.phone||'')+(l.email?' · '+DRUI.esc(l.email):'')+'</div>') +
-        DRUI.td(DRUI.esc(l.enquiryType||'—')) +
-        DRUI.td(ag ? '<span style="font-size:.75rem">'+DRUI.esc(ag.agentName)+'</span>' : '—') +
-        DRUI.td(l.qualScore ? AG.qualBadge(l.qualScore) : '—') +
-        DRUI.td('<select class="ag-select" style="padding:4px 8px;font-size:.75rem" onchange="setStatus(\''+l.id+'\',this.value)">' +
-          STATUSES.map(function(s){return '<option'+(s===l.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>') +
+        DRUI.td(DRUI.esc(l.requestedService||l.enquiryType||'—') + (ag?'<div style="font-size:.625rem;color:var(--t4)">'+DRUI.esc(ag.agentName)+'</div>':'')) +
+        DRUI.td(AG.chBadge(l.channel||'website')) +
+        DRUI.td('<span class="score-'+sc+'">'+sc.toUpperCase()+'</span><div style="font-size:.625rem;color:var(--t4)">'+(l.qualScore||'—')+'%</div>') +
+        DRUI.td('<select class="ag-select" style="padding:4px 8px;font-size:.71875rem;max-width:170px" onchange="setStatus(\''+l.id+'\',this.value)">' +
+          STATUSES.map(function(s){ return '<option'+((l.status||'new').toLowerCase()===s?' selected':'')+' value="'+s+'">'+s+'</option>'; }).join('')+'</select>') +
+        DRUI.td(due ? '<span style="font-size:.6875rem" class="'+(overdue?'due-over':'')+'">'+(overdue?'⚠ overdue':DRUI.timeAgo(l.nextFollowUpDue).replace(' ago','')+' left')+'</span>' : '—') +
         DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(l.createdAt)+'</span>') +
         DRUI.td('<button class="btn btn--ghost btn--sm" onclick="viewLead(\''+l.id+'\')">View</button>') +
       '</tr>';
     }).join('');
-    h += DRUI.table(['Lead','Enquiry','Captured By','Quality','Status','When',''], rows);
+    h += DRUI.table(['Lead','Requested / By','Channel','Score','Status','Follow-up Due','Captured',''], rows);
   }
   document.getElementById('content').innerHTML = h;
 }
 
 window.setStatus = function(id, status){
-  DRS.update('leads', id, { status: status });
-  AG.toast('Lead marked as '+status,'success');
+  DRS.update('leads', id, { status: status, lastInteraction: DRS.now() });
+  AG.toast('Lead → '+status,'success');
+  render();
 };
 window.viewLead = function(id){
   var l = DRS.get('leads', id);
+  var ag = l.agentId ? DRS.get('agents', l.agentId) : null;
+  var leadTasks = DRS.list('tasks', { leadId: id });
+  var kill = "document.getElementById('leadM').remove();document.body.style.overflow=''";
   var m = document.createElement('div');
   m.className='ag-modal is-open'; m.id='leadM';
-  var kill = "document.getElementById('leadM').remove();document.body.style.overflow=''";
   m.innerHTML = '<div class="ag-modal-overlay" onclick="'+kill+'"></div>' +
-    '<div class="ag-modal-box" style="max-width:460px"><div class="ag-modal-head">' +
-    '<div class="ag-modal-title">'+DRUI.esc(l.name||'Lead')+'</div>' +
+    '<div class="ag-modal-box" style="max-width:500px"><div class="ag-modal-head">' +
+    '<div class="ag-modal-title">'+DRUI.esc(l.name||'Lead')+' <span class="score-'+scoreOf(l)+'">'+scoreOf(l).toUpperCase()+'</span></div>' +
     '<button class="ag-modal-x" onclick="'+kill+'">✕</button></div>' +
-    '<div class="ag-modal-body" style="font-size:.8125rem;line-height:2">' +
+    '<div class="ag-modal-body" style="font-size:.8125rem;line-height:2;max-height:65vh;overflow:auto">' +
     '<b>Phone:</b> '+DRUI.esc(l.phone||'—')+'<br><b>Email:</b> '+DRUI.esc(l.email||'—')+'<br>' +
-    '<b>Enquiry:</b> '+DRUI.esc(l.enquiryType||'—')+'<br><b>Status:</b> '+AG.statusBadge(l.status)+'<br>' +
-    '<b>Quality score:</b> '+(l.qualScore||'—')+'<br><b>Captured:</b> '+DRUI.fmtDate(l.createdAt)+'<br>' +
-    (l.notes?'<b>Notes:</b> '+DRUI.esc(l.notes):'')+'</div></div>';
+    '<b>Requested:</b> '+DRUI.esc(l.requestedService||l.enquiryType||'—')+'<br>' +
+    '<b>Status:</b> '+statusBadge(l.status||'new')+' &nbsp;<b>Urgency:</b> '+DRUI.esc(l.urgency||'routine')+'<br>' +
+    '<b>Captured by:</b> '+(ag?DRUI.esc(ag.agentName):'—')+' via '+(l.channel||'website')+'<br>' +
+    '<b>Booking requested:</b> '+(l.bookingRequested?'Yes':'No')+' · <b>Quote:</b> '+(l.quoteRequested?'Yes':'No')+' · <b>Escalated:</b> '+(l.escalated?'Yes':'No')+'<br>' +
+    '<b>Next follow-up:</b> '+(l.nextFollowUpDue?DRUI.fmtDate(l.nextFollowUpDue):'—')+'<br>' +
+    (l.notes?'<b>Notes:</b> '+DRUI.esc(l.notes)+'<br>':'') +
+    (leadTasks.length?'<b>Scheduled tasks:</b><br>'+leadTasks.map(function(t){
+      return '<span style="font-size:.75rem;color:var(--t3)">→ ['+t.type+'] '+DRUI.esc(t.message||'')+'</span>';
+    }).join('<br>'):'') +
+    '</div></div>';
   document.body.appendChild(m); document.body.style.overflow='hidden';
 };
 </script>

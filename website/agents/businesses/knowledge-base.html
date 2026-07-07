@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    .lyr { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);margin-bottom:14px;overflow:hidden; }
+    .lyr-head { display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer; }
+    .lyr-num { width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;flex-shrink:0; }
+    .lyr-body { padding:0 20px 18px;display:none; }
+    .lyr.is-open .lyr-body { display:block; }
+    .lyr.is-open .lyr-chev { transform:rotate(180deg); }
+    .lyr-chev { margin-left:auto;transition:transform .2s;color:var(--t4); }
+    .kv { display:flex;padding:9px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem;gap:14px; }
+    .kv:last-child { border:none; }
+    .kv b { min-width:150px;color:var(--t3);font-weight:600;flex-shrink:0; }
+    .kv span { color:var(--t1);white-space:pre-wrap; }
+    .rule-item { display:flex;gap:10px;align-items:flex-start;padding:10px;background:var(--bg-alt);border-radius:9px;margin-bottom:8px; }
+  </style>
 </head>
 <body class="ag-body">
 <div class="ag-layout">
@@ -19,56 +33,147 @@
 <script src="/agents/shared/agents-data.js"></script>
 <script src="/agents/shared/agents-storage.js"></script>
 <script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-import.js"></script>
 <script src="/agents/shared/agents-ui.js"></script>
 <script>
 var biz = DRUI.init({ nav:'businesses', bizNav:'knowledge-base', requireBiz:true });
 if (biz) render();
 
+function layer(n, color, title, sub, badge, inner, open) {
+  return '<div class="lyr'+(open?' is-open':'')+'" id="lyr'+n+'">' +
+    '<div class="lyr-head" onclick="document.getElementById(\'lyr'+n+'\').classList.toggle(\'is-open\')">' +
+    '<div class="lyr-num" style="background:'+color+'">L'+n+'</div>' +
+    '<div style="flex:1"><div style="font-size:.875rem;font-weight:800;color:var(--t1)">'+title+'</div>' +
+    '<div style="font-size:.71875rem;color:var(--t3)">'+sub+'</div></div>' + badge +
+    '<span class="lyr-chev">▾</span></div><div class="lyr-body">'+inner+'</div></div>';
+}
+
 function render() {
-  var fields = DRD.fieldsFor(biz.industryGroup);
+  var grp = DRD.group(biz.industryGroup) || {};
+  var intel = biz.intel;
+  var rules = biz.manualRules || [];
+  var agents = DRS.list('agents', { businessId: biz.id });
   var kb = biz.knowledge || {};
-  var filled = fields.filter(function(f){ return kb[f.id]; }).length;
-  var grp = DRD.group(biz.industryGroup);
 
   var h = DRUI.pageHeader('Knowledge Base — '+DRUI.esc(biz.name),
-    filled+' of '+fields.length+' fields filled · agents answer from this knowledge',
-    '<button class="btn btn--ghost" onclick="retrain()">⚡ Save & Retrain Agents</button>' +
-    '<button class="btn btn--primary" onclick="saveKB()">💾 Save Knowledge</button>');
+    'Layered knowledge: every AI employee answers from these 5 layers, most specific first.',
+    '<button class="btn btn--primary" onclick="retrainAll()">⚡ Retrain All Employees</button>');
 
-  h += '<div style="background:linear-gradient(135deg,#EEF2FF 0%,#E0E7FF 60%,#F0F4FF 100%);border:1px solid var(--accent-bg);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:.8125rem;color:var(--accent-d)">' +
-    '💡 The more you fill in, the smarter the agents get. '+(grp?grp.label:'')+'-specific fields are included below.</div>';
+  /* L1 Industry defaults */
+  var il = DRD.industryLayer[biz.industryGroup] || {};
+  h += layer(1, '#94A3B8', 'Industry Defaults', (grp.icon||'')+' '+(grp.label||'')+' — built-in platform knowledge',
+    '<span class="badge badge--gray">Built-in</span>',
+    '<div class="kv"><b>Conversation tone</b><span>'+(il.tone||'—')+'</span></div>' +
+    '<div class="kv"><b>Enquiry flow</b><span>'+(il.flow||'—')+'</span></div>' +
+    '<div class="kv"><b>Intent coverage</b><span>'+(DRD.scenarios[biz.industryGroup]||[]).length+' industry scenarios, '+DRD.intents.length+' intent types</span></div>');
 
-  h += '<div class="ag-card" style="padding:24px"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">' +
-    fields.map(function(f){
-      var v = DRUI.esc(kb[f.id]||'');
-      var isIndustry = DRD.universalFields.indexOf(DRD.universalFields.find(function(u){return u.id===f.id;})) === -1 &&
-                       !DRD.universalFields.some(function(u){return u.id===f.id;});
-      return '<div class="ag-form-group"><label class="ag-label">'+f.label+
-        (DRD.universalFields.some(function(u){return u.id===f.id;}) ? '' : ' <span style="font-size:.5625rem;color:var(--accent);font-weight:800">· INDUSTRY</span>')+'</label>' +
-        (f.ta ? '<textarea class="ag-textarea" style="min-height:70px" id="kb_'+f.id+'" placeholder="'+f.ph+'">'+v+'</textarea>'
-              : '<input class="ag-input" id="kb_'+f.id+'" placeholder="'+f.ph+'" value="'+v+'">') + '</div>';
-    }).join('') + '</div></div>';
+  /* L2 Business type defaults */
+  var tl = DRD.typeLayer(biz.industryGroup, biz.businessType);
+  h += layer(2, '#64748B', 'Business Type Defaults', DRUI.esc(biz.businessType||'')+' — type-specific fields and patterns',
+    '<span class="badge badge--gray">Built-in</span>',
+    '<div class="kv"><b>Type note</b><span>'+tl.note+'</span></div>' +
+    '<div class="kv"><b>Lead fields</b><span>'+(DRD.leadFields[biz.industryGroup]||[]).map(function(f){return f.label+(f.req?' *':'');}).join(', ')+'</span></div>');
+
+  /* L3 Imported intelligence */
+  var l3badge = intel ? '<span class="badge badge--green">Imported '+DRUI.timeAgo(intel.importedAt)+'</span>' : '<span class="badge badge--amber">Not imported</span>';
+  var l3inner;
+  if (intel) {
+    l3inner =
+      '<div class="kv"><b>Summary</b><span id="i_summary" contenteditable="true" style="outline:none;border-bottom:1px dashed var(--border)">'+DRUI.esc(intel.summary||'')+'</span></div>' +
+      '<div class="kv"><b>Services</b><span>'+(intel.services||[]).join('\n')+'</span></div>' +
+      '<div class="kv"><b>FAQs</b><span>'+(intel.faqs||[]).map(function(f){return 'Q: '+f.q+'\nA: '+f.a;}).join('\n\n')+'</span></div>' +
+      '<div class="kv"><b>Hours</b><span>'+(intel.hours||'—')+'</span></div>' +
+      '<div class="kv"><b>Pricing notes</b><span>'+(intel.pricingNotes||'—')+'</span></div>' +
+      '<div class="kv"><b>Policies</b><span>'+(intel.policies||'—')+'</span></div>' +
+      '<div class="kv"><b>Google profile</b><span>'+(intel.google?intel.google.rating+'★ · '+intel.google.reviewCount+' reviews · '+(intel.google.categories||[]).join(', '):'—')+'</span></div>' +
+      '<div class="kv"><b>Social tone</b><span>'+(intel.social?intel.social.tone+'\nThemes: '+(intel.social.serviceMentions||[]).join(' · '):'—')+'</span></div>' +
+      '<div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn--ghost btn--sm" onclick="reimport()">↻ Re-run Import</button>' +
+      '<button class="btn btn--primary btn--sm" onclick="saveIntelEdits()">💾 Save Edits</button></div>';
+  } else {
+    l3inner = '<div style="text-align:center;padding:20px 0">' +
+      '<div style="font-size:1.75rem;margin-bottom:8px">🌐</div>' +
+      '<div style="font-size:.8438rem;font-weight:700;color:var(--t1);margin-bottom:4px">No business intelligence imported yet</div>' +
+      '<div style="font-size:.75rem;color:var(--t3);margin-bottom:14px">Import from '+DRUI.esc(biz.website||'the website')+', Google profile and socials — agents get dramatically smarter.</div>' +
+      '<button class="btn btn--primary" onclick="reimport()" id="btnImport">⚡ Run Business Intelligence Import</button></div>';
+  }
+  h += layer(3, 'var(--accent)', 'Imported Business Intelligence', 'Website crawl + Google profile + social tone analysis', l3badge, l3inner, !intel);
+
+  /* L4 Manual rules */
+  h += layer(4, '#D97706', 'Manual Business Rules', 'Special fees, closures, custom policies — overrides imported knowledge',
+    '<span class="badge badge--'+(rules.length?'green':'gray')+'">'+rules.length+' rule'+(rules.length===1?'':'s')+'</span>',
+    '<div id="rulesList">'+rules.map(function(r,i){
+      return '<div class="rule-item"><span style="color:var(--amber,#D97706)">▸</span>' +
+        '<textarea class="ag-textarea" style="flex:1;min-height:40px;font-size:.78125rem" onchange="updateRule('+i+',this.value)">'+DRUI.esc(r)+'</textarea>' +
+        '<button class="btn btn--danger btn--sm" onclick="delRule('+i+')">✕</button></div>';
+    }).join('')+'</div>' +
+    '<button class="btn btn--ghost btn--sm" onclick="addRule()">+ Add Rule</button>' +
+    '<span style="font-size:.6875rem;color:var(--t4);margin-left:10px">e.g. "Closed Dec 24 – Jan 2" · "Sibling discount is 15% this year" · "No pricing over chat for weddings"</span>', rules.length>0);
+
+  /* L5 Agent-specific rules */
+  h += layer(5, '#7C3AED', 'Agent-Specific Rules', 'Per-employee instructions — the most specific layer',
+    '<span class="badge badge--purple">'+agents.length+' employees</span>',
+    agents.map(function(a){
+      var cnt = (a.trainingRules||[]).length;
+      return '<div class="kv"><b>'+DRUI.esc(a.agentName)+'</b><span>'+(cnt?cnt+' rule'+(cnt===1?'':'s')+': '+(a.trainingRules||[]).join(' · '):'No agent-specific rules yet')+
+        '  <a href="'+DRUI.agentUrl(biz.slug,a.id)+'" style="font-weight:700;color:var(--accent)">Edit →</a></span></div>';
+    }).join('') || '<div style="font-size:.78125rem;color:var(--t4)">No employees deployed yet.</div>');
+
+  /* Legacy manual KB fields (kept, editable) */
+  var filled = Object.keys(kb).filter(function(k){return kb[k];}).length;
+  if (filled) {
+    h += '<div class="ag-card" style="padding:18px 20px;margin-top:6px"><div style="font-size:.78125rem;font-weight:700;color:var(--t1);margin-bottom:8px">Additional manual fields ('+filled+')</div>' +
+      '<div style="font-size:.71875rem;color:var(--t4)">Legacy knowledge fields also remain active as a fallback layer. Escalation contact: <b>'+DRUI.esc(kb.escalation||'not set')+'</b> ' +
+      '<button class="btn btn--ghost btn--sm" onclick="editEscalation()">✏️ Edit</button></div></div>';
+  } else {
+    h += '<div class="ag-card" style="padding:18px 20px;margin-top:6px"><div style="font-size:.78125rem;color:var(--t4)">Escalation contact: <b>'+DRUI.esc(kb.escalation||'not set')+'</b> ' +
+      '<button class="btn btn--ghost btn--sm" onclick="editEscalation()">✏️ Edit</button></div></div>';
+  }
 
   document.getElementById('content').innerHTML = h;
 }
 
-function collect() {
-  var kb = Object.assign({}, biz.knowledge||{});
-  DRD.fieldsFor(biz.industryGroup).forEach(function(f){
-    var el = document.getElementById('kb_'+f.id);
-    if (!el) return;
-    if (el.value.trim()) kb[f.id] = el.value.trim(); else delete kb[f.id];
+window.reimport = function(){
+  var btn = document.getElementById('btnImport');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importing… crawling website, profile & socials'; }
+  AG.toast('Running Business Intelligence Import…','info');
+  DRI.runImport(biz, biz.social || {}, null).then(function(intel){
+    biz = DRS.update('businesses', biz.id, { intel: intel });
+    AG.toast('Import complete — '+intel.services.length+' services, '+intel.faqs.length+' FAQs imported','success');
+    render();
   });
-  return kb;
-}
-window.saveKB = function(){
-  biz = DRS.update('businesses', biz.id, { knowledge: collect() });
-  AG.toast('Knowledge saved for '+biz.name,'success');
 };
-window.retrain = function(){
-  biz = DRS.update('businesses', biz.id, { knowledge: collect() });
-  AG.toast('Knowledge saved — retraining agents…','info');
-  DRA.trainAll(biz.id, null, function(){ AG.toast('All agents retrained on latest knowledge!','success'); });
+window.saveIntelEdits = function(){
+  var el = document.getElementById('i_summary');
+  if (el) {
+    var intel = Object.assign({}, biz.intel, { summary: el.textContent.trim() });
+    biz = DRS.update('businesses', biz.id, { intel: intel });
+  }
+  AG.toast('Imported knowledge updated','success');
+};
+window.addRule = function(){
+  var rules = (biz.manualRules||[]).slice(); rules.push('');
+  biz = DRS.update('businesses', biz.id, { manualRules: rules }); render();
+  document.getElementById('lyr4').classList.add('is-open');
+};
+window.updateRule = function(i, val){
+  var rules = (biz.manualRules||[]).slice(); rules[i] = val.trim();
+  biz = DRS.update('businesses', biz.id, { manualRules: rules.filter(Boolean) });
+  AG.toast('Rule saved','success');
+};
+window.delRule = function(i){
+  var rules = (biz.manualRules||[]).slice(); rules.splice(i,1);
+  biz = DRS.update('businesses', biz.id, { manualRules: rules }); render();
+};
+window.editEscalation = function(){
+  var v = prompt('Escalation contact (who handles complex issues — name + phone/email):', (biz.knowledge||{}).escalation||'');
+  if (v === null) return;
+  var kb = Object.assign({}, biz.knowledge||{}, { escalation: v.trim() });
+  biz = DRS.update('businesses', biz.id, { knowledge: kb });
+  AG.toast('Escalation contact saved','success'); render();
+};
+window.retrainAll = function(){
+  AG.toast('Retraining all employees on the 5 knowledge layers…','info');
+  DRA.trainAll(biz.id, null, function(){ AG.toast('All employees retrained!','success'); });
 };
 </script>
 </body>

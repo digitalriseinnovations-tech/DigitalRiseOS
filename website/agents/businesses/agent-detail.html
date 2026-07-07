@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent — Digital Rise</title>
+  <title>AI Employee — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .ad-tabs { display:flex;gap:4px;border-bottom:1.5px solid var(--border);margin-bottom:20px;overflow-x:auto; }
-    .ad-tab { padding:10px 15px;font-size:.8125rem;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap; }
+    .ad-tab { padding:10px 13px;font-size:.78125rem;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap; }
     .ad-tab.is-active { color:var(--accent);border-bottom-color:var(--accent);font-weight:700; }
     .ad-panel { display:none; } .ad-panel.is-active { display:block; }
     .kv { display:flex;padding:10px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem;gap:14px; }
     .kv:last-child { border:none; }
     .kv b { min-width:170px;color:var(--t3);font-weight:600;flex-shrink:0; }
     .kv span { color:var(--t1);white-space:pre-wrap; }
-    .tg-row { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-s); }
+    .tg-row { display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-s);gap:12px; }
     .tg-row:last-child { border:none; }
     .sw { position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer; }
     .sw input { opacity:0;width:0;height:0; }
@@ -22,14 +22,28 @@
     .sw .tr2::before { content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
     .sw input:checked + .tr2 { background:var(--accent); }
     .sw input:checked + .tr2::before { transform:translateX(16px); }
-    .t-chat { display:grid;grid-template-columns:1fr 250px;gap:14px; }
-    @media(max-width:760px){ .t-chat{grid-template-columns:1fr} }
-    .t-main { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);display:flex;flex-direction:column;height:420px;overflow:hidden; }
+    .src-chip { display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:.71875rem;font-weight:600;margin:0 6px 6px 0;border:1.5px solid var(--border);color:var(--t3);background:var(--bg-alt); }
+    .src-chip.on { border-color:var(--green);color:var(--green-t);background:var(--green-bg); }
+    .int-chip { display:inline-flex;padding:5px 12px;border-radius:99px;font-size:.71875rem;font-weight:600;margin:0 6px 6px 0;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent); }
+    .sc-chips { display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px; }
+    .sc-chip { padding:6px 12px;border:1.5px solid var(--accent);border-radius:99px;font-size:.71875rem;font-weight:600;color:var(--accent);background:var(--card);cursor:pointer;transition:all .15s; }
+    .sc-chip:hover { background:var(--accent);color:#fff; }
+    .t-chat { display:grid;grid-template-columns:1fr 290px;gap:14px; }
+    @media(max-width:800px){ .t-chat{grid-template-columns:1fr} }
+    .t-main { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-xl);display:flex;flex-direction:column;height:430px;overflow:hidden; }
     .t-body { flex:1;overflow-y:auto;padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:9px; }
     .t-msg { max-width:80%;padding:9px 13px;border-radius:12px;font-size:.8125rem;line-height:1.5;white-space:pre-wrap; }
     .t-msg.in  { background:var(--card);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px; }
     .t-msg.out { background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:3px; }
-    .t-act { display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:8px;font-size:.75rem;font-weight:600;color:var(--green-t);margin-bottom:7px; }
+    .chk-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-s);font-size:.71875rem; }
+    .chk-row:last-child { border:none; }
+    .chk-yes { color:var(--green-t);font-weight:800; } .chk-no { color:var(--t4);font-weight:700; }
+    .wf-tab { display:inline-block;padding:6px 13px;border-radius:99px;font-size:.71875rem;font-weight:700;cursor:pointer;color:var(--t3);background:var(--bg-alt);margin:0 5px 8px 0;border:1.5px solid transparent; }
+    .wf-tab.is-active { color:var(--accent);background:var(--accent-bg);border-color:var(--accent); }
+    .wf-panel { display:none; } .wf-panel.is-active { display:block; }
+    .seq { display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border-s);font-size:.78125rem; }
+    .seq:last-child { border:none; }
+    .seq .d { flex-shrink:0;font-weight:800;color:var(--accent);min-width:52px;font-size:.6875rem;padding-top:2px; }
   </style>
 </head>
 <body class="ag-body">
@@ -48,115 +62,183 @@
 <script src="/agents/shared/agents-ui.js"></script>
 <script>
 var biz = DRUI.init({ nav:'businesses', bizNav:'agents', requireBiz:true });
-var agent = null;
-var testerMsgs = [], testerLead = null, testerConvSaved = false;
+var agent = null, job = null;
+var tCtx = {}, tMsgs = [], tConvSaved = false;
 
 if (biz) {
   var r = DRUI.route();
   agent = r.agentId ? DRS.get('agents', r.agentId) : null;
   if (!agent) {
     document.getElementById('content').innerHTML = DRUI.empty('🤖','Agent not found',
-      'This agent does not exist for '+DRUI.esc(biz.name)+'.',
-      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">← Back to Agents</a>');
+      'This AI employee does not exist for '+DRUI.esc(biz.name)+'.',
+      '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'agents')+'">← Back to AI Employees</a>');
   } else {
+    job = DRA.jobFor(agent);
     render();
   }
 }
 
 var ACTION_LABELS = {
-  createLead:'Create lead record', offerBooking:'Offer booking / appointment',
-  whatsappFollowup:'WhatsApp follow-up', requestReview:'Request Google review',
-  escalate:'Escalate to staff when needed', notifyStaff:'Notify staff on hot leads',
+  captureLead:'Capture lead', createBooking:'Create booking request', createCallback:'Create callback request',
+  whatsappFollowup:'Send WhatsApp follow-up', sendReviewLink:'Send review link',
+  escalate:'Escalate to staff', markHotLead:'Mark hot lead', internalNote:'Create internal note',
 };
 
 function render() {
-  var def = DRD.agentDef(biz.industryGroup, agent.agentType) || { icon:'🤖', desc:'' };
+  var def = DRD.agentDef(biz.industryGroup, agent.agentType) || { icon:'🤖' };
   var st = DRA.agentStats(agent.id);
-  var kb = biz.knowledge || {};
-  var kbUsed = Object.keys(kb).filter(function(k){ return kb[k]; });
+  var tasks = DRS.list('tasks', { agentId: agent.id });
+  var intel = biz.intel || null;
 
   var h = DRUI.pageHeader(def.icon+' '+DRUI.esc(agent.agentName),
-    DRUI.esc(biz.name)+' · '+agent.agentType+' · '+agent.channels.join(', '),
+    DRUI.esc(biz.name)+' · '+job.role+' · '+agent.channels.join(', '),
     DRUI.trainBadge(agent.trainingStatus) +
     '<button class="btn btn--ghost" onclick="trainNow()">⚡ Train</button>' +
     '<a class="btn btn--primary" href="'+DRUI.bizUrl(biz.slug,'deploy')+'">🚀 Deploy</a>');
 
   h += DRUI.kpiRow([
-    { ico:'🎯', val:st.leads.length, label:'Leads Created', bg:'var(--green-bg)' },
-    { ico:'💬', val:st.conversations.length, label:'Conversations', bg:'var(--accent-bg)' },
-    { ico:'📅', val:st.bookings.length, label:'Bookings', bg:'#FEF3C7' },
-    { ico:'📚', val:kbUsed.length, label:'Knowledge Fields Used', bg:'#FDF2F8' },
+    { ico:'🎯', val:st.leads.length, label:'Leads Handled', bg:'var(--green-bg)' },
+    { ico:'📅', val:st.bookings.length, label:'Bookings Influenced', bg:'#FEF3C7' },
+    { ico:'📲', val:tasks.length, label:'Follow-ups Triggered', bg:'var(--accent-bg)' },
+    { ico:'✅', val:agent.tasksCompleted||0, label:'Tasks Completed', bg:'#FDF2F8' },
   ]);
 
-  h += '<div class="ad-tabs">'+['Overview','Knowledge','Actions','Training Rules','Tester','Analytics'].map(function(t,i){
+  var TABS = ['Overview','Knowledge Sources','Intents','Lead Fields','Workflows','Actions','Style','Training Rules','Tester'];
+  h += '<div class="ad-tabs">'+TABS.map(function(t,i){
     return '<div class="ad-tab'+(i===0?' is-active':'')+'" data-t="'+i+'" onclick="switchTab('+i+')">'+t+'</div>';
   }).join('')+'</div>';
 
   /* 0 Overview */
   h += '<div class="ad-panel is-active" id="adp0"><div class="ag-card" style="padding:22px">' +
-    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:6px">What this agent does</div>' +
-    '<div style="font-size:.8438rem;color:var(--t2);line-height:1.6;margin-bottom:18px">'+(def.desc||'')+'</div>' +
-    '<div class="kv"><b>Agent type</b><span>'+agent.agentType+'</span></div>' +
-    '<div class="kv"><b>Channels connected</b><span>'+agent.channels.join(', ')+'</span></div>' +
-    '<div class="kv"><b>Status</b><span>'+AG.statusBadge(agent.status)+'</span></div>' +
-    '<div class="kv"><b>Training status</b><span>'+DRUI.trainBadge(agent.trainingStatus)+'</span></div>' +
-    '<div class="kv"><b>Last trained</b><span>'+(agent.lastTrained?DRUI.fmtDate(agent.lastTrained)+' ('+DRUI.timeAgo(agent.lastTrained)+')':'Never')+'</span></div>' +
-    '<div class="kv"><b>Created</b><span>'+DRUI.fmtDate(agent.createdAt)+'</span></div>' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:6px">Role: '+job.role+'</div>' +
+    '<div style="font-size:.8438rem;color:var(--t2);line-height:1.6;margin-bottom:16px">'+job.purpose+'</div>' +
+    '<div class="kv"><b>Business</b><span>'+DRUI.esc(biz.name)+' ('+DRUI.esc(biz.businessType||'')+')</span></div>' +
+    '<div class="kv"><b>Channels</b><span>'+agent.channels.join(', ')+'</span></div>' +
+    '<div class="kv"><b>Status</b><span>'+AG.statusBadge(agent.status)+' '+DRUI.trainBadge(agent.trainingStatus)+'</span></div>' +
+    '<div class="kv"><b>Last trained</b><span>'+(agent.lastTrained?DRUI.fmtDate(agent.lastTrained)+' ('+DRUI.timeAgo(agent.lastTrained)+')':'Never — train before testing')+'</span></div>' +
+    '<div class="kv"><b>Follow-up policy</b><span>'+job.followUp+'</span></div>' +
   '</div></div>';
 
-  /* 1 Knowledge */
+  /* 1 Knowledge Sources */
+  var ks = agent.knowledgeSources || { website:!!intel, google:!!intel, social:!!(intel&&intel.social), manualRules:true, docs:false, faq:true };
+  function chip(on, ico, label, sub) {
+    return '<span class="src-chip'+(on?' on':'')+'">'+ico+' '+label+(sub?' <span style="opacity:.7">· '+sub+'</span>':'')+(on?' ✓':' —')+'</span>';
+  }
   h += '<div class="ad-panel" id="adp1"><div class="ag-card" style="padding:22px">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
-    '<div style="font-size:.875rem;font-weight:800;color:var(--t1)">Knowledge this agent uses</div>' +
-    '<a class="btn btn--ghost btn--sm" href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'">✏️ Edit Knowledge Base</a></div>' +
-    (kbUsed.length ? kbUsed.map(function(k){
-      var f = DRD.fieldsFor(biz.industryGroup).find(function(x){return x.id===k;});
-      return '<div class="kv"><b>'+(f?f.label:k)+'</b><span>'+DRUI.esc(kb[k])+'</span></div>';
-    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No knowledge saved yet — the agent will use generic answers. Add knowledge to make it business-specific.</div>') +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:12px">Knowledge this employee answers from</div>' +
+    chip(ks.website && intel, '🌐','Imported website content', intel ? (intel.services||[]).length+' services, '+(intel.faqs||[]).length+' FAQs' : 'not imported') +
+    chip(ks.google && intel && intel.google, '⭐','Google / public profile', intel&&intel.google ? intel.google.rating+'★, '+intel.google.reviewCount+' reviews' : 'not imported') +
+    chip(ks.social && intel && intel.social, '📣','Social tone notes', intel&&intel.social ? intel.social.tone : 'none') +
+    chip(true, '📋','Manual business rules', (biz.manualRules||[]).length+' rules') +
+    chip(ks.faq, '❓','FAQ entries', '') +
+    chip(ks.docs, '📎','Uploaded docs', 'coming soon') +
+    (intel ? '' : '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:12px 16px;margin-top:14px;font-size:.78125rem;color:#92400E">⚠️ No imported business intelligence — this agent falls back to manual knowledge only. <a style="font-weight:700;color:#92400E" href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'">Run import in the Knowledge Base</a>.</div>') +
+    '<div style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="'+DRUI.bizUrl(biz.slug,'knowledge-base')+'">📚 Open layered Knowledge Base</a></div>' +
   '</div></div>';
 
-  /* 2 Actions */
+  /* 2 Intents */
   h += '<div class="ad-panel" id="adp2"><div class="ag-card" style="padding:22px">' +
-    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:6px">Actions enabled</div>' +
-    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:10px">What this agent is allowed to do during conversations.</div>' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:4px">Supported intents</div>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:14px">What this employee is trained to recognise and handle for a '+DRUI.esc(biz.businessType||'business')+'.</div>' +
+    job.intents.map(function(i){ return '<span class="int-chip">'+DRA.intentLabel(i)+'</span>'; }).join('') +
+    '<div style="font-size:.75rem;color:var(--t4);margin-top:14px">Out-of-scope questions get one clarify attempt, then a callback offer — never a dead end.</div>' +
+  '</div></div>';
+
+  /* 3 Lead Fields */
+  var lf = DRD.leadFields[biz.industryGroup] || DRD.leadFields.professional;
+  h += '<div class="ad-panel" id="adp3"><div class="ag-card" style="padding:22px">' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:4px">Lead capture fields</div>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Collected progressively — never as a form dump. Required fields are always captured before the conversation ends.</div>' +
+    lf.map(function(f){
+      return '<div class="tg-row"><span style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+f.label+'</span>' +
+        '<span class="badge badge--'+(f.req?'purple':'gray')+'">'+(f.req?'Required':'Optional')+'</span></div>';
+    }).join('') +
+  '</div></div>';
+
+  /* 4 Workflows */
+  var seqType = { 'whatsapp-followup':'whatsapp-followup', 'missed-call':'missed-call', 'review':'review',
+                  'quote-followup':'quote-followup', 'estimate-followup':'quote-followup', 'lead-reactivation':'lead-reactivation' }[agent.agentType] || 'whatsapp-followup';
+  var seq = DRD.followUpSequences[seqType];
+  h += '<div class="ad-panel" id="adp4"><div class="ag-card" style="padding:22px">' +
+    '<div style="margin-bottom:10px">'+['Lead Capture','Qualification','Booking / Callback','Follow-up','Escalation','After-hours'].map(function(t,i){
+      return '<span class="wf-tab'+(i===0?' is-active':'')+'" data-w="'+i+'" onclick="switchWf('+i+')">'+t+'</span>';
+    }).join('')+'</div>' +
+    '<div class="wf-panel is-active" id="wfp0"><div class="kv"><b>Trigger</b><span>Buying-signal intent (price, availability, booking, quote) or CTA acceptance</span></div>' +
+      '<div class="kv"><b>Flow</b><span>Answer first → offer the next step → ask name → ask phone/email → confirm & save. One question at a time.</span></div>' +
+      '<div class="kv"><b>Hot-lead shortcut</b><span>Booking/quote/tour intent skips small talk and starts capture immediately.</span></div></div>' +
+    '<div class="wf-panel" id="wfp1"><div class="kv"><b>Approach</b><span>'+(job.style.qualifyFirst?'Qualify BEFORE offering next steps (this agent asks first).':'Answer first, qualify while guiding to the next step.')+'</span></div>' +
+      '<div class="kv"><b>Must ask</b><span>'+job.mustAsk.join('\n')+'</span></div>' +
+      '<div class="kv"><b>Scoring</b><span>Booking/quote/tour intent → HOT (80–95). Info-only → WARM (55–80). Escalations → urgent priority.</span></div></div>' +
+    '<div class="wf-panel" id="wfp2"><div class="kv"><b>Booking flow</b><span>Creates a booking REQUEST (status: request) — the team confirms the exact slot. Agent never guarantees times.</span></div>' +
+      '<div class="kv"><b>Callback flow</b><span>Creates a callback task due within 2 hours, marked urgent on escalations.</span></div></div>' +
+    '<div class="wf-panel" id="wfp3"><div style="font-size:.78125rem;font-weight:700;color:var(--t1);margin-bottom:6px">Automated sequence ('+seqType.replace(/-/g,' ')+')</div>' +
+      seq.map(function(s){ return '<div class="seq"><span class="d">'+s.delay+'</span><span style="color:var(--t2)">'+DRUI.esc(s.msg)+'</span></div>'; }).join('') +
+      '<div style="font-size:.71875rem;color:var(--t4);margin-top:10px">Stop conditions: reply received · booking completed · opt-out · 2 unanswered messages.</div></div>' +
+    '<div class="wf-panel" id="wfp4">'+job.escalation.map(function(e){
+      return '<div class="kv"><b>🚨 Rule</b><span>'+e+'</span></div>'; }).join('') +
+      '<div class="kv"><b>Route</b><span>'+((biz.knowledge||{}).escalation || 'No escalation contact set — add one in the Knowledge Base')+'</span></div></div>' +
+    '<div class="wf-panel" id="wfp5"><div class="kv"><b>Behaviour</b><span>'+(job.style.afterHours==='capture'?'Keep chatting and capture the lead; promise a first-thing follow-up.':'Queue the message and respond at opening time.')+'</span></div>' +
+      '<div class="kv"><b>Morning routine</b><span>After-hours leads are first in the follow-up queue next morning.</span></div></div>' +
+  '</div></div>';
+
+  /* 5 Actions */
+  h += '<div class="ad-panel" id="adp5"><div class="ag-card" style="padding:22px">' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:6px">Allowed actions</div>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:10px">What this employee may do during and after conversations.</div>' +
     Object.keys(ACTION_LABELS).map(function(k){
-      var on = !!(agent.actionsEnabled||{})[k];
+      var on = !!job.actions[k];
       return '<div class="tg-row"><span style="font-size:.8125rem;font-weight:600;color:var(--t1)">'+ACTION_LABELS[k]+'</span>' +
         '<label class="sw"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleAction(\''+k+'\',this.checked)"><span class="tr2"></span></label></div>';
     }).join('') +
   '</div></div>';
 
-  /* 3 Training rules */
-  h += '<div class="ad-panel" id="adp3"><div class="ag-card" style="padding:22px">' +
-    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:6px">Training rules</div>' +
-    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Guidelines the agent follows. One rule per line.</div>' +
-    '<textarea class="ag-textarea" id="rulesTa" style="min-height:130px" placeholder="e.g. Always ask for a phone number before ending the chat">'+DRUI.esc((agent.trainingRules||[]).join('\n'))+'</textarea>' +
-    '<button class="btn btn--primary btn--sm" style="margin-top:10px" onclick="saveRules()">💾 Save Rules</button>' +
+  /* 6 Style */
+  var s = job.style;
+  h += '<div class="ad-panel" id="adp6"><div class="ag-card" style="padding:22px">' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:12px">Response style</div>' +
+    '<div class="ag-form-row"><div class="ag-form-group"><label class="ag-label">Tone</label>' +
+      '<select class="ag-select" id="st_tone">'+['warm','friendly','professional','caring','enthusiastic','straightforward','casual-warm','grateful'].map(function(t){ return '<option'+(s.tone===t?' selected':'')+'>'+t+'</option>'; }).join('')+'</select></div>' +
+    '<div class="ag-form-group"><label class="ag-label">Response length</label>' +
+      '<select class="ag-select" id="st_length">'+['short','medium'].map(function(t){ return '<option'+(s.length===t?' selected':'')+'>'+t+'</option>'; }).join('')+'</select></div></div>' +
+    '<div class="ag-form-row"><div class="ag-form-group"><label class="ag-label">CTA style</label>' +
+      '<select class="ag-select" id="st_cta">'+['soft','direct'].map(function(t){ return '<option'+(s.cta===t?' selected':'')+'>'+t+'</option>'; }).join('')+'</select></div>' +
+    '<div class="ag-form-group"><label class="ag-label">After-hours behaviour</label>' +
+      '<select class="ag-select" id="st_afterHours">'+[['capture','Keep chatting & capture lead'],['queue','Queue until opening']].map(function(t){ return '<option value="'+t[0]+'"'+(s.afterHours===t[0]?' selected':'')+'>'+t[1]+'</option>'; }).join('')+'</select></div></div>' +
+    '<div class="tg-row"><span style="font-size:.8125rem;font-weight:600;color:var(--t1)">Ask qualification questions before offering next steps</span>' +
+      '<label class="sw"><input type="checkbox" id="st_qualifyFirst" '+(s.qualifyFirst?'checked':'')+'><span class="tr2"></span></label></div>' +
+    '<button class="btn btn--primary btn--sm" style="margin-top:14px" onclick="saveStyle()">💾 Save Style</button>' +
   '</div></div>';
 
-  /* 4 Tester */
-  h += '<div class="ad-panel" id="adp4">' +
+  /* 7 Training Rules */
+  h += '<div class="ad-panel" id="adp7"><div class="ag-card" style="padding:22px">' +
+    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:12px">Training & prompt rules</div>' +
+    '<div class="kv"><b>System role</b><span>You are '+DRUI.esc(agent.agentName)+', the '+job.role.toLowerCase()+' for '+DRUI.esc(biz.name)+' ('+DRUI.esc(biz.businessType||'')+', '+DRUI.esc(biz.location||'')+'). Respond like a trained human staff member: short, warm, specific, always guiding toward the next step.</span></div>' +
+    '<div class="kv"><b>Business context</b><span>'+DRUI.esc(intel && intel.summary ? intel.summary : 'No imported summary — run import.')+'</span></div>' +
+    '<div class="kv"><b>Must ask</b><span>'+job.mustAsk.join('\n')+'</span></div>' +
+    '<div class="kv"><b>Must not</b><span>'+job.mustNot.join('\n')+'</span></div>' +
+    '<div class="kv"><b>Escalation triggers</b><span>'+job.escalation.join('\n')+'</span></div>' +
+    '<div class="kv"><b>Follow-up triggers</b><span>'+job.followUp+'</span></div>' +
+    '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:16px 0 8px">Extra rules for this agent (one per line)</div>' +
+    '<textarea class="ag-textarea" id="rulesTa" style="min-height:90px" placeholder="e.g. Always mention the sibling discount when a parent has 2+ children">'+DRUI.esc((agent.trainingRules||[]).join('\n'))+'</textarea>' +
+    '<button class="btn btn--primary btn--sm" style="margin-top:10px" onclick="saveRules()">💾 Save & Retrain</button>' +
+  '</div></div>';
+
+  /* 8 Tester */
+  var scenarios = DRD.scenarios[biz.industryGroup] || [];
+  h += '<div class="ad-panel" id="adp8">' +
+    '<div class="sc-chips">'+scenarios.map(function(sc){
+      return '<div class="sc-chip" onclick="runScenario(this.textContent)">'+sc+'</div>';
+    }).join('')+'</div>' +
     '<div class="t-chat"><div class="t-main">' +
       '<div class="t-body" id="tBody"></div>' +
       '<div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)">' +
-        '<input class="ag-input" id="tInput" placeholder="Ask as a customer…" style="flex:1" onkeydown="if(event.key===\'Enter\')tSend()">' +
+        '<input class="ag-input" id="tInput" placeholder="Type as a customer…" style="flex:1" onkeydown="if(event.key===\'Enter\')tSend()">' +
         '<button class="btn btn--primary" onclick="tSend()">Send</button></div></div>' +
-      '<div class="ag-card" style="padding:16px"><div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:10px">Agent Actions</div>' +
-      '<div id="tActions"><div style="font-size:.75rem;color:var(--t4)">Actions appear here…</div></div>' +
-      '<button class="btn btn--ghost btn--sm" style="margin-top:10px;width:100%" onclick="tReset()">↺ Reset Conversation</button></div>' +
+      '<div class="ag-card" style="padding:16px;height:430px;overflow-y:auto">' +
+        '<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:8px">Outcome Analysis</div>' +
+        '<div id="tChecks"><div style="font-size:.75rem;color:var(--t4)">Run a scenario to see the analysis…</div></div>' +
+        '<button class="btn btn--ghost btn--sm" style="margin-top:12px;width:100%" onclick="tReset()">↺ Reset Conversation</button></div>' +
     '</div></div>';
-
-  /* 5 Analytics */
-  var qualAvg = st.leads.length ? Math.round(st.leads.reduce(function(s,l){return s+(l.qualScore||0);},0)/st.leads.length) : 0;
-  h += '<div class="ad-panel" id="adp5"><div class="ag-card" style="padding:22px">' +
-    '<div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:14px">Agent analytics</div>' +
-    '<div class="kv"><b>Leads created</b><span>'+st.leads.length+'</span></div>' +
-    '<div class="kv"><b>Conversations handled</b><span>'+st.conversations.length+'</span></div>' +
-    '<div class="kv"><b>Bookings generated</b><span>'+st.bookings.length+'</span></div>' +
-    '<div class="kv"><b>Avg lead quality</b><span>'+(qualAvg?qualAvg+'%':'—')+'</span></div>' +
-    '<div class="kv"><b>Lead conversion</b><span>'+(st.conversations.length?Math.round(st.leads.length/st.conversations.length*100)+'% of conversations':'—')+'</span></div>' +
-    (st.leads.length ? '<div style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="'+DRUI.bizUrl(biz.slug,'leads')+'">View all leads →</a></div>' : '') +
-  '</div></div>';
 
   document.getElementById('content').innerHTML = h;
   tGreet();
@@ -166,71 +248,88 @@ window.switchTab = function(i){
   document.querySelectorAll('.ad-tab').forEach(function(t){ t.classList.toggle('is-active', t.getAttribute('data-t')==String(i)); });
   document.querySelectorAll('.ad-panel').forEach(function(p,pi){ p.classList.toggle('is-active', pi===i); });
 };
+window.switchWf = function(i){
+  document.querySelectorAll('.wf-tab').forEach(function(t){ t.classList.toggle('is-active', t.getAttribute('data-w')==String(i)); });
+  document.querySelectorAll('.wf-panel').forEach(function(p,pi){ p.classList.toggle('is-active', pi===i); });
+};
 
 window.trainNow = function(){
-  AG.toast('Training '+agent.agentName+'…','info');
-  DRA.trainAgent(agent.id, function(u){ agent = u; AG.toast('Agent trained on latest knowledge!','success'); render(); });
+  AG.toast('Training '+agent.agentName+' on latest knowledge…','info');
+  DRA.trainAgent(agent.id, function(u){ agent = u; job = DRA.jobFor(agent); AG.toast('Employee trained!','success'); render(); });
 };
 window.toggleAction = function(k, on){
-  var ae = Object.assign({}, agent.actionsEnabled||{}); ae[k]=on;
+  var ae = Object.assign({}, job.actions); ae[k] = on;
   agent = DRS.update('agents', agent.id, { actionsEnabled: ae });
+  job = DRA.jobFor(agent);
   AG.toast(ACTION_LABELS[k]+(on?' enabled':' disabled'),'success');
+};
+window.saveStyle = function(){
+  var st = {
+    tone: document.getElementById('st_tone').value,
+    length: document.getElementById('st_length').value,
+    cta: document.getElementById('st_cta').value,
+    afterHours: document.getElementById('st_afterHours').value,
+    qualifyFirst: document.getElementById('st_qualifyFirst').checked,
+  };
+  agent = DRS.update('agents', agent.id, { responseStyle: st });
+  job = DRA.jobFor(agent);
+  AG.toast('Response style saved','success');
 };
 window.saveRules = function(){
   var rules = document.getElementById('rulesTa').value.split('\n').map(function(s){return s.trim();}).filter(Boolean);
   agent = DRS.update('agents', agent.id, { trainingRules: rules });
-  AG.toast(rules.length+' rule'+(rules.length===1?'':'s')+' saved','success');
+  AG.toast(rules.length+' rule'+(rules.length===1?'':'s')+' saved — retraining…','info');
+  DRA.trainAgent(agent.id, function(u){ agent = u; AG.toast('Retrained with new rules!','success'); });
 };
 
-/* ── Tester ─────────────────────────────────────────── */
+/* ── Scenario tester ─────────────────────────────────────── */
 function tAdd(role,text){
-  testerMsgs.push({role:role,text:text});
+  tMsgs.push({role:role,text:text});
   var b = document.getElementById('tBody'); if(!b) return;
   var d = document.createElement('div'); d.className='t-msg '+role; d.textContent=text;
   b.appendChild(d); b.scrollTop=b.scrollHeight;
 }
 function tGreet(){
-  testerMsgs = []; testerLead = null; testerConvSaved = false;
-  tAdd('in', "Hi! 👋 I'm "+agent.agentName+" for "+biz.name+". Ask me anything a customer would ask!");
+  tCtx = {}; tMsgs = []; tConvSaved = false;
+  tAdd('in', "Hi! 👋 I'm "+agent.agentName+" for "+biz.name+". Test me with a scenario above, or type your own customer question.");
 }
 window.tReset = function(){
-  var b = document.getElementById('tBody'); b.innerHTML='';
-  document.getElementById('tActions').innerHTML='<div style="font-size:.75rem;color:var(--t4)">Actions appear here…</div>';
+  var b = document.getElementById('tBody'); if (b) b.innerHTML='';
+  var c = document.getElementById('tChecks'); if (c) c.innerHTML='<div style="font-size:.75rem;color:var(--t4)">Run a scenario to see the analysis…</div>';
   tGreet();
 };
+window.runScenario = function(text){
+  var inp = document.getElementById('tInput'); inp.value = text; tSend();
+};
 window.tSend = function(){
-  if (agent.trainingStatus !== 'ready') { AG.toast('Train the agent first — click ⚡ Train','error'); return; }
+  if (agent.trainingStatus !== 'ready') { AG.toast('Train the employee first — click ⚡ Train','error'); return; }
   var inp = document.getElementById('tInput');
   var v = inp.value.trim(); if(!v) return;
   inp.value='';
   tAdd('out', v);
-  var res = DRA.respond(biz, agent, v);
+  var res = DRA.converse(biz, agent, v, tCtx);
   setTimeout(function(){
     tAdd('in', res.reply);
-    if (res.actions.length) {
-      var box = document.getElementById('tActions');
-      if (box.firstChild && box.firstChild.tagName==='DIV' && !box.querySelector('.t-act')) box.innerHTML='';
-      res.actions.forEach(function(a){
-        box.innerHTML += '<div class="t-act"><span>'+a.icon+'</span>'+a.label+'</div>';
-        if (a.type==='lead' && !testerLead) {
-          var phone = (v.match(/\+?[\d][\d\s\-().]{6,}/)||[null])[0];
-          var email = (v.match(/[\w.+-]+@[\w-]+\.[\w.]+/)||[null])[0];
-          var name = v.replace(phone||'','').replace(email||'','').replace(/(my name is|i am|i'm|this is|call me)/i,'').replace(/[,.]/g,'').trim();
-          testerLead = DRA.captureLead(biz, agent, {
-            name: name && name.length<40 ? name : 'Tester Lead',
-            phone: phone||'', email: email||'',
-            enquiryType:'Tester', notes:'Captured in agent tester',
-          });
-          AG.toast('Lead saved — check the Leads page!','success');
-        }
-        if (a.type==='booking') {
-          DRA.addBooking(biz, agent, { service:'Tester booking', bookingDate:new Date(Date.now()+2*864e5).toISOString(), notes:'Created in agent tester' });
-        }
-      });
-      if (!testerConvSaved && testerMsgs.length >= 4) {
-        DRA.logConversation(biz, agent, testerMsgs, testerLead?testerLead.id:null);
-        testerConvSaved = true;
-      }
+    var c = res.checks;
+    function yn(x){ return x ? '<span class="chk-yes">YES</span>' : '<span class="chk-no">no</span>'; }
+    var lead = tCtx.leadId ? DRS.get('leads', tCtx.leadId) : null;
+    document.getElementById('tChecks').innerHTML =
+      '<div class="chk-row"><span>Intent detected</span><b style="color:var(--accent);font-size:.71875rem">'+res.intentLabel+'</b></div>' +
+      (res.knowledgeSource?'<div class="chk-row"><span>Knowledge used</span><b style="font-size:.65625rem;color:var(--t2)">'+res.knowledgeSource+'</b></div>':'') +
+      '<div class="chk-row"><span>Lead captured</span>'+yn(c.leadCaptured)+'</div>' +
+      '<div class="chk-row"><span>Booking request created</span>'+yn(c.bookingOffered && c.leadCaptured)+'</div>' +
+      '<div class="chk-row"><span>Booking offered</span>'+yn(c.bookingOffered)+'</div>' +
+      '<div class="chk-row"><span>Follow-up triggered</span>'+yn(c.followUpSuggested && c.leadCaptured)+'</div>' +
+      '<div class="chk-row"><span>Escalation triggered</span>'+yn(c.escalationNeeded)+'</div>' +
+      '<div class="chk-row"><span>Data saved</span>'+yn(c.dataSaved)+'</div>' +
+      (lead ? '<div class="chk-row"><span>Final lead status</span><span class="badge badge--'+(lead.status==='escalated'?'red':'green')+'">'+lead.status+'</span></div>' : '') +
+      (res.actions.length?'<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:10px 0 6px">Actions taken</div>'+
+        res.actions.map(function(a){ return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:7px;font-size:.71875rem;font-weight:600;color:var(--green-t);margin-bottom:5px">'+a.icon+' '+a.label+'</div>'; }).join(''):'') +
+      (lead ? '<a class="btn btn--ghost btn--sm" style="margin-top:10px;width:100%" href="'+DRUI.bizUrl(biz.slug,'leads')+'">View in Leads →</a>' : '');
+    if (c.leadCaptured && !tConvSaved) {
+      DRA.logConversation(biz, agent, tMsgs, tCtx.leadId);
+      tConvSaved = true;
+      AG.toast('Lead + follow-up task saved — check the Leads page!','success');
     }
   }, 550);
 };
