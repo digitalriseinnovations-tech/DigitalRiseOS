@@ -313,9 +313,14 @@ window.tSend = function(){
     var c = res.checks;
     function yn(x){ return x ? '<span class="chk-yes">YES</span>' : '<span class="chk-no">no</span>'; }
     var lead = tCtx.leadId ? DRS.get('leads', tCtx.leadId) : null;
+    if (!biz.testPassed) { biz = DRS.update('businesses', biz.id, { testPassed: true }); }
+    var confCol = { high:'var(--green-t)', medium:'#D97706', low:'#DC2626' }[res.confidence]||'var(--t3)';
     document.getElementById('tChecks').innerHTML =
       '<div class="chk-row"><span>Intent detected</span><b style="color:var(--accent);font-size:.71875rem">'+res.intentLabel+'</b></div>' +
-      (res.knowledgeSource?'<div class="chk-row"><span>Knowledge used</span><b style="font-size:.65625rem;color:var(--t2)">'+res.knowledgeSource+'</b></div>':'') +
+      '<div class="chk-row"><span>Knowledge used</span><b style="font-size:.65625rem;color:var(--t2);text-align:right">'+(res.knowledgeSource||'—')+'</b></div>' +
+      '<div class="chk-row"><span>Next action</span><b style="font-size:.65625rem;color:var(--t2)">'+res.nextAction+'</b></div>' +
+      '<div class="chk-row"><span>Confidence</span><b style="color:'+confCol+';text-transform:uppercase;font-size:.65625rem">'+res.confidence+'</b></div>' +
+      '<div class="chk-row"><span>Fallback used</span>'+yn(res.fallbackUsed)+'</div>' +
       '<div class="chk-row"><span>Lead captured</span>'+yn(c.leadCaptured)+'</div>' +
       '<div class="chk-row"><span>Booking request created</span>'+yn(c.bookingOffered && c.leadCaptured)+'</div>' +
       '<div class="chk-row"><span>Booking offered</span>'+yn(c.bookingOffered)+'</div>' +

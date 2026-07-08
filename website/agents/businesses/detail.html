@@ -42,7 +42,7 @@ function render() {
     '<div class="av" style="background:'+biz.color+';width:52px;height:52px;font-size:1.125rem;border-radius:14px">'+biz.initial+'</div>' +
     '<div style="flex:1;min-width:200px">' +
       '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-        '<span style="font-size:1.375rem;font-weight:800;color:var(--t1);letter-spacing:-.01em">'+DRUI.esc(biz.name)+'</span>'+AG.statusBadge(biz.status)+'</div>' +
+        '<span style="font-size:1.375rem;font-weight:800;color:var(--t1);letter-spacing:-.01em">'+DRUI.esc(biz.name)+'</span>'+DRA.setupBadge(DRA.bizSetupStatus(biz))+'</div>' +
       '<div style="font-size:.8125rem;color:var(--t3);margin-top:3px">'+(grp?grp.icon+' '+grp.label:'')+' · '+DRUI.esc(biz.businessType||'')+(biz.location?' · '+DRUI.esc(biz.location):'')+'</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap">' +

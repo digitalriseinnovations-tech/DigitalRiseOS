@@ -59,7 +59,7 @@ function render() {
         DRUI.td('<b>'+s.agents.length+'</b> <span style="color:var(--t4);font-size:.6875rem">('+ready+' trained)</span>') +
         DRUI.td('<b>'+s.leads.length+'</b>') +
         DRUI.td('<b>'+s.bookings.length+'</b>') +
-        DRUI.td(AG.statusBadge(b.status)) +
+        DRUI.td(DRA.setupBadge(DRA.bizSetupStatus(b))) +
         DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(b.createdAt)+'</span>') +
       '</tr>';
     }).join('');

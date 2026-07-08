@@ -61,11 +61,32 @@ function render() {
   var tasks = DRS.list('tasks', { businessId: biz.id });
 
   var h = DRUI.pageHeader('Connect Channels — '+esc(biz.name),
-    'Your AI employee works behind every channel — website, WhatsApp, email, reviews, phone. Connect only what the business needs.');
+    'Your AI employee works behind every channel — website, WhatsApp, email, reviews, phone. Connect only what the business needs.',
+    DRA.setupBadge(DRA.bizSetupStatus(biz)));
 
-  if (ready < agents.length) {
-    h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:13px 18px;margin-bottom:16px;font-size:.8125rem;color:#92400E">' +
-      '⚠️ '+(agents.length-ready)+' employee'+(agents.length-ready===1?' is':'s are')+' not trained. <a href="'+DRUI.bizUrl(biz.slug,'agents')+'" style="font-weight:700;color:#92400E">Train them</a> before going live.</div>';
+  /* Live vs Demo mode banner + go-live gates */
+  var status = DRA.bizSetupStatus(biz);
+  var kbOk = !!(biz.intel || Object.keys(biz.knowledge||{}).filter(function(k){return biz.knowledge[k];}).length);
+  var gates = [
+    ['Business saved', true],
+    ['Knowledge exists', kbOk],
+    ['All employees trained', agents.length > 0 && ready === agents.length],
+    ['Test completed', !!biz.testPassed],
+    ['Live channel connected', !!(biz.deployChannels||[]).filter(function(c){return c!=='demo';}).length],
+  ];
+  var gatesOk = gates.slice(0,4).every(function(g){ return g[1]; });
+  if (status === 'live') {
+    h += '<div style="background:var(--green-bg);border:1px solid #A7F3D0;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px;font-size:.8125rem;color:var(--green-t)">' +
+      '<b>● LIVE</b> — the AI employee is answering on: <b>'+(biz.deployChannels||[]).join(', ')+'</b>. Real conversations create real enquiries and follow-ups.</div>';
+  } else {
+    h += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px;font-size:.8125rem;color:#92400E">' +
+      '<b>◐ DEMO MODE</b> — test conversations only; simulated actions; no real messages are sent.<br>' +
+      '<span style="font-size:.75rem">Go-live checklist: '+gates.map(function(g){ return (g[1]?'✓':'✗')+' '+g[0]; }).join(' · ')+'</span><br>' +
+      (gatesOk
+        ? '<button class="btn btn--primary btn--sm" style="margin-top:8px" onclick="goLive()">🚀 Go Live Now</button>'
+        : '<span style="font-size:.75rem">Complete the first four checks, then press Go Live. '+
+          (!biz.testPassed ? '<a style="font-weight:700;color:#92400E" href="'+DRUI.bizUrl(biz.slug,'agents')+'">Run a test in an employee\'s Tester tab.</a>' : '')+'</span>') +
+      '</div>';
   }
 
   /* 1 — Website widget */
@@ -147,6 +168,17 @@ function render() {
   document.getElementById('content').innerHTML = h;
 }
 
+window.goLive = function(){
+  var web = agentOf('website-enquiry');
+  var chans = [];
+  if (web) chans.push('widget');
+  if (biz.whatsapp && agentOf('whatsapp-followup')) chans.push('whatsapp');
+  if (biz.email && agentOf('email-inbox')) chans.push('email');
+  if (!chans.length) chans.push('widget');
+  biz = DRS.update('businesses', biz.id, { setupStatus: 'live', deployChannels: chans });
+  AG.toast('🎉 '+biz.name+' is LIVE on: '+chans.join(', '),'success');
+  render();
+};
 window.copyEl = function(id){
   var el = document.getElementById(id);
   navigator.clipboard.writeText(el.textContent.replace(/^Copy/,'').trim()).then(function(){ AG.toast('Copied!','success'); });

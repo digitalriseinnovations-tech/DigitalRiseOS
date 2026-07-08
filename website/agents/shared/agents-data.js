@@ -859,3 +859,64 @@ var DRD = (function () {
               .map(function (m) { return { icon: m[1], label: m[2] }; });
   };
 })();
+
+
+/* ============================================================
+   DRD v4 — Intent refinement + categorized test scenarios
+   Fixes: allergy vs meals collision, adds daycare-critical
+   intents, scenario categories for the pre-deploy test flow.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* Remove allergy keywords from meals so the two never collide */
+  var meals = DRD.intents.find(function (i) { return i.id === 'meals'; });
+  if (meals) meals.kws = ['meal','meals','food ','lunch','snack','menu','nutrition','what do they eat','vegan','vegetarian'];
+
+  /* Insert new intents at the right priority positions */
+  function insertBefore(beforeId, intent) {
+    var idx = DRD.intents.findIndex(function (i) { return i.id === beforeId; });
+    if (idx === -1) DRD.intents.push(intent); else DRD.intents.splice(idx, 0, intent);
+  }
+  insertBefore('price', { id:'allergy', label:'Allergy support',
+    kws:['allerg','nut-free','nut free','peanut','epipen','celiac','lactose','intoleran','dietary restriction','food restriction'] });
+  insertBefore('meals', { id:'sick-policy', label:'Sick / illness policy',
+    kws:['sick','illness','fever','unwell','symptom','medication','medicine','cold or flu'] });
+  insertBefore('ages', { id:'existing-parent', label:'Existing family support',
+    kws:['my child attends','currently enrolled','existing parent','report an absence','absent today','running late for pickup','pickup time','drop-off time','drop off time'] });
+  insertBefore('ages', { id:'activity-planning', label:'Activities & curriculum',
+    kws:['activity','activities','curriculum','do all day','daily schedule','themes','crafts','learning program','what do the kids','nap'] });
+
+  /* ── Categorized pre-deploy test scenarios (childcare) ─── */
+  DRD.scenarioCats = {
+    childcare: [
+      { cat:'Meals',          q:'What meals do you provide?' },
+      { cat:'Allergy',        q:'My daughter has a nut allergy — can you handle that?' },
+      { cat:'Subsidy',        q:'Do you offer subsidy?' },
+      { cat:'Fees',           q:'How much are your fees?' },
+      { cat:'Tour',           q:'Can I book a tour this week?' },
+      { cat:'Waitlist',       q:'How do I join the waitlist?' },
+      { cat:'Availability',   q:'Do you have space for my 3 year old in September?' },
+      { cat:'Hours',          q:'What are your opening hours?' },
+      { cat:'Parent support', q:'My child attends — I need to report an absence today' },
+      { cat:'Sick policy',    q:'What happens if my son has a fever?' },
+      { cat:'Activities',     q:'What do the kids do all day?' },
+      { cat:'Review',         q:'We had an amazing first week, thank you!' },
+    ],
+    healthcare: [
+      { cat:'Insurance',   q:'Do you accept insurance?' },
+      { cat:'Booking',     q:'I need a cleaning appointment.' },
+      { cat:'Emergency',   q:'I have a toothache and need urgent help' },
+      { cat:'Fees',        q:'How much is teeth whitening?' },
+      { cat:'New patient', q:'Are you taking new patients?' },
+      { cat:'Support',     q:'I want to speak to someone about my bill' },
+    ],
+    events: [
+      { cat:'Enquiry',  q:'I need a birthday setup for 30 kids next month.' },
+      { cat:'Quote',    q:'Can I get a quote for a baby shower?' },
+      { cat:'Packages', q:'What is included in your packages?' },
+      { cat:'Area',     q:'Do you travel to Hamilton?' },
+      { cat:'Deposit',  q:'How much deposit do you need?' },
+    ],
+  };
+})();

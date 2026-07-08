@@ -133,8 +133,9 @@ var DRA = (function () {
         return { text: kb[entry.field], source: 'Business knowledge' };
       }
     }
-    /* intel summary as last resort for services/general */
-    if ((intentId === 'services' || intentId === 'general') && intel.summary) {
+    /* intel summary only for explicit services questions — never as a
+       filler for unknown questions (that must use the honest fallback) */
+    if (intentId === 'services' && intel.summary) {
       return { text: intel.summary, source: 'Imported business summary' };
     }
     return null;
@@ -164,45 +165,181 @@ var DRA = (function () {
     return null;
   }
 
-  /* ── Reply composer (human style, short, action-first) ─── */
+  /* ── Business fact extraction (approved knowledge only) ── */
+  function bizFacts(biz) {
+    var kb = biz.knowledge || {};
+    var intel = biz.intel || {};
+    function faq(re) {
+      var fs = intel.faqs || [];
+      for (var i = 0; i < fs.length; i++) {
+        if (re.test((fs[i].q + ' ' + fs[i].a).toLowerCase())) return fs[i].a;
+      }
+      return null;
+    }
+    function sentence(src, re) {
+      var m = String(src || '').match(re);
+      return m ? m[0].trim() : null;
+    }
+    return {
+      meals:      kb.meals || faq(/meal|lunch|snack/),
+      allergy:    sentence((kb.meals || '') + ' ' + (kb.safety || '') + ' ' + (faq(/allerg|nut/) || ''), /[^.]*(nut[- ]?free|allerg)[^.]*\.?/i),
+      fees:       kb.fees || kb.pricing || intel.pricingNotes || null,
+      subsidy:    faq(/subsid|cwelcc|funding/) || sentence(kb.fees || intel.pricingNotes, /[^.]*(cwelcc|subsid)[^.]*\.?/i),
+      hours:      kb.hours || intel.hours || (intel.google || {}).hours || null,
+      tours:      kb.tourTimes || null,
+      waitlist:   kb.waitlistRules || faq(/waitlist/),
+      ages:       kb.ageGroups || null,
+      sick:       sentence(kb.policies || intel.policies, /[^.]*(sick|symptom|fever)[^.]*\.?/i) || faq(/sick|ill/),
+      activities: kb.curriculum || kb.activityThemes || faq(/curricul|activit|play/),
+      safety:     kb.safety || faq(/ratio|safe/),
+      services:   kb.services || (intel.services && intel.services.length ? 'We offer ' + intel.services.slice(0, 4).join(', ') + '.' : null),
+      location:   kb.serviceArea || intel.serviceArea || (intel.google || {}).address || null,
+      insurance:  kb.insurance || faq(/insurance|billing/),
+      policies:   kb.policies || intel.policies || null,
+    };
+  }
+
+  /* ── Human response generator ─────────────────────────── */
+  /* Intent-specific composition from approved facts, with
+     conversation memory, phrasing variation, and an honest
+     fallback that never invents information.                 */
   function composeReply(biz, agent, job, intentId, know, msg, ctx) {
+    var f = bizFacts(biz);
+    var t = DRD.terms(biz.industryGroup);
+    var team = biz.industryGroup === 'childcare' ? 'daycare team' : 'team';
+    var p = ctx.profile = ctx.profile || {};
+    ctx.counts = ctx.counts || {};
+    var v = ctx.counts[intentId] = (ctx.counts[intentId] || 0) + 1; /* variation index */
+    function pick(arr) { return arr[(v - 1) % arr.length]; }
+    function used(src) { ctx._src = src; return true; }
+    function fb() {
+      ctx._fallback = true; ctx.pendingAction = 'callback'; ctx.ctaOffered = true;
+      return 'I want to make sure I give you the correct information. I can take your details and have the ' + team + ' confirm — would that be okay?';
+    }
     var ans = know ? trim(know.text, 200) : null;
     var cta = ctaFor(biz, job, intentId);
-    var wantCta = ['price','availability','services','subsidy','insurance','meals','ages','hours','location','quote','general'].indexOf(intentId) !== -1;
-    var push = (cta && wantCta && !ctx.leadCaptured && !ctx.ctaOffered) ? ' Want me to ' + cta.text + '?' : '';
-    if (push) { ctx.ctaOffered = true; ctx.pendingAction = cta.type; }
+    var push = (cta && !ctx.leadCaptured && !ctx.ctaOffered) ? ' Want me to ' + cta.text + '?' : '';
+    function offer() { if (push) { ctx.ctaOffered = true; ctx.pendingAction = cta.type; } return push; }
+    var kid = p.childAge ? (p.childAge + (p.ageUnit === 'months' ? '-month' : '-year') + '-old') : null;
 
     switch (intentId) {
       case 'greeting':
         return "Hi! 👋 I'm " + agent.agentName + ' at ' + biz.name + '. ' +
-               (biz.industryGroup === 'childcare' ? 'Looking for childcare, fees, or a tour?' : 'How can I help you today?');
+               (biz.industryGroup === 'childcare' ? 'Are you looking for childcare, fees, or maybe a tour?' : 'How can I help you today?');
       case 'thanks':
-        return "You're so welcome! 😊 Anything else I can help with?";
+        return pick(["You're so welcome! 😊 Anything else I can help with?",
+                     "My pleasure! Give me a shout if anything else comes up. 😊"]);
+
       case 'price':
-        return ans ? ans + push : "Pricing depends on exactly what you need — the team can give you an accurate number fast." + push;
+        if (!f.fees) return fb();
+        used('Business knowledge — fees');
+        return pick([
+          (kid ? 'For your ' + kid + ' — ' : 'Happy to help! ') + trim(f.fees, 190) + offer(),
+          'Of course. ' + trim(f.fees, 190) + ' If you tell me a bit about what you need, the ' + team + ' can confirm your exact rate.' + offer(),
+        ]);
+
+      case 'subsidy':
+        if (!f.subsidy) return fb();
+        used('Business knowledge — subsidy');
+        return pick([
+          'Yes! ' + trim(f.subsidy, 190) + ' Lots of our families use it.' + offer(),
+          trim(f.subsidy, 190) + ' The ' + team + ' can walk you through exactly how it applies to you.' + offer(),
+        ]);
+
+      case 'meals':
+        if (!f.meals) return fb();
+        used('Business knowledge — meals');
+        var mealCore = trim(f.meals.replace(/nut[- ]?free[^.]*\.?/i, '').trim(), 170);
+        var mealNote = p.allergyNoted
+          ? " And since you mentioned the allergy — the kitchen plans around each child's individual needs."
+          : (f.allergy ? ' (' + trim(f.allergy, 80).replace(/\.$/, '') + ', too.)' : '');
+        return pick([
+          'Great question! ' + mealCore + mealNote,
+          'Of course — ' + mealCore + mealNote + ' Anything specific your little one loves (or avoids)?',
+        ]);
+
+      case 'allergy':
+        p.allergyNoted = true;
+        ctx.awaitingProfile = true; ctx.pendingAction = 'callback'; ctx.ctaOffered = true;
+        used(f.allergy ? 'Business knowledge — allergy policy' : 'Approved allergy protocol');
+        return pick([
+          'Absolutely — we take allergies very seriously. ' + (f.allergy ? trim(f.allergy, 120) + ' ' : '') +
+            'Every child with an allergy gets an individual allergy plan, and the staff review the details with you before day one. ' +
+            "Could you share your child's age and the allergy details? I'll have the " + team + ' follow up personally.',
+          "You're in good hands — this comes up a lot and we handle it carefully. " + (f.allergy ? trim(f.allergy, 120) + ' ' : '') +
+            'The team builds an individual plan for each child. What age is your little one, and what should we know about the allergy?',
+        ]);
+
       case 'availability':
-        return (ans ? ans + ' ' : '') + 'Spots move quickly, so the best way to lock one in is to act now.' + push;
+        used(f.ages ? 'Business knowledge — age groups' : 'General availability guidance');
+        var avAck = kid ? 'For a ' + kid + (p.startDate ? ' starting ' + p.startDate : '') + ' — ' : '';
+        return pick([
+          avAck + 'spots genuinely do move quickly' + (f.ages ? ' (our rooms: ' + trim(f.ages, 110) + ')' : '') +
+            ", so I'd rather have the " + team + ' confirm exact openings than guess.' + (offer() || ' Want me to set that up?'),
+          avAck + "I don't want to promise a spot I can't guarantee — the " + team + ' checks live availability.' + (offer() || ' Shall I have them confirm for you?'),
+        ]);
+
       case 'hours':
-        return ans ? ans + push : 'Let me get you the exact hours — the team will confirm right away.' + push;
+        if (!f.hours) return fb();
+        used('Business knowledge — hours');
+        return pick(["We're open " + trim(f.hours, 130).replace(/^we'?re open /i, '') + offer(),
+                     trim(f.hours, 130) + ' — does that work for your schedule?' ]);
+
+      case 'ages':
+        if (!f.ages) return fb();
+        used('Business knowledge — age groups');
+        if (!p.childAge) { ctx.awaitingProfile = true; }
+        return trim(f.ages, 170) + (p.childAge ? ' Your ' + kid + ' would fit right in.' : ' How old is your little one? I can point you to the right room.');
+
+      case 'sick-policy':
+        if (!f.sick && !f.policies) return fb();
+        used('Business knowledge — health policy');
+        return trim(f.sick || f.policies, 190) + ' If your child is unwell today, I can let the ' + team + ' know — want me to pass on a message?';
+
+      case 'existing-parent':
+        ctx.pendingAction = 'callback'; ctx.ctaOffered = true; ctx.stage = 'ask-name';
+        used('Family support flow');
+        return "Of course — I'll make sure this reaches the right person on the " + team + " straight away. Can I grab your name and the message you'd like me to pass on?";
+
+      case 'activity-planning':
+        if (!f.activities) return fb();
+        used('Business knowledge — program');
+        return pick([
+          trim(f.activities, 190) + ' The days are full but never rushed. 😊',
+          'The children keep busy! ' + trim(f.activities, 180),
+        ]);
+
+      case 'waitlist':
+        ctx.pendingAction = 'waitlist'; ctx.ctaOffered = true;
+        used(f.waitlist ? 'Business knowledge — waitlist' : 'Waitlist flow');
+        return (f.waitlist ? trim(f.waitlist, 140) + ' ' : '') + "I can add you right now — what's your name?";
+
       case 'quote':
         ctx.pendingAction = 'quote'; ctx.ctaOffered = true;
-        return (ans ? ans + ' ' : '') + "I can get a quote started for you right now — it only takes a minute. Could I grab a few details?";
-      case 'tour': case 'booking': case 'reservation': case 'waitlist':
-        ctx.pendingAction = intentId === 'waitlist' ? 'waitlist' : (intentId === 'tour' ? 'tour' : intentId);
+        return (ans ? trim(ans, 140) + ' ' : '') + 'I can get a quote started for you right now — it only takes a minute. Could I grab a few details?';
+
+      case 'tour': case 'booking': case 'reservation':
+        ctx.pendingAction = intentId === 'tour' ? 'tour' : intentId;
         ctx.ctaOffered = true;
-        return (ans ? trim(ans, 120) + ' ' : '') + "Perfect — I can set that up right now. What's your name?";
+        used(f.tours ? 'Business knowledge — tour times' : 'Booking flow');
+        return (intentId === 'tour' && f.tours ? trim(f.tours, 110) + ' ' : (ans ? trim(ans, 110) + ' ' : '')) +
+               "Perfect — I can set that up right now. What's your name?";
+
       case 'speak-human':
         ctx.pendingAction = 'callback'; ctx.ctaOffered = true;
         return "Of course — I'll have a team member call you personally. What's your name?";
+
       case 'complaint':
         ctx.pendingAction = 'escalation'; ctx.ctaOffered = true; ctx.escalated = true;
         return "I'm really sorry to hear that — that's not the experience we want you to have. I'm flagging this for " +
                ((biz.knowledge || {}).escalation ? 'our manager (' + trim(biz.knowledge.escalation, 60) + ')' : 'our manager') +
-               " right now. Can I get your name so they can reach you directly?";
+               ' right now. Can I get your name so they can reach you directly?';
+
       case 'emergency':
         ctx.pendingAction = 'callback'; ctx.ctaOffered = true; ctx.escalated = true;
-        return "That sounds urgent — " + (biz.phone ? 'please call us directly at ' + biz.phone + '. ' : '') +
+        return 'That sounds urgent — ' + (biz.phone ? 'please call us directly at ' + biz.phone + '. ' : '') +
                "I'm also alerting the team right now. Can I take your name and number so someone calls you immediately?";
+
       case 'review':
         if (job.actions.sendReviewLink && (biz.reviewLink || (biz.intel && biz.intel.google && biz.intel.google.reviewLink))) {
           ctx.reviewOffered = true;
@@ -210,16 +347,18 @@ var DRA = (function () {
                  (biz.reviewLink || biz.intel.google.reviewLink);
         }
         return "Thank you so much — I'll pass that on to the team, it will make their day!";
-      case 'subsidy': case 'insurance': case 'meals': case 'ages': case 'services': case 'location':
-        return ans ? ans + push : "Great question — I want to give you the exact answer rather than a guess, so let me have the team confirm." + push;
+
+      case 'insurance': case 'services': case 'location':
+        var fact2 = intentId === 'insurance' ? f.insurance : intentId === 'services' ? f.services : f.location;
+        if (!fact2 && !ans) return fb();
+        used('Business knowledge — ' + intentId);
+        return trim(fact2 || ans, 190) + offer();
+
       default:
-        if (ans) return ans + push;
+        if (ans) { used(know.source); return ans + offer(); }
         ctx.unknownCount = (ctx.unknownCount || 0) + 1;
-        if (ctx.unknownCount >= 2) {
-          ctx.pendingAction = 'callback'; ctx.ctaOffered = true;
-          return "I want to make sure you get a proper answer on this — can I take your name and number and have the team get back to you today?";
-        }
-        return "Good question! Could you tell me a little more so I point you in exactly the right direction?";
+        if (ctx.unknownCount >= 2) return fb();
+        return 'Good question! Could you tell me a little more so I point you in exactly the right direction?';
     }
   }
 
@@ -235,12 +374,36 @@ var DRA = (function () {
     var out = { reply: '', intent: det.primary, intentLabel: intentLabel(det.primary),
                 actions: [], outcomes: [],
                 checks: { leadCaptured: !!ctx.leadCaptured, bookingOffered: false, followUpSuggested: false, escalationNeeded: !!ctx.escalated, dataSaved: false } };
+    ctx._src = null; ctx._fallback = false;
+
+    /* ── Conversation memory: remember details the parent shares ── */
+    var p = ctx.profile = ctx.profile || {};
+    var ageM = msg.match(/(\d{1,2})\s*(?:-|\s)?(months?|mos?)\b/i) || msg.match(/(\d{1,2})\s*(?:-|\s)?(?:years?|yrs?|yo|year-old)\b/i);
+    var foundAge = false;
+    if (ageM) { p.childAge = ageM[1]; p.ageUnit = /mo/i.test(ageM[2] || '') ? 'months' : 'years'; foundAge = true; }
+    var monthM = msg.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i);
+    if (monthM) p.startDate = monthM[1].charAt(0).toUpperCase() + monthM[1].slice(1).toLowerCase();
+    var schedM = msg.match(/\b(full[\s-]?time|part[\s-]?time)\b/i);
+    if (schedM) p.schedule = schedM[1].toLowerCase().replace(/\s/, '-');
+    var foundAllergy = /allerg|peanut|epipen|celiac|lactose|nut[- ]?free/i.test(msg);
+    if (foundAllergy) { p.allergyNoted = true; if (msg.length < 120) p.allergyDetail = msg.trim(); }
 
     /* Extract any contact info present in ANY message */
     var phone = (msg.match(PHONE_RE) || [null])[0];
     var email = (msg.match(EMAIL_RE) || [null])[0];
     if (phone) ctx.lead.phone = phone;
     if (email) ctx.lead.email = email;
+
+    /* Parent just shared the details the agent asked for (age/allergy) */
+    if (ctx.awaitingProfile && !ctx.leadCaptured && !ctx.stage && (foundAge || foundAllergy) && !phone && !email) {
+      ctx.awaitingProfile = false;
+      ctx.stage = ctx.lead.name ? 'ask-contact' : 'ask-name';
+      out.reply = "Perfect — I've noted that" + (p.childAge ? ' for your ' + p.childAge + (p.ageUnit === 'months' ? '-month' : '-year') + '-old' : '') +
+                  (p.allergyNoted ? ', including the allergy details' : '') + '. ' +
+                  (ctx.stage === 'ask-name' ? "What's your name?" : 'And the best phone number or email for you?');
+      out.confidence = 'high'; out.nextAction = 'Team callback';
+      finalize(); return out;
+    }
 
     /* Capture-flow stages */
     if (ctx.stage === 'ask-name' && det.primary !== 'complaint') {
@@ -264,7 +427,12 @@ var DRA = (function () {
       var what = { tour: 'your tour request', booking: 'your booking request', reservation: 'your reservation request',
                    quote: 'your quote request', callback: 'a callback', waitlist: 'your waitlist spot',
                    escalation: 'this for our manager', lead: 'your details' }[ctx.pendingAction || 'lead'];
+      var noted = [];
+      if (ctx.profile && ctx.profile.childAge) noted.push('your ' + ctx.profile.childAge + (ctx.profile.ageUnit === 'months' ? '-month' : '-year') + '-old');
+      if (ctx.profile && ctx.profile.allergyNoted) noted.push('the allergy note');
+      if (ctx.profile && ctx.profile.startDate) noted.push(ctx.profile.startDate + ' start');
       out.reply = 'Perfect, all set ✅ I\'ve logged ' + what + (ctx.lead.name ? ' for ' + firstName(ctx.lead.name) : '') +
+                  (noted.length ? ' — including ' + noted.join(', ') + ' —' : '') +
                   ' and the team will ' + (ctx.pendingAction === 'escalation' ? 'call you as a priority' : 'confirm with you shortly') +
                   '. Anything else I can help with?';
       ctx.stage = 'done';
@@ -294,7 +462,8 @@ var DRA = (function () {
     /* Normal reply */
     var know = knowledgeFor(biz, det.primary, msg);
     out.reply = composeReply(biz, agent, job, det.primary, know, msg, ctx);
-    if (know) out.knowledgeSource = know.source;
+    out.knowledgeSource = ctx._src || (know ? know.source : null);
+    out.fallbackUsed = !!ctx._fallback;
     if (ctx.ctaOffered && ['tour','booking','reservation','quote','callback','waitlist','escalation'].indexOf(ctx.pendingAction) !== -1 &&
         (det.primary === 'tour' || det.primary === 'booking' || det.primary === 'reservation' || det.primary === 'quote' ||
          det.primary === 'speak-human' || det.primary === 'complaint' || det.primary === 'emergency')) {
@@ -304,6 +473,17 @@ var DRA = (function () {
     return out;
 
     function finalize() {
+      /* Confidence + next best action for the outcome analysis panel */
+      if (!out.confidence) {
+        out.confidence = ctx._fallback ? 'low'
+          : (out.knowledgeSource || ctx._src) ? 'high'
+          : det.primary !== 'general' ? 'medium' : 'low';
+      }
+      if (!out.nextAction) {
+        out.nextAction = { tour: 'Book tour', booking: 'Create booking request', reservation: 'Create reservation request',
+                           quote: 'Prepare quote', callback: 'Team callback', waitlist: 'Add to waitlist',
+                           escalation: 'Staff escalation' }[ctx.pendingAction] || 'Continue conversation';
+      }
       out.checks.leadCaptured = !!ctx.leadCaptured;
       out.checks.escalationNeeded = !!ctx.escalated;
       out.checks.bookingOffered = ['tour','booking','reservation'].indexOf(ctx.pendingAction) !== -1;
@@ -347,9 +527,13 @@ var DRA = (function () {
       escalated: !!ctx.escalated,
       lastInteraction: DRS.now(),
       nextFollowUpDue: followUpDue,
-      notes: (ctx.escalated ? '[ESCALATION] ' : '') + 'Captured by ' + agent.agentName + '. Pending action: ' + enquiryType + '.',
+      notes: (ctx.escalated ? '[ESCALATION] ' : '') + 'Captured by ' + agent.agentName + '. Pending action: ' + enquiryType + '.' +
+             (ctx.profile && ctx.profile.childAge ? ' Child: ' + ctx.profile.childAge + ' ' + (ctx.profile.ageUnit || 'years') + '.' : '') +
+             (ctx.profile && ctx.profile.allergyNoted ? ' ⚠ Allergy noted' + (ctx.profile.allergyDetail ? ': "' + ctx.profile.allergyDetail + '"' : '') + '.' : '') +
+             (ctx.profile && ctx.profile.startDate ? ' Start: ' + ctx.profile.startDate + '.' : '') +
+             (ctx.profile && ctx.profile.schedule ? ' Schedule: ' + ctx.profile.schedule + '.' : ''),
       nextAction: pa === 'callback' || ctx.escalated ? 'Call back today' : job.followUp || 'Follow up',
-      fields: Object.assign({}, ctx.lead),
+      fields: Object.assign({}, ctx.lead, ctx.profile || {}),
     });
     ctx.leadCaptured = true; ctx.leadId = lead.id;
     out.outcomes.push({ type: 'lead', id: lead.id });
@@ -495,6 +679,61 @@ var DRA = (function () {
       bookings:      DRS.list('bookings',      { agentId: agentId }),
     };
   }
+  /* ── Setup status: Draft → Needs Training → Trained →
+         Test Passed → Demo Mode / Live ────────────────────── */
+  function bizSetupStatus(biz) {
+    if (!biz) return 'draft';
+    if (biz.setupStatus === 'live') return 'live';
+    if (biz.setupStatus === 'demo') return 'demo';
+    if (biz.setupStatus === 'draft') return 'draft';
+    var agents = DRS.list('agents', { businessId: biz.id });
+    if (!agents.length) return 'draft';
+    if (agents.some(function (a) { return a.trainingStatus !== 'ready'; })) return 'needs-training';
+    if (biz.testPassed) return 'test-passed';
+    return 'trained';
+  }
+  function setupBadge(status) {
+    var map = {
+      'draft':          ['gray',   'Draft'],
+      'needs-training': ['amber',  'Needs Training'],
+      'trained':        ['blue',   'Trained'],
+      'test-passed':    ['purple', 'Test Passed'],
+      'demo':           ['amber',  '◐ Demo Mode'],
+      'live':           ['green',  '● Live'],
+    };
+    var x = map[status] || ['gray', status];
+    return '<span class="badge badge--' + x[0] + '">' + x[1] + '</span>';
+  }
+
+  /* ── Sync deployed agents to a selected type list ──────── */
+  function syncAgents(biz, types) {
+    var existing = DRS.list('agents', { businessId: biz.id });
+    existing.forEach(function (a) {
+      if (types.indexOf(a.agentType) === -1) DRS.remove('agents', a.id);
+    });
+    types.forEach(function (type) {
+      if (existing.some(function (a) { return a.agentType === type; })) return;
+      var def = DRD.agentDef(biz.industryGroup, type) || { name: type, channels: ['website'] };
+      var job = DRD.jobFor(type);
+      DRS.create('agents', {
+        businessId: biz.id, agentType: type, agentName: def.name,
+        status: 'active', channels: def.channels || ['website'],
+        role: job.role, purpose: job.purpose,
+        supportedIntents: job.intents.slice(),
+        actionsEnabled: Object.assign({}, job.actions),
+        escalationRules: job.escalation.slice(),
+        responseStyle: Object.assign({}, job.style),
+        knowledgeSources: { website: !!biz.intel, google: !!biz.intel, social: !!(biz.social && Object.keys(biz.social).length), manualRules: true, docs: false, faq: true },
+        trainingStatus: 'not-trained', lastTrained: null, tasksCompleted: 0,
+      });
+    });
+    DRS.update('businesses', biz.id, {
+      selectedAgents: types.slice(),
+      setupStatus: biz.setupStatus === 'draft' ? null : biz.setupStatus,
+    });
+    return DRS.list('agents', { businessId: biz.id });
+  }
+
   function embedSnippet(biz, agentType) {
     return '<script src="https://digital-rise-os.vercel.app/agents/widget/widget.js"\n' +
            '        data-business="' + biz.slug + '"\n' +
@@ -519,5 +758,6 @@ var DRA = (function () {
     addBooking: addBooking, addReview: addReview,
     bizStats: bizStats, agentStats: agentStats,
     embedSnippet: embedSnippet,
+    bizSetupStatus: bizSetupStatus, setupBadge: setupBadge, syncAgents: syncAgents,
   };
 })();
