@@ -35,6 +35,7 @@
     { "source": "/agents/businesses/:slug/bookings", "destination": "/agents/businesses/bookings" },
     { "source": "/agents/businesses/:slug/reviews", "destination": "/agents/businesses/reviews" },
     { "source": "/agents/businesses/:slug/deploy", "destination": "/agents/businesses/deploy" },
+    { "source": "/agents/businesses/:slug/portal", "destination": "/agents/businesses/portal" },
     { "source": "/agents/businesses/:slug", "destination": "/agents/businesses/detail" }
   ]
 }

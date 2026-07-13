@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Businesses — Digital Rise</title>
+  <title>Daycare Clients — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
     .biz-row { cursor:pointer;transition:background .12s; }
@@ -29,41 +29,45 @@ DRUI.init({ nav:'businesses' });
 
 function render() {
   var businesses = DRS.list('businesses');
-  var h = DRUI.pageHeader('Businesses',
-    businesses.length + ' business' + (businesses.length===1?'':'es') + ' on the platform',
-    '<a class="btn btn--primary" href="/agents/businesses/new">+ Add Business</a>');
+  var h = DRUI.pageHeader('Daycare Clients',
+    businesses.length + ' daycare' + (businesses.length===1?'':'s') + ' with an AI Employee',
+    '<a class="btn btn--primary" href="/agents/businesses/new">+ New Daycare Setup</a>');
 
   var totalLeads = DRS.list('leads').length;
   var totalAgents = DRS.list('agents').length;
-  var totalConvs = DRS.list('conversations').length;
+  var liveCount = businesses.filter(function(b){ return DRA.bizSetupStatus(b)==='live'; }).length;
   h += DRUI.kpiRow([
-    { ico:'🏢', val:businesses.length, label:'Businesses Supported', bg:'var(--accent-bg)' },
+    { ico:'🏫', val:businesses.length, label:'Daycare Clients', bg:'var(--accent-bg)' },
     { ico:'🤖', val:totalAgents, label:'AI Employees Working', bg:'var(--green-bg)' },
-    { ico:'🎯', val:totalLeads, label:'Enquiries Captured', bg:'#FEF3C7' },
-    { ico:'💬', val:totalConvs, label:'Conversations Handled', bg:'#FDF2F8' },
+    { ico:'🎯', val:totalLeads, label:'Parent Enquiries Captured', bg:'#FEF3C7' },
+    { ico:'●', val:liveCount, label:'Live Deployments', bg:'#DCFCE7' },
   ]);
 
   if (!businesses.length) {
-    h += DRUI.empty('🏢','No businesses yet','Add your first business to deploy AI agents.',
-      '<a class="btn btn--primary" href="/agents/businesses/new">+ Add Business</a>');
+    h += DRUI.empty('🏫','No daycare clients yet','Set up your first daycare — the AI Employee is ready to be trained.',
+      '<a class="btn btn--primary" href="/agents/businesses/new">+ New Daycare Setup</a>');
   } else {
     var rows = businesses.map(function(b){
-      var grp = DRD.group(b.industryGroup);
       var s = DRA.bizStats(b.id);
       var ready = s.agents.filter(function(a){return a.trainingStatus==='ready';}).length;
+      var skillCount = (b.skills||b.selectedAgents||[]).length;
+      var channels = (b.deployChannels||[]).filter(function(c){return c!=='demo';});
+      var lastTrained = s.agents.map(function(a){return a.lastTrained;}).filter(Boolean).sort().pop();
+      var reviewOn = s.agents.some(function(a){ return a.agentType==='review'; });
       return '<tr class="biz-row" onclick="window.location.href=\'/agents/businesses/'+b.slug+'\'">' +
         DRUI.td('<div style="display:flex;align-items:center;gap:10px">'+AG.bizAv(b)+
           '<div><div style="font-weight:700;color:var(--t1)">'+DRUI.esc(b.name)+'</div>'+
-          '<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.location||'')+'</div></div></div>') +
-        DRUI.td((grp?grp.icon+' '+grp.label:'—')+'<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.businessType||'')+'</div>') +
-        DRUI.td('<b>'+s.agents.length+'</b> <span style="color:var(--t4);font-size:.6875rem">('+ready+' trained)</span>') +
-        DRUI.td('<b>'+s.leads.length+'</b>') +
-        DRUI.td('<b>'+s.bookings.length+'</b>') +
+          '<div style="font-size:.6875rem;color:var(--t4)">'+DRUI.esc(b.location||'')+' · '+DRUI.esc(b.businessType||'')+'</div></div></div>') +
         DRUI.td(DRA.setupBadge(DRA.bizSetupStatus(b))) +
-        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+DRUI.timeAgo(b.createdAt)+'</span>') +
+        DRUI.td('<b>'+skillCount+'</b> skills <span style="color:var(--t4);font-size:.6875rem">('+ready+'/'+s.agents.length+' trained)</span>') +
+        DRUI.td(channels.length ? channels.join(', ') : '<span style="color:var(--t4)">—</span>') +
+        DRUI.td('<b>'+s.leads.length+'</b>') +
+        DRUI.td(reviewOn ? '<span class="badge badge--green">on</span>' : '<span class="badge badge--gray">off</span>') +
+        DRUI.td('<span style="font-size:.6875rem;color:var(--t4)">'+(lastTrained?DRUI.timeAgo(lastTrained):'never')+'</span>') +
+        DRUI.td('<a class="btn btn--ghost btn--sm" href="/agents/businesses/'+b.slug+'/portal" target="_blank" onclick="event.stopPropagation()">🏠 Portal</a>') +
       '</tr>';
     }).join('');
-    h += DRUI.table(['Business','Industry','AI Team','Enquiries','Bookings','Status','Added'], rows);
+    h += DRUI.table(['Daycare','Status','AI Skills','Channels','Enquiries','Reviews','Last Trained',''], rows);
   }
   document.getElementById('content').innerHTML = h;
 }

@@ -182,15 +182,16 @@ var DRA = (function () {
     }
     return {
       meals:      kb.meals || faq(/meal|lunch|snack/),
-      allergy:    sentence((kb.meals || '') + ' ' + (kb.safety || '') + ' ' + (faq(/allerg|nut/) || ''), /[^.]*(nut[- ]?free|allerg)[^.]*\.?/i),
+      allergy:    kb.allergyNotes || sentence((kb.meals || '') + ' ' + (kb.safety || '') + ' ' + (faq(/allerg|nut/) || ''), /[^.]*(nut[- ]?free|allerg)[^.]*\.?/i),
       fees:       kb.fees || kb.pricing || intel.pricingNotes || null,
-      subsidy:    faq(/subsid|cwelcc|funding/) || sentence(kb.fees || intel.pricingNotes, /[^.]*(cwelcc|subsid)[^.]*\.?/i),
+      subsidy:    kb.subsidyNotes || faq(/subsid|cwelcc|funding/) || sentence(kb.fees || intel.pricingNotes, /[^.]*(cwelcc|subsid)[^.]*\.?/i),
+      holidays:   kb.holidayClosures || sentence(kb.policies || intel.policies, /[^.]*(holiday|closure|closed)[^.]*\.?/i),
       hours:      kb.hours || intel.hours || (intel.google || {}).hours || null,
       tours:      kb.tourTimes || null,
       waitlist:   kb.waitlistRules || faq(/waitlist/),
       ages:       kb.ageGroups || null,
-      sick:       sentence(kb.policies || intel.policies, /[^.]*(sick|symptom|fever)[^.]*\.?/i) || faq(/sick|ill/),
-      activities: kb.curriculum || kb.activityThemes || faq(/curricul|activit|play/),
+      sick:       kb.sickPolicy || sentence(kb.policies || intel.policies, /[^.]*(sick|symptom|fever)[^.]*\.?/i) || faq(/sick|ill/),
+      activities: kb.curriculum || kb.activityThemes || kb.napOutdoor || faq(/curricul|activit|play/),
       safety:     kb.safety || faq(/ratio|safe/),
       services:   kb.services || (intel.services && intel.services.length ? 'We offer ' + intel.services.slice(0, 4).join(', ') + '.' : null),
       location:   kb.serviceArea || intel.serviceArea || (intel.google || {}).address || null,
@@ -295,6 +296,15 @@ var DRA = (function () {
         if (!f.sick && !f.policies) return fb();
         used('Business knowledge — health policy');
         return trim(f.sick || f.policies, 190) + ' If your child is unwell today, I can let the ' + team + ' know — want me to pass on a message?';
+
+      case 'holiday-closure':
+        if (!f.holidays) return fb();
+        used('Business knowledge — closures');
+        return trim(f.holidays, 180) + (f.hours ? ' Regular hours otherwise: ' + trim(f.hours, 80) : '');
+
+      case 'printables':
+        used('Activity & printable hub');
+        return "We love sharing resources! Our team keeps printable packs — worksheets, routine charts, flashcards and seasonal activities. I can have the " + team + ' send you the ones that fit your child\'s age. What age is your little one?';
 
       case 'existing-parent':
         ctx.pendingAction = 'callback'; ctx.ctaOffered = true; ctx.stage = 'ask-name';

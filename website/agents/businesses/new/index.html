@@ -3,44 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Business — Digital Rise</title>
+  <title>New Daycare Setup — Digital Rise</title>
   <link rel="stylesheet" href="/agents/shared/agents.css">
   <style>
-    .wz-steps { display:flex;gap:4px;margin-bottom:26px;overflow-x:auto;padding-bottom:4px; }
-    .wz-step { display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:.6875rem;font-weight:700;color:var(--t4);white-space:nowrap;background:var(--bg-alt);border:1.5px solid transparent;transition:all .2s; }
+    .wz-steps { display:flex;gap:4px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px; }
+    .wz-step { display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:.6875rem;font-weight:700;color:var(--t4);white-space:nowrap;background:var(--bg-alt);border:1.5px solid transparent;transition:all .2s;cursor:default; }
     .wz-step .n { width:18px;height:18px;border-radius:50%;background:var(--border);color:var(--t3);display:flex;align-items:center;justify-content:center;font-size:.5625rem;font-weight:800;flex-shrink:0; }
     .wz-step.is-active { background:var(--accent-bg);color:var(--accent);border-color:var(--accent); }
     .wz-step.is-active .n { background:var(--accent);color:#fff; }
     .wz-step.is-done { color:var(--green-t);background:var(--green-bg); }
     .wz-step.is-done .n { background:var(--green);color:#fff; }
+    .journey { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px; }
+    .j-chip { font-size:.625rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--bg-alt);color:var(--t4);border:1px solid var(--border); }
+    .j-chip.on { background:var(--green-bg);color:var(--green-t);border-color:#A7F3D0; }
     .wz-panel { display:none; } .wz-panel.is-active { display:block;animation:wzIn .25s ease; }
     @keyframes wzIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
     .wz-title { font-size:1.25rem;font-weight:800;color:var(--t1);margin-bottom:4px;letter-spacing:-.01em; }
     .wz-sub { font-size:.8438rem;color:var(--t3);margin-bottom:22px; }
-    .wz-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px; }
-    .wz-card { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 16px;cursor:pointer;transition:all .18s;position:relative; }
-    .wz-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent); }
-    .wz-card.is-selected { border-color:var(--accent);background:var(--accent-bg); }
-    .wz-card .ico { font-size:1.75rem;margin-bottom:10px; }
-    .wz-card .lbl { font-size:.8125rem;font-weight:700;color:var(--t1); }
-    .wz-card .sb  { font-size:.6875rem;color:var(--t3);margin-top:3px;line-height:1.45; }
 
-    .imp-console { background:#0F172A;border-radius:var(--radius-xl);padding:20px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;min-height:260px;max-height:340px;overflow-y:auto;line-height:1.9; }
-    .imp-line { display:flex;gap:8px;align-items:center;animation:wzIn .2s ease; }
-    .imp-ok { color:#4ADE80; } .imp-warn { color:#FBBF24; } .imp-head { color:#818CF8;font-weight:700;margin-top:6px; }
-    .imp-summary { display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:16px; }
-    .imp-stat { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px;text-align:center; }
-    .imp-stat b { display:block;font-size:1.25rem;color:var(--t1); }
-    .imp-stat span { font-size:.625rem;color:var(--t4);font-weight:700; }
-
-    .rv-sec { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:12px; }
-    .rv-sec .rv-h { display:flex;align-items:center;gap:8px;font-size:.8125rem;font-weight:800;color:var(--t1);margin-bottom:8px; }
-    .rv-src { font-size:.5625rem;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--accent-bg);color:var(--accent);letter-spacing:.04em; }
-
-    .wz-agent { display:flex;align-items:flex-start;gap:13px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:15px 16px;margin-bottom:10px;transition:all .15s; }
-    .wz-agent.is-on { border-color:var(--accent);background:var(--accent-bg); }
-    .wz-agent .aico { width:38px;height:38px;border-radius:10px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0; }
-    .wz-agent.is-on .aico { background:#fff; }
+    .skill-card { display:flex;align-items:flex-start;gap:13px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:15px 16px;transition:all .15s; }
+    .skill-card.is-on { border-color:var(--accent);background:var(--accent-bg); }
+    .skill-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px; }
+    .skill-ico { width:38px;height:38px;border-radius:10px;background:var(--bg-alt);display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0; }
+    .skill-card.is-on .skill-ico { background:#fff; }
     .wz-rec { font-size:.5625rem;font-weight:800;color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent);border-radius:99px;padding:1px 7px;letter-spacing:.04em; }
     .sw { position:relative;width:36px;height:20px;flex-shrink:0;margin-left:auto;margin-top:2px;cursor:pointer; }
     .sw input { opacity:0;width:0;height:0; }
@@ -49,11 +34,18 @@
     .sw input:checked + .tr { background:var(--accent); }
     .sw input:checked + .tr::before { transform:translateX(16px); }
 
-    .src-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem; }
+    .imp-console { background:#0F172A;border-radius:var(--radius-xl);padding:20px;font-family:Consolas,Monaco,monospace;font-size:.75rem;color:#94A3B8;min-height:180px;max-height:280px;overflow-y:auto;line-height:1.9; }
+    .imp-line { display:flex;gap:8px;align-items:center;animation:wzIn .2s ease; }
+    .imp-ok { color:#4ADE80; } .imp-warn { color:#FBBF24; } .imp-head { color:#818CF8;font-weight:700;margin-top:6px; }
+    .rv-sec { background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px; }
+    .rv-sec .rv-h { display:flex;align-items:center;gap:8px;font-size:.78125rem;font-weight:800;color:var(--t1);margin-bottom:8px; }
+    .rv-src { font-size:.5625rem;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--accent-bg);color:var(--accent);letter-spacing:.04em; }
+    .src-row { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem; }
     .src-row:last-child { border:none; }
-    .tr-row { display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:9px; }
+    .tr-row { display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px; }
     .tr-bar { flex:1;height:5px;border-radius:99px;background:var(--border-s);overflow:hidden;max-width:180px; }
     .tr-bar > div { height:100%;border-radius:99px;background:var(--accent);width:0%;transition:width 1.1s ease; }
+    .chk-yes { color:var(--green-t);font-weight:800; } .chk-no { color:var(--t4);font-weight:700; }
 
     .sc-chips { display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px; }
     .sc-chip { padding:6px 12px;border:1.5px solid var(--accent);border-radius:99px;font-size:.71875rem;font-weight:600;color:var(--accent);background:var(--card);cursor:pointer;transition:all .15s; }
@@ -68,7 +60,6 @@
     .wz-msg.out { background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:3px; }
     .chk-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-s);font-size:.71875rem;gap:8px; }
     .chk-row:last-child { border:none; }
-    .chk-yes { color:var(--green-t);font-weight:800; } .chk-no { color:var(--t4);font-weight:700; }
 
     .gate { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem; }
     .gate:last-child { border:none; }
@@ -87,6 +78,7 @@
     <main class="ag-content">
       <div id="ph"></div>
       <div class="wz-steps" id="wzSteps"></div>
+      <div class="journey" id="journey"></div>
       <div id="wzPanels"></div>
       <div class="wz-footer">
         <div style="display:flex;gap:10px">
@@ -106,29 +98,61 @@
 <script src="/agents/shared/agents-import.js"></script>
 <script src="/agents/shared/agents-ui.js"></script>
 <script>
-DRUI.init({ nav:'businesses' });
+DRUI.init({ nav:'new-setup' });
 
 var W = {
   step: 1, bizId: null,
-  name:'', website:'', industryGroup:null, businessType:null,
+  name:'', website:'', businessType:'Daycare', industryGroup:'childcare',
   location:'', phone:'', email:'', whatsapp:'', reviewLink:'', bookingLink:'', notes:'',
   social: { instagram:'', facebook:'', linkedin:'', tiktok:'', youtube:'' },
+  ops: {},                       /* Step 2 — operations & parent info → knowledge */
+  skills: [],                    /* Step 3 — daycare skill ids */
+  handoff: { adminEmail:'', senderName:'', whatsapp:'', sheets:'', zapier:'', make:'', crm:'', mode:'dashboard' },
   intel: null, importDone:false, importing:false, escalation:'',
-  selectedAgents: [],
   trained: false, tested: false,
-  channels: { widget:false, whatsapp:false, email:false, webhook:false, demo:true },
+  channels: { portal:true, widget:false, whatsapp:false, email:false, webhook:false, demo:true },
   testerCtx: {}, testerMsgs: [], testerConvSaved:false,
 };
-var STEPS = ['Basics','Import','Review','AI Employees','Train','Test','Deploy'];
+var STEPS = ['Daycare Profile','Operations & Parents','AI Employee Skills','Communication & Handoff','Knowledge & Training','Test','Deploy'];
+var OPS_FIELDS = [
+  ['ageGroups','Age Groups Served','e.g. Infants 6–18mo, Toddlers, Preschool',false],
+  ['programs','Programs Offered','Full-time, part-time, before/after school…',true],
+  ['hours','Hours of Operation','e.g. Mon–Fri 7:30 AM – 6:00 PM',false],
+  ['tourTimes','Tour Availability & Process','e.g. Tue & Thu 10 AM, Sat mornings. 30 min, book ahead.',false],
+  ['waitlistRules','Waitlist Availability & Process','Free to join? Deposit? Priority rules?',false],
+  ['feesVisibility','Fees Visibility Rule','Share fees in chat, or capture contact and send fee sheet?',false],
+  ['fees','Fees','Rates per age group…',true],
+  ['subsidyNotes','Subsidy / CWELCC Info','CWELCC participation, regional subsidies…',true],
+  ['meals','Meals & Snacks','Hot lunch? Snacks? Meal routine…',true],
+  ['allergyNotes','Allergy & Special Diet Support','Nut-free? Individual allergy plans? Special diets…',true],
+  ['sickPolicy','Sick Policy Summary','Symptom-free rules, exclusion periods…',true],
+  ['holidayClosures','Holiday Closure Notes','e.g. Closed stat holidays, Dec 24–Jan 2',false],
+  ['napOutdoor','Naps / Outdoor Play / General Notes','Nap schedule, outdoor time, what to bring…',true],
+];
 
 function biz() { return W.bizId ? DRS.get('businesses', W.bizId) : null; }
 
 function renderHeader() {
   var b = biz();
   var badge = b ? DRA.setupBadge(DRA.bizSetupStatus(b)) : '<span class="badge badge--gray">Not saved yet</span>';
-  document.getElementById('ph').innerHTML = DRUI.pageHeader('Add a Business',
-    'Set up the business, import its knowledge, train and test its AI employees, then deploy.',
+  document.getElementById('ph').innerHTML = DRUI.pageHeader('New Daycare Setup',
+    'Train and deploy a Daycare AI Employee — profile, knowledge, skills, testing and launch.',
     badge);
+  /* Setup journey chips */
+  var opsFilled = Object.keys(W.ops).filter(function(k){return W.ops[k];}).length;
+  var J = [
+    ['Profile Saved', !!b],
+    ['Daycare Details', opsFilled >= 4],
+    ['Skills Selected', W.skills.length > 0],
+    ['Knowledge Imported', !!W.intel],
+    ['Trained', W.trained],
+    ['Test Passed', W.tested],
+    ['Live Ready', W.trained && W.tested && !!b],
+    ['Live', b && DRA.bizSetupStatus(b) === 'live'],
+  ];
+  document.getElementById('journey').innerHTML = J.map(function(j){
+    return '<span class="j-chip'+(j[1]?' on':'')+'">'+(j[1]?'✓ ':'')+j[0]+'</span>';
+  }).join('');
 }
 
 function renderSteps() {
@@ -139,72 +163,89 @@ function renderSteps() {
     return '<div class="wz-step'+cls+'"><span class="n">'+(n < W.step ? '✓' : n)+'</span>'+s+'</div>';
   }).join('');
   document.getElementById('btnBack').style.visibility = W.step === 1 ? 'hidden' : 'visible';
-  document.getElementById('btnDraft').style.display = W.bizId || W.step === 1 ? '' : 'none';
   var next = document.getElementById('btnNext');
-  next.textContent = W.step === 7 ? '🚀 Deploy AI Employee'
-    : W.step === 2 ? (W.importDone ? 'Review Import →' : '⚡ Run Import') : 'Continue →';
+  next.textContent = W.step === 7 ? '🚀 Launch Daycare AI Employee'
+    : W.step === 5 ? (W.importDone ? (W.trained ? 'Continue →' : 'Continue (train first!)') : '⚡ Run Knowledge Import') : 'Continue →';
 }
 function panel(n, html) { return '<div class="wz-panel'+(n===W.step?' is-active':'')+'" id="wz'+n+'">'+html+'</div>'; }
 function fld(id,label,ph) {
   return '<div class="ag-form-group"><label class="ag-label">'+label+'</label>'+
     '<input class="ag-input" id="f_'+id+'" placeholder="'+ph+'" value="'+DRUI.esc(id.indexOf('soc_')===0 ? W.social[id.slice(4)] : (W[id]||''))+'"></div>';
 }
+function hfld(id,label,ph) {
+  return '<div class="ag-form-group"><label class="ag-label">'+label+'</label>'+
+    '<input class="ag-input" id="h_'+id+'" placeholder="'+ph+'" value="'+DRUI.esc(W.handoff[id]||'')+'"></div>';
+}
 
 function render() {
   renderSteps();
   var h = '';
-  var grp = DRD.group(W.industryGroup);
 
-  /* 1 — Basics */
+  /* 1 — Daycare Profile */
+  var types = DRD.group('childcare').types;
   h += panel(1,
-    '<div class="wz-title">Business Basics</div>'+
-    '<div class="wz-sub">Everything the import engine and AI employees need. Saved as a draft the moment you continue.</div>'+
-    '<div class="ag-form-row">'+fld('name','Business Name *','e.g. Sunshine Nursery')+fld('website','Website URL *','e.g. sunshinenursery.ca')+'</div>'+
-    '<div class="ag-form-row"><div class="ag-form-group"><label class="ag-label">Industry Group *</label>'+
-      '<select class="ag-select" id="f_industry" onchange="pickGroup(this.value)"><option value="">Select industry…</option>'+
-      DRD.industryGroups.map(function(g){ return '<option value="'+g.id+'"'+(W.industryGroup===g.id?' selected':'')+'>'+g.icon+' '+g.label+'</option>'; }).join('')+'</select></div>'+
-      '<div class="ag-form-group"><label class="ag-label">Business Type *</label>'+
-      '<select class="ag-select" id="f_type"><option value="">Select type…</option>'+
-      (grp ? grp.types.map(function(t){ return '<option'+(W.businessType===t?' selected':'')+'>'+t+'</option>'; }).join('') : '')+'</select></div></div>'+
-    '<div class="ag-form-row">'+fld('location','City / Location','City, Province')+fld('phone','Phone','+1 …')+'</div>'+
-    '<div class="ag-form-row">'+fld('email','Email','hello@…')+fld('whatsapp','WhatsApp Number','+1 …')+'</div>'+
-    '<div class="ag-form-row">'+fld('reviewLink','Google Review Link','https://g.page/r/…')+fld('bookingLink','Booking Link (if any)','https://…')+'</div>'+
-    '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:16px 0 10px">Social profiles (optional — improves tone training)</div>'+
-    '<div class="ag-form-row">'+fld('soc_instagram','Instagram','https://instagram.com/…')+fld('soc_facebook','Facebook','https://facebook.com/…')+'</div>'+
-    '<div class="ag-form-row">'+fld('soc_linkedin','LinkedIn','https://linkedin.com/company/…')+fld('soc_tiktok','TikTok','https://tiktok.com/@…')+'</div>'+
-    '<div class="ag-form-group"><label class="ag-label">Notes for the AI employee</label><textarea class="ag-textarea" id="f_notes" style="min-height:52px" placeholder="Special rules, closures, tone notes…">'+DRUI.esc(W.notes)+'</textarea></div>');
+    '<div class="wz-title">Daycare Profile</div>'+
+    '<div class="wz-sub">The basics your Daycare AI Employee introduces itself with. Saved as a draft when you continue.</div>'+
+    '<div class="ag-form-row">'+fld('name','Daycare Name *','e.g. Sunshine Nursery')+fld('website','Website URL *','e.g. sunshinenursery.ca')+'</div>'+
+    '<div class="ag-form-row"><div class="ag-form-group"><label class="ag-label">Daycare Type *</label>'+
+      '<select class="ag-select" id="f_type">'+types.map(function(t){ return '<option'+(W.businessType===t?' selected':'')+'>'+t+'</option>'; }).join('')+'</select></div>'+
+      fld('location','City / Location','City, Province')+'</div>'+
+    '<div class="ag-form-row">'+fld('phone','Phone','+1 …')+fld('email','Email','hello@…')+'</div>'+
+    '<div class="ag-form-row">'+fld('whatsapp','WhatsApp Number','+1 …')+fld('reviewLink','Google Review Link','https://g.page/r/…')+'</div>'+
+    '<div class="ag-form-row">'+fld('bookingLink','Booking Link (if any)','https://…')+fld('soc_instagram','Instagram','https://instagram.com/…')+'</div>'+
+    '<div class="ag-form-row">'+fld('soc_facebook','Facebook','https://facebook.com/…')+fld('soc_linkedin','LinkedIn','https://linkedin.com/…')+'</div>'+
+    '<div class="ag-form-group"><label class="ag-label">Internal notes for the AI Employee</label><textarea class="ag-textarea" id="f_notes" style="min-height:52px" placeholder="Special rules, tone notes, things the AI should know…">'+DRUI.esc(W.notes)+'</textarea></div>');
 
-  /* 2 — Import */
+  /* 2 — Operations & Parent Information */
   h += panel(2,
-    '<div class="wz-title">Business Intelligence Import</div>'+
-    '<div class="wz-sub">Importing knowledge from <b>'+DRUI.esc(W.website||'the website')+'</b>, public business profile, and socials — so the AI employee starts smart, not blank.</div>'+
-    '<div class="imp-console" id="impConsole"><div style="color:#64748B">▸ Ready. Click "⚡ Run Import" below.</div></div>'+
-    '<div class="imp-summary" id="impSummary"></div>');
+    '<div class="wz-title">Daycare Operations & Parent Information</div>'+
+    '<div class="wz-sub">This is what parents ask about every day — the AI Employee answers only from what you approve here (plus the website import later).</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px">'+
+    OPS_FIELDS.map(function(f){
+      var v = DRUI.esc(W.ops[f[0]]||'');
+      return '<div class="ag-form-group"><label class="ag-label">'+f[1]+'</label>'+
+        (f[3] ? '<textarea class="ag-textarea" style="min-height:60px" id="op_'+f[0]+'" placeholder="'+f[2]+'">'+v+'</textarea>'
+              : '<input class="ag-input" id="op_'+f[0]+'" placeholder="'+f[2]+'" value="'+v+'">')+'</div>';
+    }).join('')+'</div>'+
+    '<div class="ag-form-group" style="margin-top:8px"><label class="ag-label">Escalation Contact (who handles complex questions?)</label>'+
+    '<input class="ag-input" id="op_escalation" placeholder="e.g. Director Sarah — 905-555-0199" value="'+DRUI.esc(W.escalation)+'"></div>');
 
-  /* 3 — Review */
-  h += panel(3, renderReview());
-
-  /* 4 — AI Employees */
-  var agents = W.industryGroup ? DRD.agentsFor(W.industryGroup) : [];
-  h += panel(4,
-    '<div class="wz-title">Choose AI Employees</div>'+
-    '<div class="wz-sub">Recommended employees for a <b>'+(W.businessType||'business')+'</b> are pre-selected.</div>'+
-    agents.map(function(a){
-      var on = W.selectedAgents.indexOf(a.type) !== -1;
-      var job = DRD.jobFor(a.type);
-      return '<div class="wz-agent'+(on?' is-on':'')+'" id="wzag_'+a.type+'">'+
-        '<div class="aico">'+a.icon+'</div>'+
-        '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-          '<span style="font-size:.8438rem;font-weight:700;color:var(--t1)">'+a.name+'</span>'+
-          (a.recommended?'<span class="wz-rec">RECOMMENDED</span>':'')+
-          (a.industrySpecific?'<span class="wz-rec" style="color:var(--green-t);border-color:var(--green);background:var(--green-bg)">INDUSTRY</span>':'')+'</div>'+
-        '<div style="font-size:.75rem;color:var(--t3);margin-top:3px;line-height:1.5"><b>'+job.role+'</b> — '+job.purpose+'</div></div>'+
-        '<label class="sw"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleAgent(\''+a.type+'\',this.checked)"><span class="tr"></span></label>'+
+  /* 3 — AI Employee Skills */
+  h += panel(3,
+    '<div class="wz-title">AI Employee Skills</div>'+
+    '<div class="wz-sub">Choose what this daycare\'s AI Employee handles. Recommended skills are pre-selected.</div>'+
+    '<div class="skill-grid">'+
+    DRD.daycareSkills.map(function(s){
+      var on = W.skills.indexOf(s.id) !== -1;
+      var rec = DRD.recommendedSkills.indexOf(s.id) !== -1;
+      return '<div class="skill-card'+(on?' is-on':'')+'" id="sk_'+s.id+'">'+
+        '<div class="skill-ico">'+s.icon+'</div>'+
+        '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">'+
+          '<span style="font-size:.8438rem;font-weight:700;color:var(--t1)">'+s.label+'</span>'+
+          (rec?'<span class="wz-rec">RECOMMENDED</span>':'')+'</div>'+
+        '<div style="font-size:.71875rem;color:var(--t3);margin-top:3px;line-height:1.5">'+s.handles+'</div>'+
+        '<div style="font-size:.625rem;color:var(--t4);margin-top:5px">Captures: '+s.captures+' · '+s.triggers+'</div></div>'+
+        '<label class="sw"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleSkill(\''+s.id+'\',this.checked)"><span class="tr"></span></label>'+
       '</div>';
-    }).join(''));
+    }).join('')+'</div>');
 
-  /* 5 — Train */
-  h += panel(5, renderTrain());
+  /* 4 — Communication & Handoff */
+  h += panel(4,
+    '<div class="wz-title">Communication & Handoff</div>'+
+    '<div class="wz-sub">Where the AI Employee sends its work. These are supporting connections behind the AI — honest labels: nothing is called "live" until it\'s actually connected.</div>'+
+    '<div class="ag-form-row">'+hfld('adminEmail','Admin Notification Email','alerts@daycare.com')+hfld('senderName','Parent Confirmation Sender Name','e.g. Sunshine Nursery Team')+'</div>'+
+    '<div class="ag-form-row">'+hfld('whatsapp','WhatsApp Follow-up Number','+1 … (defaults to daycare WhatsApp)')+hfld('sheets','Google Sheets Destination','Sheet URL — integration ready')+'</div>'+
+    '<div class="ag-form-row">'+hfld('zapier','Zapier Webhook','https://hooks.zapier.com/… — integration ready')+hfld('make','Make Webhook','https://hook.make.com/… — integration ready')+'</div>'+
+    '<div class="ag-form-row">'+hfld('crm','CRM / API Handoff','Endpoint — integration ready')+
+    '<div class="ag-form-group"><label class="ag-label">Default Mode</label>'+
+    '<select class="ag-select" id="h_mode">'+
+      [['dashboard','Dashboard only (everything lands in the portal)'],['email','Dashboard + email notifications'],['whatsapp','Dashboard + WhatsApp follow-ups'],['webhook','Dashboard + webhook handoff']].map(function(o){
+        return '<option value="'+o[0]+'"'+(W.handoff.mode===o[0]?' selected':'')+'>'+o[1]+'</option>';
+      }).join('')+'</select></div></div>'+
+    '<div style="font-size:.71875rem;color:var(--t4);margin-top:6px">💡 Fields left empty simply stay in "integration ready" state — the AI Employee logs everything in the portal regardless.</div>');
+
+  /* 5 — Knowledge Import & Training */
+  h += panel(5, renderKnowledge());
 
   /* 6 — Test */
   h += panel(6, renderTest());
@@ -216,113 +257,89 @@ function render() {
   if (W.step === 6 && !W.testerMsgs.length) testGreet();
 }
 
-/* ── Step 3: Review ──────────────────────────────────────── */
-function renderReview() {
-  if (!W.intel) return '<div class="wz-title">Review Imported Knowledge</div><div class="wz-sub">Run the import first.</div>';
-  var i = W.intel;
-  function sec(icon, title, src, inner) {
-    return '<div class="rv-sec"><div class="rv-h">'+icon+' '+title+' <span class="rv-src">'+src+'</span></div>'+inner+'</div>';
-  }
-  function ta(id, val, rows) {
-    return '<textarea class="ag-textarea" id="rv_'+id+'" style="min-height:'+(rows||52)+'px">'+DRUI.esc(val||'')+'</textarea>';
-  }
-  return '<div class="wz-title">Review Imported Knowledge</div>'+
-    '<div class="wz-sub">Edit anything before it becomes the AI employee\'s approved knowledge. It will never answer outside this.</div>'+
-    (i.missing && i.missing.length ? '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:14px;font-size:.78125rem;color:#92400E"><b>⚠️ Missing:</b> '+i.missing.join(' · ')+'</div>' : '')+
-    sec('🏢','Business Summary','WEBSITE', ta('summary', i.summary, 64))+
-    sec('🛠️','Services','WEBSITE', ta('services', (i.services||[]).join('\n'), 84))+
-    sec('❓','FAQs ('+(i.faqs||[]).length+')','WEBSITE', ta('faqs', (i.faqs||[]).map(function(f){return 'Q: '+f.q+'\nA: '+f.a;}).join('\n\n'), 130))+
-    sec('🕐','Hours','WEBSITE + GOOGLE', ta('hours', i.hours))+
-    sec('💰','Pricing Notes','WEBSITE', ta('pricingNotes', i.pricingNotes))+
-    sec('📋','Policies','WEBSITE', ta('policies', i.policies))+
-    sec('⭐','Google Profile','PUBLIC',
-      '<div style="font-size:.78125rem;color:var(--t2)">Rating: <b>'+(i.google||{}).rating+'★</b> ('+(i.google||{}).reviewCount+' reviews)</div>')+
-    sec('📣','Tone & Social Notes','SOCIAL',
-      '<div style="font-size:.78125rem;color:var(--t2)">Tone: <b>'+((i.social||{}).tone||'—')+'</b> · '+((i.social||{}).serviceMentions||[]).join(' · ')+'</div>')+
-    sec('🚨','Escalation Contact','MANUAL', '<input class="ag-input" id="rv_escalation" placeholder="Who handles complex issues? Name + phone" value="'+DRUI.esc(W.escalation)+'">');
-}
-function saveReview() {
-  if (!W.intel) return;
-  var g = function(id){ var el = document.getElementById('rv_'+id); return el ? el.value.trim() : null; };
-  var s = g('summary'); if (s) W.intel.summary = s;
-  var sv = g('services'); if (sv !== null) W.intel.services = sv.split('\n').map(function(x){return x.trim();}).filter(Boolean);
-  var fq = g('faqs');
-  if (fq !== null) {
-    W.intel.faqs = fq.split(/\n\s*\n/).map(function(block){
-      var m = block.match(/Q:\s*([\s\S]*?)\nA:\s*([\s\S]*)/);
-      return m ? { q:m[1].trim(), a:m[2].trim() } : null;
-    }).filter(Boolean);
-  }
-  ['hours','pricingNotes','policies'].forEach(function(k){ var v = g(k); if (v !== null) W.intel[k] = v; });
-  var e2 = g('escalation'); if (e2 !== null) W.escalation = e2;
-  persistDraft();
-}
-
-/* ── Step 5: Train ───────────────────────────────────────── */
-function renderTrain() {
-  var b = biz();
+/* ── Step 5: Knowledge Import & Training ─────────────────── */
+function renderKnowledge() {
   var i = W.intel || {};
-  var srcs = [
-    ['🌐','Website: '+(W.website||'—'), !!W.intel, W.intel ? (i.pagesFound||[]).length+' pages imported' : 'run import first'],
-    ['📝','Manual business notes', !!W.notes, W.notes ? '1 note' : 'none added'],
-    ['❓','FAQ items', !!(i.faqs&&i.faqs.length), (i.faqs||[]).length+' FAQs'],
-    ['📣','Social profiles', Object.keys(W.social).some(function(k){return W.social[k];}), Object.keys(W.social).filter(function(k){return W.social[k];}).join(', ')||'none'],
+  var srcHtml = [
+    ['🌐','Website import: '+(W.website||'—'), !!W.intel, W.intel ? (i.pagesFound||[]).length+' pages' : 'not yet imported'],
+    ['🏫','Daycare operations details', Object.keys(W.ops).filter(function(k){return W.ops[k];}).length + ' fields', true],
+    ['❓','FAQ entries', !!(i.faqs&&i.faqs.length), (i.faqs||[]).length+' FAQs'],
+    ['📝','Notes & prompt rules', !!W.notes, W.notes?'1 note':'none'],
+    ['📣','Social & tone hints', Object.keys(W.social).some(function(k){return W.social[k];}), 'tone import'],
     ['⭐','Google review link', !!W.reviewLink, W.reviewLink?'connected':'not set'],
-    ['📎','Uploaded documents', false, 'coming soon'],
-    ['🧭','Escalation & prompt notes', !!W.escalation, W.escalation||'not set'],
-  ];
-  var agentsHtml = W.selectedAgents.map(function(t){
-    var def = DRD.agentDef(W.industryGroup, t) || {name:t, icon:'🤖'};
-    var real = b ? DRS.list('agents',{businessId:b.id}).find(function(a){return a.agentType===t;}) : null;
-    var st = real ? real.trainingStatus : 'not-trained';
-    return '<div class="tr-row"><span style="font-size:1.125rem">'+def.icon+'</span>'+
-      '<span style="flex:1;font-size:.8125rem;font-weight:700;color:var(--t1)">'+def.name+'</span>'+
-      '<div class="tr-bar"><div id="trb_'+t+'" style="width:'+(st==='ready'?'100%':'0')+'"></div></div>'+
-      '<span id="trs_'+t+'">'+DRUI.trainBadge(st)+'</span></div>';
+    ['📎','Parent handbook / fee sheet upload', false, 'placeholder — coming soon'],
+  ].map(function(s){
+    var ok = typeof s[2]==='boolean' ? s[2] : true;
+    return '<div class="src-row"><span>'+s[0]+'</span><span style="flex:1;font-weight:600;color:var(--t1)">'+s[1]+'</span>'+
+      '<span style="font-size:.6875rem;color:var(--t4)">'+(typeof s[2]==='string'?s[2]:s[3])+'</span>'+
+      (ok?'<span class="chk-yes">✓</span>':'<span class="chk-no">—</span>')+'</div>';
   }).join('');
-  return '<div class="wz-title">Train Your AI Employees</div>'+
-    '<div class="wz-sub">Training combines every knowledge source below into the employee\'s approved knowledge. Retrain any time the knowledge changes.</div>'+
-    '<div class="ag-card" style="padding:16px 20px;margin-bottom:16px">'+
-      '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:6px">Training sources</div>'+
-      srcs.map(function(s){
-        return '<div class="src-row"><span>'+s[0]+'</span><span style="flex:1;font-weight:600;color:var(--t1)">'+s[1]+'</span>'+
-          '<span style="font-size:.6875rem;color:var(--t4)">'+s[3]+'</span>'+
-          (s[2]?'<span class="chk-yes">✓</span>':'<span class="chk-no">—</span>')+'</div>';
-      }).join('')+'</div>'+
-    agentsHtml +
-    '<button class="btn btn--primary" id="btnTrain" onclick="trainNow()" '+(W.trained?'disabled':'')+' style="margin-top:10px">'+(W.trained?'✓ All Employees Trained':'⚡ Train All Employees')+'</button>'+
-    '<div id="trainSummary" style="margin-top:14px">'+(W.trained?trainSummaryHtml():'')+'</div>';
+
+  var reviewHtml = '';
+  if (W.intel) {
+    function ta(id, val, rows) { return '<textarea class="ag-textarea" id="rv_'+id+'" style="min-height:'+(rows||48)+'px">'+DRUI.esc(val||'')+'</textarea>'; }
+    reviewHtml =
+      '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:16px 0 8px">Review imported knowledge (edit before training)</div>'+
+      '<div class="rv-sec"><div class="rv-h">🏢 Summary <span class="rv-src">WEBSITE</span></div>'+ta('summary', W.intel.summary, 60)+'</div>'+
+      '<div class="rv-sec"><div class="rv-h">❓ FAQs ('+(W.intel.faqs||[]).length+') <span class="rv-src">WEBSITE</span></div>'+
+        ta('faqs', (W.intel.faqs||[]).map(function(f){return 'Q: '+f.q+'\nA: '+f.a;}).join('\n\n'), 110)+'</div>'+
+      '<div class="rv-sec"><div class="rv-h">💰 Pricing Notes <span class="rv-src">WEBSITE</span></div>'+ta('pricingNotes', W.intel.pricingNotes)+'</div>'+
+      (W.intel.missing && W.intel.missing.length ? '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:10px 14px;margin-bottom:12px;font-size:.75rem;color:#92400E"><b>⚠ Missing:</b> '+W.intel.missing.join(' · ')+'</div>' : '');
+  }
+
+  var trainHtml = '';
+  if (W.intel) {
+    var agentTypes = DRD.skillsToAgents(W.skills);
+    trainHtml = '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:16px 0 8px">Train the AI Employee</div>'+
+      agentTypes.map(function(t){
+        var def = DRD.agentDef('childcare', t) || {name:t, icon:'🤖'};
+        var b = biz();
+        var real = b ? DRS.list('agents',{businessId:b.id}).find(function(a){return a.agentType===t;}) : null;
+        var st = real ? real.trainingStatus : 'not-trained';
+        return '<div class="tr-row"><span style="font-size:1.125rem">'+def.icon+'</span>'+
+          '<span style="flex:1;font-size:.8125rem;font-weight:700;color:var(--t1)">'+def.name+'</span>'+
+          '<div class="tr-bar"><div id="trb_'+t+'" style="width:'+(st==='ready'?'100%':'0')+'"></div></div>'+
+          '<span id="trs_'+t+'">'+DRUI.trainBadge(st)+'</span></div>';
+      }).join('')+
+      '<button class="btn btn--primary" id="btnTrain" onclick="trainNow()" '+(W.trained?'disabled':'')+' style="margin-top:8px">'+(W.trained?'✓ AI Employee Trained':'⚡ Train AI Employee')+'</button>'+
+      '<div id="trainSummary" style="margin-top:12px">'+(W.trained?trainSummaryHtml():'')+'</div>';
+  }
+
+  return '<div class="wz-title">Knowledge Import & Training</div>'+
+    '<div class="wz-sub">Import from the website and public profile, review what was found, then train. The AI only ever answers from approved knowledge.</div>'+
+    '<div class="ag-card" style="padding:14px 18px;margin-bottom:14px">'+
+      '<div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:4px">Knowledge sources</div>'+srcHtml+'</div>'+
+    '<div class="imp-console" id="impConsole">'+(W.importDone?'<div class="imp-ok">✓ Import complete — review below, then train.</div>':'<div style="color:#64748B">▸ Ready. Click "⚡ Run Knowledge Import" below.</div>')+'</div>'+
+    reviewHtml + trainHtml;
 }
 function trainSummaryHtml() {
   var i = W.intel || {};
+  var opsFilled = OPS_FIELDS.filter(function(f){return W.ops[f[0]];}).length;
   var missing = (i.missing||[]).slice();
-  if (!i.pricingNotes && !(W.intel&&W.intel.faqs&&W.intel.faqs.length)) missing.push('Pricing information');
-  if (!i.hours) missing.push('Opening hours');
+  if (!W.ops.fees && !i.pricingNotes) missing.push('Fees');
+  if (!W.ops.hours && !i.hours) missing.push('Hours');
   if (!W.escalation) missing.push('Escalation contact');
-  var kCount = ['summary','services','faqs','hours','pricingNotes','policies'].filter(function(k){ var v=i[k]; return v && (!Array.isArray(v)||v.length); }).length;
-  return '<div class="ag-card" style="padding:16px 20px;background:var(--green-bg);border-color:#A7F3D0">'+
-    '<div style="font-size:.8125rem;font-weight:800;color:var(--green-t);margin-bottom:6px">✓ Training complete</div>'+
+  return '<div class="ag-card" style="padding:14px 18px;background:var(--green-bg);border-color:#A7F3D0">'+
+    '<div style="font-size:.8125rem;font-weight:800;color:var(--green-t);margin-bottom:4px">✓ Training complete</div>'+
     '<div style="font-size:.75rem;color:var(--green-t);line-height:1.8">'+
-    '• Knowledge areas imported: <b>'+kCount+'</b><br>'+
-    '• FAQs created: <b>'+((i.faqs||[]).length)+'</b><br>'+
-    '• AI employees ready: <b>'+W.selectedAgents.length+' / '+W.selectedAgents.length+'</b><br>'+
-    (missing.length?'<span style="color:#92400E">• ⚠ Missing (add later in Knowledge & Training): '+missing.join(', ')+'</span>':'• No critical gaps found')+
+    '• Daycare detail fields: <b>'+opsFilled+'</b> · Website FAQs: <b>'+((i.faqs||[]).length)+'</b> · Pages imported: <b>'+((i.pagesFound||[]).length)+'</b><br>'+
+    '• Skills active: <b>'+W.skills.length+'</b> → AI employees ready: <b>'+DRD.skillsToAgents(W.skills).length+'</b><br>'+
+    (missing.length?'<span style="color:#92400E">• ⚠ Missing: '+missing.join(', ')+' — the AI will offer staff follow-up for these instead of guessing.</span>':'• No critical gaps found')+
     '</div></div>';
 }
 
 /* ── Step 6: Test ────────────────────────────────────────── */
 function renderTest() {
-  var cats = DRD.scenarioCats[W.industryGroup];
-  var chips = cats
-    ? cats.map(function(s){ return '<div class="sc-chip" onclick="runScenario(this.getAttribute(\'data-q\'))" data-q="'+DRUI.esc(s.q)+'"><b>'+s.cat+'</b>'+s.q+'</div>'; }).join('')
-    : (DRD.scenarios[W.industryGroup]||[]).map(function(s){ return '<div class="sc-chip" onclick="runScenario(this.textContent)">'+s+'</div>'; }).join('');
-  return '<div class="wz-title">Test Before You Deploy</div>'+
-    '<div class="wz-sub">Run the category tests — each result shows the detected intent, knowledge used, next action and confidence. These create real records for this business.</div>'+
-    '<div class="sc-chips">'+chips+'</div>'+
+  var cats = DRD.scenarioCats.childcare;
+  return '<div class="wz-title">Test the AI Employee</div>'+
+    '<div class="wz-sub">Run the category tests — each shows detected intent, knowledge used, next action and confidence. Meals and allergy must answer differently!</div>'+
+    '<div class="sc-chips">'+cats.map(function(s){
+      return '<div class="sc-chip" onclick="runScenario(this.getAttribute(\'data-q\'))" data-q="'+DRUI.esc(s.q)+'"><b>'+s.cat+'</b>'+s.q+'</div>';
+    }).join('')+'</div>'+
     '<div class="wz-chat"><div class="wz-chat-main">'+
       '<div class="wz-chat-body" id="testBody"></div>'+
       '<div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)">'+
-        '<input class="ag-input" id="testInput" placeholder="Type as a parent/customer…" style="flex:1" onkeydown="if(event.key===\'Enter\')testSend()">'+
+        '<input class="ag-input" id="testInput" placeholder="Ask as a parent…" style="flex:1" onkeydown="if(event.key===\'Enter\')testSend()">'+
         '<button class="btn btn--primary" onclick="testSend()">Send</button></div></div>'+
       '<div class="ag-card" style="padding:16px;height:430px;overflow-y:auto">'+
         '<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:8px">Outcome Analysis</div>'+
@@ -333,32 +350,31 @@ function renderTest() {
 /* ── Step 7: Deploy ──────────────────────────────────────── */
 function renderDeploy() {
   var b = biz();
-  var slug = b ? b.slug : DRA.slugify(W.name||'your-business');
-  var primary = W.selectedAgents.indexOf('website-enquiry')!==-1 ? 'website-enquiry' : (W.selectedAgents[0]||'website-enquiry');
-  var snippet = '&lt;script src="https://digital-rise-os.vercel.app/agents/widget/widget.js"\n        data-business="'+slug+'"\n        data-agent="'+primary+'"&gt;&lt;/script&gt;';
-  var kbOk = !!(W.intel || Object.keys((b&&b.knowledge)||{}).length);
+  var slug = b ? b.slug : DRA.slugify(W.name||'your-daycare');
+  var snippet = '&lt;script src="https://digital-rise-os.vercel.app/agents/widget/widget.js"\n        data-business="'+slug+'"\n        data-agent="website-enquiry"&gt;&lt;/script&gt;';
+  var kbOk = !!(W.intel || Object.keys(W.ops).filter(function(k){return W.ops[k];}).length);
   var gates = [
-    ['Business saved', !!b],
+    ['Daycare profile saved', !!b],
     ['Knowledge trained', kbOk && W.trained],
-    ['At least one AI employee selected', W.selectedAgents.length > 0],
+    ['Skills selected ('+W.skills.length+')', W.skills.length > 0],
     ['Test completed', W.tested],
-    ['Deployment channel selected', Object.keys(W.channels).some(function(k){ return k!=='demo' && W.channels[k]; })],
   ];
   var gatesOk = gates.every(function(g){ return g[1]; });
   var CH = [
-    ['widget','💻','Website chat widget','Copy the snippet below onto the website'],
-    ['whatsapp','📲','WhatsApp ready','Follow-up sequences prepared for the business number'],
-    ['email','📧','Email ready','Inbox replies drafted for '+(W.email||'the enquiry inbox')],
-    ['webhook','🔗','Zapier / Make webhook ready','Send captured enquiries to any existing tool'],
-    ['demo','🎭','Manual demo mode','Test conversations only — no real messages sent'],
+    ['portal','🏠','Daycare Client Portal','The daycare\'s own workspace — always included', true],
+    ['widget','💻','Website chat widget','Copy the snippet below onto the daycare website', false],
+    ['whatsapp','📲','WhatsApp ready mode','Follow-up sequences prepared — integration ready', false],
+    ['email','📧','Email automation ready mode','Parent confirmations + admin alerts — integration ready', false],
+    ['webhook','🔗','Webhook ready mode','Zapier / Make / Sheets handoff — integration ready', false],
+    ['demo','🎭','Demo mode','Test conversations only — no real messages sent', false],
   ];
-  return '<div class="wz-title">Deploy</div>'+
-    '<div class="wz-sub"><b>Demo Mode</b> = simulated conversations only. <b>Live</b> = the AI employee is answering on a real channel. It only goes live when every check passes.</div>'+
+  return '<div class="wz-title">Deploy / Launch</div>'+
+    '<div class="wz-sub"><b>Demo Mode</b> = simulated only. <b>Live Ready</b> = trained + tested, waiting on a channel. <b>Live</b> = answering on a real channel. Honest labels, always.</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="dep-cols">'+
-    '<div class="ag-card" style="padding:18px 20px"><div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:6px">Go-live checklist</div>'+
+    '<div class="ag-card" style="padding:18px 20px"><div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:6px">Launch checklist</div>'+
       gates.map(function(g){ return '<div class="gate">'+(g[1]?'<span class="g-ok">✓</span>':'<span class="g-no">✗</span>')+'<span style="color:var(--t1);font-weight:600">'+g[0]+'</span></div>'; }).join('')+
     '</div>'+
-    '<div class="ag-card" style="padding:18px 20px"><div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:6px">Deployment channels</div>'+
+    '<div class="ag-card" style="padding:18px 20px"><div style="font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin-bottom:6px">Deploy to</div>'+
       CH.map(function(c){
         var on = W.channels[c[0]];
         return '<div class="ch-opt'+(on?' is-on':'')+'" onclick="toggleChannel(\''+c[0]+'\')">'+
@@ -372,11 +388,12 @@ function renderDeploy() {
     '<div class="wz-code" id="deployCode">'+snippet+'</div>'+
     '<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">'+
       '<button class="btn btn--ghost btn--sm" onclick="copyDeploy()">📋 Copy Snippet</button>'+
-      '<button class="btn btn--ghost" onclick="finishDemo()">✓ Finish Setup (Demo Mode)</button>'+
+      '<button class="btn btn--ghost" onclick="finishDemo()">✓ Finish in Demo Mode</button>'+
     '</div>'+
-    (gatesOk?'' : '<div style="margin-top:10px;font-size:.75rem;color:#92400E">Complete the checklist to enable live deployment — or finish in Demo Mode and go live later from Connect Channels.</div>');
+    (gatesOk?'' : '<div style="margin-top:10px;font-size:.75rem;color:#92400E">Complete the checklist to launch — or finish in Demo Mode and launch later.</div>');
 }
 window.toggleChannel = function(k){
+  if (k === 'portal') return; /* portal always included */
   W.channels[k] = !W.channels[k];
   if (k !== 'demo' && W.channels[k]) W.channels.demo = false;
   render();
@@ -385,8 +402,8 @@ window.copyDeploy = function(){
   navigator.clipboard.writeText(document.getElementById('deployCode').textContent).then(function(){ AG.toast('Snippet copied!','success'); });
 };
 
-/* ── Persistence: the wizard saves a real business record ── */
-function collectBasics() {
+/* ── Persistence ─────────────────────────────────────────── */
+function collectProfile() {
   ['name','website','location','phone','email','whatsapp','reviewLink','bookingLink'].forEach(function(k){
     var el = document.getElementById('f_'+k); if (el) W[k] = el.value.trim();
   });
@@ -396,85 +413,105 @@ function collectBasics() {
   var n = document.getElementById('f_notes'); if (n) W.notes = n.value.trim();
   var t = document.getElementById('f_type'); if (t && t.value) W.businessType = t.value;
 }
+function collectOps() {
+  OPS_FIELDS.forEach(function(f){
+    var el = document.getElementById('op_'+f[0]);
+    if (el) { if (el.value.trim()) W.ops[f[0]] = el.value.trim(); else delete W.ops[f[0]]; }
+  });
+  var e = document.getElementById('op_escalation'); if (e) W.escalation = e.value.trim();
+}
+function collectHandoff() {
+  ['adminEmail','senderName','whatsapp','sheets','zapier','make','crm'].forEach(function(k){
+    var el = document.getElementById('h_'+k); if (el) W.handoff[k] = el.value.trim();
+  });
+  var m = document.getElementById('h_mode'); if (m) W.handoff.mode = m.value;
+}
+function knowledgeObj() {
+  return Object.assign({ escalation: W.escalation || '' }, W.ops);
+}
 function persistDraft() {
-  if (!W.name || !W.industryGroup) return null;
-  var knowledge = { escalation: W.escalation || '' };
-  var manualRules = W.notes ? [W.notes] : [];
+  if (!W.name) return null;
   if (!W.bizId) {
     var created = DRA.createBusiness({
-      name: W.name, industryGroup: W.industryGroup, businessType: W.businessType,
+      name: W.name, industryGroup: 'childcare', businessType: W.businessType,
       website: W.website, phone: W.phone, email: W.email, whatsapp: W.whatsapp,
       location: W.location, reviewLink: W.reviewLink, bookingLink: W.bookingLink,
-      selectedAgents: [], knowledge: knowledge, intel: W.intel, manualRules: manualRules, social: W.social,
+      selectedAgents: [], knowledge: knowledgeObj(), intel: W.intel,
+      manualRules: W.notes ? [W.notes] : [], social: W.social,
     });
-    DRS.update('businesses', created.id, { setupStatus: 'draft' });
+    DRS.update('businesses', created.id, { setupStatus: 'draft', skills: W.skills, handoff: W.handoff });
     W.bizId = created.id;
   } else {
     DRS.update('businesses', W.bizId, {
-      name: W.name, industryGroup: W.industryGroup, businessType: W.businessType,
+      name: W.name, businessType: W.businessType,
       website: W.website, phone: W.phone, email: W.email, whatsapp: W.whatsapp,
       location: W.location, reviewLink: W.reviewLink, bookingLink: W.bookingLink,
-      knowledge: knowledge, intel: W.intel, manualRules: manualRules, social: W.social,
+      knowledge: knowledgeObj(), intel: W.intel,
+      manualRules: W.notes ? [W.notes] : [], social: W.social,
+      skills: W.skills, handoff: W.handoff,
       testPassed: W.tested || undefined,
     });
   }
   return biz();
 }
 window.saveDraft = function(){
-  if (W.step === 1) collectBasics();
-  if (W.step === 3) saveReview();
-  if (!W.name) return AG.toast('Add a business name first','error');
-  if (!W.industryGroup) return AG.toast('Select an industry group first','error');
+  if (W.step === 1) collectProfile();
+  if (W.step === 2) collectOps();
+  if (W.step === 4) collectHandoff();
+  saveReviewEdits();
+  if (!W.name) return AG.toast('Add the daycare name first','error');
   persistDraft();
   renderHeader();
-  AG.toast('Draft saved — "'+W.name+'" is now in your Businesses list','success');
+  AG.toast('Draft saved — "'+W.name+'" is in your Daycare Clients list','success');
 };
+function saveReviewEdits() {
+  if (!W.intel) return;
+  var g = function(id){ var el = document.getElementById('rv_'+id); return el ? el.value.trim() : null; };
+  var s = g('summary'); if (s) W.intel.summary = s;
+  var fq = g('faqs');
+  if (fq !== null) {
+    W.intel.faqs = fq.split(/\n\s*\n/).map(function(block){
+      var m = block.match(/Q:\s*([\s\S]*?)\nA:\s*([\s\S]*)/);
+      return m ? { q:m[1].trim(), a:m[2].trim() } : null;
+    }).filter(Boolean);
+  }
+  var pn = g('pricingNotes'); if (pn !== null) W.intel.pricingNotes = pn;
+}
 
-/* ── Import ──────────────────────────────────────────────── */
+/* ── Import + Training ───────────────────────────────────── */
 function runImportNow() {
   if (W.importing) return;
   W.importing = true;
   var con = document.getElementById('impConsole');
-  con.innerHTML = '<div class="imp-head">▸ Starting Business Intelligence Import for '+DRUI.esc(W.name)+'…</div>';
+  con.innerHTML = '<div class="imp-head">▸ Importing knowledge for '+DRUI.esc(W.name)+'…</div>';
   function line(html){ var d=document.createElement('div'); d.className='imp-line'; d.innerHTML=html; con.appendChild(d); con.scrollTop=con.scrollHeight; }
   var headers = { website:false, google:false, social:false };
   DRI.runImport(W, W.social, function(mod, item, ok){
     if (!headers[mod]) {
       headers[mod] = true;
-      line('<span class="imp-head">'+(mod==='website'?'▸ Crawling website pages…':mod==='google'?'▸ Importing public business profile…':'▸ Analysing social profiles…')+'</span>');
+      line('<span class="imp-head">'+(mod==='website'?'▸ Crawling website pages…':mod==='google'?'▸ Importing Google business profile…':'▸ Analysing social tone…')+'</span>');
     }
-    line(ok ? '<span class="imp-ok">✓</span> '+item+' — imported' : '<span class="imp-warn">⚠</span> '+item+' — not found, skipped');
+    line(ok ? '<span class="imp-ok">✓</span> '+item : '<span class="imp-warn">⚠</span> '+item+' — not found');
   }).then(function(intel){
     W.intel = intel; W.importDone = true; W.importing = false;
     persistDraft();
-    line('<span class="imp-head">▸ Extraction complete — saved to the business.</span>');
-    line('<span class="imp-ok">✓</span> '+intel.services.length+' services · '+intel.faqs.length+' FAQs · hours · pricing');
-    if (intel.missing.length) line('<span class="imp-warn">⚠</span> Missing: '+intel.missing.join(', '));
-    document.getElementById('impSummary').innerHTML = [
-      ['📄', intel.pagesFound.length, 'Pages crawled'], ['🛠️', intel.services.length, 'Services'],
-      ['❓', intel.faqs.length, 'FAQs'], ['⭐', intel.google.rating+'★', 'Google rating'],
-    ].map(function(s){ return '<div class="imp-stat"><b>'+s[1]+'</b><span>'+s[0]+' '+s[2]+'</span></div>'; }).join('');
-    renderSteps();
-    AG.toast('Import complete — review the results','success');
+    line('<span class="imp-head">▸ Done.</span> <span class="imp-ok">'+intel.faqs.length+' FAQs · '+intel.services.length+' services · saved to the daycare.</span>');
+    render();
+    AG.toast('Knowledge imported — review and train below','success');
   });
 }
-
-/* ── Selection / training ────────────────────────────────── */
-window.pickGroup = function(id){
-  collectBasics();
-  if (W.industryGroup !== id) { W.businessType = null; W.selectedAgents = []; }
-  W.industryGroup = id || null; render();
-};
-window.toggleAgent = function(type, on){
-  var i = W.selectedAgents.indexOf(type);
-  if (on && i===-1) W.selectedAgents.push(type);
-  if (!on && i!==-1) W.selectedAgents.splice(i,1);
-  var row = document.getElementById('wzag_'+type);
-  if (row) row.classList.toggle('is-on', on);
+window.toggleSkill = function(id, on){
+  var i = W.skills.indexOf(id);
+  if (on && i===-1) W.skills.push(id);
+  if (!on && i!==-1) W.skills.splice(i,1);
+  var card = document.getElementById('sk_'+id);
+  if (card) card.classList.toggle('is-on', on);
 };
 window.trainNow = function(){
   var b = biz();
-  if (!b) { AG.toast('Save the business first','error'); return; }
+  if (!b) return AG.toast('Save the daycare first','error');
+  saveReviewEdits(); persistDraft();
+  DRA.syncAgents(b, DRD.skillsToAgents(W.skills));
   var btn = document.getElementById('btnTrain');
   btn.disabled = true; btn.textContent = 'Training on all knowledge sources…';
   DRA.trainAll(b.id, function(a, st){
@@ -484,18 +521,18 @@ window.trainNow = function(){
     if (bar && st==='training') bar.style.width = '100%';
   }, function(){
     W.trained = true;
-    btn.textContent = '✓ All Employees Trained';
+    btn.textContent = '✓ AI Employee Trained';
     document.getElementById('trainSummary').innerHTML = trainSummaryHtml();
     renderHeader();
-    AG.toast('All AI employees trained!','success');
+    AG.toast('Daycare AI Employee trained!','success');
   });
 };
 
-/* ── Tester (real business, real engine, real records) ───── */
+/* ── Tester ──────────────────────────────────────────────── */
 function firstAgent() {
   var b = biz(); if (!b) return null;
   var agents = DRS.list('agents',{businessId:b.id});
-  return agents.find(function(a){ return a.agentType === (W.selectedAgents[0]||'website-enquiry'); }) || agents[0] || null;
+  return agents.find(function(a){ return a.agentType === 'website-enquiry'; }) || agents[0] || null;
 }
 function addTestMsg(role, text){
   W.testerMsgs.push({role:role,text:text});
@@ -504,15 +541,15 @@ function addTestMsg(role, text){
   el.appendChild(d); el.scrollTop = el.scrollHeight;
 }
 function testGreet(){
-  addTestMsg('in', "Hi! 👋 I'm the AI employee for "+(W.name||'this business')+". Try the category tests above, or ask anything a "+(W.industryGroup==='childcare'?'parent':'customer')+" would.");
+  addTestMsg('in', "Hi! 👋 I'm the AI Employee for "+(W.name||'this daycare')+". Try the parent questions above — meals and allergy should answer differently!");
 }
 window.runScenario = function(text){
   var inp = document.getElementById('testInput'); inp.value = text; testSend();
 };
 window.testSend = function(){
   var b = biz(); var agent = firstAgent();
-  if (!b || !agent) return AG.toast('Save the business and select employees first','error');
-  if (agent.trainingStatus !== 'ready') return AG.toast('Train the employees first (previous step)','error');
+  if (!b || !agent) return AG.toast('Save the daycare and train first','error');
+  if (agent.trainingStatus !== 'ready') return AG.toast('Train the AI Employee first (previous step)','error');
   var inp = document.getElementById('testInput');
   var v = inp.value.trim(); if(!v) return;
   inp.value='';
@@ -532,10 +569,8 @@ window.testSend = function(){
       '<div class="chk-row"><span>Fallback used</span>'+yn(res.fallbackUsed)+'</div>'+
       '<div class="chk-row"><span>Enquiry captured</span>'+yn(c.leadCaptured)+'</div>'+
       '<div class="chk-row"><span>Booking offered</span>'+yn(c.bookingOffered)+'</div>'+
-      '<div class="chk-row"><span>Follow-up triggered</span>'+yn(c.followUpSuggested && c.leadCaptured)+'</div>'+
       '<div class="chk-row"><span>Escalation needed</span>'+yn(c.escalationNeeded)+'</div>'+
-      '<div class="chk-row"><span>Data saved</span>'+yn(c.dataSaved)+'</div>'+
-      (res.actions.length?'<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:10px 0 6px">Actions taken</div>'+
+      (res.actions.length?'<div style="font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--t4);margin:10px 0 6px">AI actions</div>'+
         res.actions.map(function(a){ return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--green-bg);border:1px solid #A7F3D0;border-radius:7px;font-size:.71875rem;font-weight:600;color:var(--green-t);margin-bottom:5px">'+a.icon+' '+a.label+'</div>'; }).join(''):'');
     if (c.leadCaptured && !W.testerConvSaved) {
       DRA.logConversation(b, agent, W.testerMsgs, W.testerCtx.leadId);
@@ -544,59 +579,66 @@ window.testSend = function(){
   }, 550);
 };
 
-/* ── Finish / deploy ─────────────────────────────────────── */
+/* ── Finish / launch ─────────────────────────────────────── */
 window.finishDemo = function(){
+  collectHandoff();
   var b = persistDraft();
-  if (!b) return AG.toast('Complete the basics first','error');
-  DRS.update('businesses', b.id, { setupStatus: 'demo', deployChannels: ['demo'] });
-  AG.toast(W.name+' finished in Demo Mode — go live any time from Connect Channels','success');
+  if (!b) return AG.toast('Complete the profile first','error');
+  DRS.update('businesses', b.id, { setupStatus: 'demo', deployChannels: ['portal','demo'] });
+  AG.toast(W.name+' finished in Demo Mode — launch any time from Connect Channels','success');
   setTimeout(function(){ window.location.href = '/agents/businesses/' + b.slug; }, 800);
 };
-function deployLive() {
+function launchLive() {
+  collectHandoff();
   var b = persistDraft();
-  if (!b) return AG.toast('Complete the basics first','error');
+  if (!b) return AG.toast('Complete the profile first','error');
   var chans = Object.keys(W.channels).filter(function(k){ return k!=='demo' && W.channels[k]; });
-  var kbOk = !!(W.intel || Object.keys(b.knowledge||{}).length);
-  if (!W.trained)                 return AG.toast('Train the employees first (step 5)','error');
-  if (!kbOk)                      return AG.toast('The employee has no knowledge — run the import','error');
-  if (!W.selectedAgents.length)   return AG.toast('Select at least one AI employee','error');
-  if (!W.tested)                  return AG.toast('Run at least one test before going live (step 6)','error');
-  if (!chans.length)              return AG.toast('Select a live deployment channel — or use "Finish Setup (Demo Mode)"','error');
-  DRS.update('businesses', b.id, { setupStatus: 'live', deployChannels: chans, testPassed: true });
-  AG.toast('🎉 '+W.name+' is LIVE on: '+chans.join(', '),'success');
+  if (!W.trained)               return AG.toast('Train the AI Employee first (step 5)','error');
+  if (!W.skills.length)         return AG.toast('Select at least one skill (step 3)','error');
+  if (!W.tested)                return AG.toast('Run at least one test before launching (step 6)','error');
+  var liveChans = chans.filter(function(c){ return c!=='portal'; });
+  if (!liveChans.length) {
+    DRS.update('businesses', b.id, { setupStatus: 'demo', deployChannels: chans });
+    AG.toast('Launched to the client portal in Demo Mode — connect a live channel to go fully live','success');
+  } else {
+    DRS.update('businesses', b.id, { setupStatus: 'live', deployChannels: chans, testPassed: true });
+    AG.toast('🎉 '+W.name+' AI Employee is LIVE on: '+chans.join(', '),'success');
+  }
   setTimeout(function(){ window.location.href = '/agents/businesses/' + b.slug; }, 900);
 }
 
 /* ── Navigation ──────────────────────────────────────────── */
 window.wzBack = function(){
   if (W.step<=1) return;
-  if (W.step===3) saveReview();
+  if (W.step===2) collectOps();
+  if (W.step===4) collectHandoff();
   W.step--; render();
 };
 window.wzNext = function(){
   if (W.step===1) {
-    collectBasics();
-    if (!W.name) return AG.toast('Business name is required','error');
-    if (!W.website) return AG.toast('Website URL is required — it powers the import','error');
-    if (!W.industryGroup) return AG.toast('Select an industry group','error');
-    if (!W.businessType) return AG.toast('Select a business type','error');
-    if (!W.selectedAgents.length) {
-      W.selectedAgents = DRD.agentsFor(W.industryGroup).filter(function(a){return a.recommended;}).map(function(a){return a.type;});
-    }
+    collectProfile();
+    if (!W.name) return AG.toast('Daycare name is required','error');
+    if (!W.website) return AG.toast('Website URL is required — it powers the knowledge import','error');
+    if (!W.skills.length) W.skills = DRD.recommendedSkills.slice();
     persistDraft();
-    AG.toast('Business saved as draft','success');
+    AG.toast('Daycare profile saved','success');
   }
-  if (W.step===2 && !W.importDone) { runImportNow(); return; }
-  if (W.step===3) { saveReview(); AG.toast('Approved knowledge saved','success'); }
-  if (W.step===4) {
-    if (!W.selectedAgents.length) return AG.toast('Select at least one AI employee','error');
-    DRA.syncAgents(biz(), W.selectedAgents);
+  if (W.step===2) { collectOps(); persistDraft(); AG.toast('Daycare details saved','success'); }
+  if (W.step===3) {
+    if (!W.skills.length) return AG.toast('Select at least one skill','error');
+    persistDraft();
+    DRA.syncAgents(biz(), DRD.skillsToAgents(W.skills));
     W.trained = false;
-    AG.toast(W.selectedAgents.length+' AI employees added to '+W.name,'success');
+    AG.toast(W.skills.length+' skills selected','success');
   }
-  if (W.step===5 && !W.trained) return AG.toast('Click "⚡ Train All Employees" first','error');
-  if (W.step===6 && !W.tested) return AG.toast('Run at least one test scenario first','error');
-  if (W.step===7) { deployLive(); return; }
+  if (W.step===4) { collectHandoff(); persistDraft(); AG.toast('Handoff settings saved','success'); }
+  if (W.step===5) {
+    if (!W.importDone) { runImportNow(); return; }
+    if (!W.trained) return AG.toast('Click "⚡ Train AI Employee" first','error');
+    saveReviewEdits(); persistDraft();
+  }
+  if (W.step===6 && !W.tested) return AG.toast('Run at least one test first','error');
+  if (W.step===7) { launchLive(); return; }
   W.step++; render();
 };
 

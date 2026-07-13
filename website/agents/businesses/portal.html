@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daycare AI Employee Workspace</title>
+  <link rel="stylesheet" href="/agents/shared/agents.css">
+  <style>
+    body { background:#FDFBF7; }
+    .pt-wrap { max-width:1160px;margin:0 auto;padding:0 20px 60px; }
+    .pt-head { background:linear-gradient(120deg,#7C3AED 0%,#8B5CF6 60%,#A78BFA 100%);color:#fff;padding:26px 28px;border-radius:0 0 22px 22px;margin:0 -20px 18px; }
+    .pt-head-in { max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap; }
+    .pt-tabs { display:flex;gap:4px;overflow-x:auto;margin-bottom:22px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px; }
+    .pt-tab { padding:9px 15px;border-radius:9px;font-size:.78125rem;font-weight:700;color:var(--t3);cursor:pointer;white-space:nowrap;transition:all .15s; }
+    .pt-tab.is-active { background:var(--accent);color:#fff; }
+    .pt-panel { display:none; } .pt-panel.is-active { display:block;animation:ptIn .25s ease; }
+    @keyframes ptIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .pt-cards { display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px; }
+    .pt-card { background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;text-align:center; }
+    .pt-card b { display:block;font-size:1.5rem;color:var(--t1); }
+    .pt-card span { font-size:.625rem;color:var(--t4);font-weight:700; }
+    .pt-sec { background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px; }
+    .pt-sec h3 { font-size:.9063rem;font-weight:800;color:var(--t1);margin-bottom:12px; }
+    .pt-row { display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border-s);font-size:.8125rem; }
+    .pt-row:last-child { border:none; }
+    .pt-cols { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    @media(max-width:860px){ .pt-cols{grid-template-columns:1fr} }
+    .flt-chip { display:inline-block;padding:6px 13px;border-radius:99px;font-size:.71875rem;font-weight:700;cursor:pointer;color:var(--t3);background:var(--bg-alt);margin:0 5px 8px 0;border:1.5px solid transparent; }
+    .flt-chip.is-active { color:var(--accent);background:var(--accent-bg);border-color:var(--accent); }
+    .act-card { background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;transition:all .15s; }
+    .act-card:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+    .sw { position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer; }
+    .sw input { opacity:0;width:0;height:0; }
+    .sw .tr { position:absolute;inset:0;background:var(--border);border-radius:99px;transition:.2s; }
+    .sw .tr::before { content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+    .sw input:checked + .tr { background:var(--accent); }
+    .sw input:checked + .tr::before { transform:translateX(16px); }
+  </style>
+</head>
+<body>
+<div class="pt-head"><div class="pt-head-in" id="ptHead"></div></div>
+<div class="pt-wrap">
+  <div class="pt-tabs" id="ptTabs"></div>
+  <div id="ptPanels"></div>
+</div>
+
+<script src="/agents/shared/agents.js"></script>
+<script src="/agents/shared/agents-data.js"></script>
+<script src="/agents/shared/agents-storage.js"></script>
+<script src="/agents/shared/agents-actions.js"></script>
+<script src="/agents/shared/agents-ui.js"></script>
+<script>
+/* Resolve daycare from /agents/businesses/:slug/portal */
+var p = window.location.pathname.replace(/\.html$/,'').split('/').filter(Boolean);
+var slug = p[2] && p[2] !== 'portal' ? p[2] : new URLSearchParams(location.search).get('biz');
+var biz = slug ? DRS.getBusinessBySlug(slug) : null;
+
+var TABS = ['Dashboard','Parent Enquiries','Tours & Waitlist','Parent Communication','Reviews & Reputation','Activity & Printable Hub','AI Employee Settings'];
+var tab = Math.max(0, TABS.map(function(t,i){return '#'+i;}).indexOf(location.hash));
+var enqFilter = 'all';
+var hubFilter = { age:'', setting:'', season:'', prep:'' };
+
+if (!biz) {
+  document.getElementById('ptHead').innerHTML = '<div style="font-size:1.25rem;font-weight:800">Daycare not found</div>';
+  document.getElementById('ptPanels').innerHTML = '<div class="pt-sec">This portal link is not valid. Please check with Digital Rise.</div>';
+} else {
+  renderAll();
+}
+
+function esc(s){ return DRUI.esc(s); }
+function friendly(status) {
+  var map = { 'new':'new', 'New':'new', 'booking-requested':'awaiting staff', 'callback-requested':'awaiting staff',
+    'quote-requested':'awaiting staff', 'escalated':'awaiting staff', 'Escalated':'awaiting staff',
+    'follow-up-scheduled':'follow-up sent', 'qualified':'follow-up sent', 'Qualified':'follow-up sent',
+    'won':'resolved', 'Won':'resolved', 'Booked':'resolved', 'lost':'closed', 'Lost':'closed' };
+  return map[status] || 'new';
+}
+function fBadge(f) {
+  var col = { 'new':'blue', 'awaiting staff':'amber', 'follow-up sent':'purple', 'resolved':'green', 'closed':'gray' }[f]||'gray';
+  return '<span class="badge badge--'+col+'">'+f+'</span>';
+}
+function kidOf(l) {
+  var f = l.fields||{};
+  return f.childAge ? f.childAge+' '+(f.ageUnit==='months'?'mo':'yr')+' old' : '';
+}
+
+function renderAll() {
+  var status = DRA.bizSetupStatus(biz);
+  document.getElementById('ptHead').innerHTML =
+    '<div style="width:50px;height:50px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.375rem">🏫</div>' +
+    '<div style="flex:1;min-width:220px"><div style="font-size:1.375rem;font-weight:800;letter-spacing:-.01em">'+esc(biz.name)+'</div>' +
+    '<div style="font-size:.78125rem;opacity:.85">Daycare AI Employee Workspace · '+esc(biz.location||'')+'</div></div>' +
+    '<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 14px;font-size:.71875rem;font-weight:700">' +
+    (status==='live' ? '<span style="width:7px;height:7px;border-radius:50%;background:#4ADE80"></span> AI Employee Live' : '◐ Demo Mode — simulated only') + '</div>';
+
+  document.getElementById('ptTabs').innerHTML = TABS.map(function(t,i){
+    return '<div class="pt-tab'+(i===tab?' is-active':'')+'" onclick="goTab('+i+')">'+t+'</div>';
+  }).join('');
+
+  var h = '';
+  h += '<div class="pt-panel'+(tab===0?' is-active':'')+'">'+renderDashboard()+'</div>';
+  h += '<div class="pt-panel'+(tab===1?' is-active':'')+'">'+renderEnquiries()+'</div>';
+  h += '<div class="pt-panel'+(tab===2?' is-active':'')+'">'+renderTours()+'</div>';
+  h += '<div class="pt-panel'+(tab===3?' is-active':'')+'">'+renderComms()+'</div>';
+  h += '<div class="pt-panel'+(tab===4?' is-active':'')+'">'+renderReviews()+'</div>';
+  h += '<div class="pt-panel'+(tab===5?' is-active':'')+'">'+renderHub()+'</div>';
+  h += '<div class="pt-panel'+(tab===6?' is-active':'')+'">'+renderSettings()+'</div>';
+  document.getElementById('ptPanels').innerHTML = h;
+}
+window.goTab = function(i){ tab = i; location.hash = '#'+i; renderAll(); };
+
+/* ── B1: Dashboard ───────────────────────────────────────── */
+function renderDashboard() {
+  var s = DRA.bizStats(biz.id);
+  var tasks = DRS.list('tasks', { businessId: biz.id });
+  var tours = s.bookings.filter(function(b){ return /tour/i.test(b.service||''); });
+  var waitlist = s.leads.filter(function(l){ return /waitlist/i.test(l.enquiryType||''); });
+  var callbacks = s.leads.filter(function(l){ return /callback|missed call/i.test(l.enquiryType||''); });
+  var newEnq = s.leads.filter(function(l){ return friendly(l.status)==='new'; });
+  var upcoming = tasks.filter(function(t){ return t.status==='scheduled'; });
+  var tasksToday = s.agents.reduce(function(a,x){return a+(x.tasksCompleted||0);},0) + s.conversations.length;
+
+  var h = '<div class="pt-cards">' + [
+    ['🆕', newEnq.length, 'New Parent Enquiries'],
+    ['📅', tours.length, 'Tour Requests'],
+    ['⏳', waitlist.length, 'Waitlist Requests'],
+    ['📞', callbacks.length, 'Callback Requests'],
+    ['⭐', s.reviews.length, 'Reviews'],
+    ['📣', tasks.filter(function(t){return t.type==='whatsapp-followup';}).length, 'Parent Messages Prepared'],
+    ['✅', tasksToday, 'AI Tasks Completed'],
+    ['⏭️', upcoming.length, 'Upcoming Follow-ups'],
+  ].map(function(c){ return '<div class="pt-card"><div style="font-size:1.125rem;margin-bottom:4px">'+c[0]+'</div><b>'+c[1]+'</b><span>'+c[2]+'</span></div>'; }).join('') + '</div>';
+
+  h += '<div class="pt-cols">';
+
+  /* Today's AI activity */
+  var acts = [];
+  s.conversations.slice(0,3).forEach(function(c){ acts.push(['💬','Answered a parent conversation ('+(c.messages||[]).length+' messages)'+(c.leadCaptured?' and captured the enquiry':''), c.createdAt]); });
+  s.leads.slice(0,4).forEach(function(l){ acts.push(['🎯','Captured '+esc(l.enquiryType||'an enquiry')+' from <b>'+esc(l.name||'a parent')+'</b>'+(kidOf(l)?' ('+kidOf(l)+')':''), l.createdAt]); });
+  tasks.slice(0,3).forEach(function(t){ acts.push([t.type==='callback'?'📞':'📲', (t.type==='callback'?'Prepared a staff callback task':'Prepared a follow-up message'), t.createdAt]); });
+  s.reviews.slice(0,2).forEach(function(r){ acts.push(['⭐', r.status==='flagged'?'Routed unhappy feedback privately to the director':'Collected a '+(r.rating||'?')+'★ review from '+esc(r.authorName||'a parent'), r.createdAt]); });
+  acts.sort(function(a,b){ return new Date(b[2])-new Date(a[2]); });
+  h += '<div class="pt-sec"><h3>🤖 Today\'s AI Activity</h3>' +
+    (acts.length ? acts.slice(0,8).map(function(a){
+      return '<div class="pt-row"><span>'+a[0]+'</span><span style="flex:1;color:var(--t2)">'+a[1]+'</span><span style="font-size:.625rem;color:var(--t4);white-space:nowrap">'+DRUI.timeAgo(a[2])+'</span></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">Quiet so far — activity appears here as the AI Employee works.</div>') + '</div>';
+
+  /* Priority requests */
+  var priority = s.leads.filter(function(l){ return ['new','awaiting staff'].indexOf(friendly(l.status))!==-1; });
+  h += '<div class="pt-sec"><h3>🔔 Priority Parent Requests</h3>' +
+    (priority.length ? priority.slice(0,6).map(function(l){
+      return '<div class="pt-row"><span>'+(l.escalated?'🚨':'👋')+'</span><div style="flex:1">' +
+        '<b style="color:var(--t1)">'+esc(l.name||'Parent')+'</b> — '+esc(l.enquiryType||'enquiry')+(kidOf(l)?' · '+kidOf(l):'')+
+        '<div style="font-size:.6875rem;color:var(--t4)">'+esc(l.phone||l.email||'no contact captured')+'</div></div>'+fBadge(friendly(l.status))+'</div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">Nothing needs your attention right now. 🎉</div>') + '</div>';
+
+  /* Reviews snapshot */
+  var flagged = s.reviews.filter(function(r){return r.status==='flagged';});
+  h += '<div class="pt-sec"><h3>⭐ Parent Satisfaction Snapshot</h3>' +
+    '<div class="pt-row"><span>⭐</span><span style="flex:1">Reviews collected</span><b>'+s.reviews.filter(function(r){return r.status!=='flagged';}).length+'</b></div>' +
+    '<div class="pt-row"><span>💛</span><span style="flex:1">Positive feedback received</span><b>'+s.reviews.filter(function(r){return (r.rating||0)>=4;}).length+'</b></div>' +
+    '<div class="pt-row"><span>🚨</span><span style="flex:1">Feedback needing attention</span><b style="color:'+(flagged.length?'#DC2626':'var(--t1)')+'">'+flagged.length+'</b></div></div>';
+
+  /* Skills active */
+  var skills = (biz.skills||[]).map(function(id){ return DRD.daycareSkills.find(function(s2){return s2.id===id;}); }).filter(Boolean);
+  h += '<div class="pt-sec"><h3>🤝 What Your AI Employee Handles</h3>' +
+    (skills.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px">'+skills.map(function(sk){
+      return '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;background:var(--accent-bg);color:var(--accent);font-size:.71875rem;font-weight:700">'+sk.icon+' '+sk.label+'</span>';
+    }).join('')+'</div>' : '<div style="font-size:.8125rem;color:var(--t4)">Skills are configured by your Digital Rise admin.</div>') + '</div>';
+
+  return h + '</div>';
+}
+
+/* ── B2: Parent Enquiries ────────────────────────────────── */
+function renderEnquiries() {
+  var leads = DRS.list('leads', { businessId: biz.id });
+  var FL = [
+    ['all','All'], ['new','New Enquiries'], ['tour','Tour Requests'], ['waitlist','Waitlist'],
+    ['callback','Callbacks'], ['existing','Existing Parents'],
+  ];
+  var filtered = leads.filter(function(l){
+    var t = (l.enquiryType||'').toLowerCase();
+    if (enqFilter==='all') return true;
+    if (enqFilter==='new') return friendly(l.status)==='new';
+    if (enqFilter==='tour') return /tour|booking/.test(t);
+    if (enqFilter==='waitlist') return /waitlist/.test(t);
+    if (enqFilter==='callback') return /callback|missed/.test(t);
+    if (enqFilter==='existing') return /escalation|absence|existing/.test(t) || /existing/i.test(l.notes||'');
+    return true;
+  });
+  var h = '<div class="pt-sec"><h3>💬 Parent Enquiries</h3>' +
+    '<div>'+FL.map(function(f){ return '<span class="flt-chip'+(enqFilter===f[0]?' is-active':'')+'" onclick="setEnqFilter(\''+f[0]+'\')">'+f[1]+'</span>'; }).join('')+'</div>';
+  if (!filtered.length) {
+    h += '<div style="font-size:.8125rem;color:var(--t4);padding:16px 0">No enquiries here yet — when a parent messages the AI Employee, it lands in this inbox.</div>';
+  } else {
+    h += filtered.map(function(l){
+      var f = friendly(l.status);
+      var tasks = DRS.list('tasks', { leadId: l.id });
+      var followed = tasks.some(function(t){ return t.type==='whatsapp-followup'; });
+      return '<div class="pt-row"><span style="font-size:1.25rem">'+(l.escalated?'🚨':'🧡')+'</span>' +
+        '<div style="flex:1;min-width:0">' +
+        '<b style="color:var(--t1)">'+esc(l.name||'Parent')+'</b>'+(kidOf(l)?' <span style="font-size:.6875rem;color:var(--t4)">· child '+kidOf(l)+'</span>':'') +
+        '<div style="font-size:.75rem;color:var(--t2);margin-top:2px">'+esc(l.requestedService||l.enquiryType||'')+' — '+esc((l.notes||'').slice(0,110))+'</div>' +
+        '<div style="font-size:.6875rem;color:var(--t4);margin-top:2px">'+esc(l.phone||'')+(l.email?' · '+esc(l.email):'')+' · '+DRUI.timeAgo(l.createdAt)+
+        (followed?' · <span style="color:var(--green-t);font-weight:700">follow-up prepared ✓</span>':'')+'</div></div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'+fBadge(f)+
+        (f!=='resolved'&&f!=='closed'?'<button class="btn btn--ghost btn--sm" onclick="resolveLead(\''+l.id+'\')">✓ Resolve</button>':'')+'</div></div>';
+    }).join('');
+  }
+  return h + '</div>';
+}
+window.setEnqFilter = function(f){ enqFilter = f; renderAll(); };
+window.resolveLead = function(id){
+  DRS.update('leads', id, { status: 'won' });
+  AG.toast('Marked resolved — nice work!','success');
+  renderAll();
+};
+
+/* ── B3: Tours & Waitlist ────────────────────────────────── */
+function renderTours() {
+  var bookings = DRS.list('bookings', { businessId: biz.id });
+  var leads = DRS.list('leads', { businessId: biz.id });
+  var tours = bookings.filter(function(b){ return /tour/i.test(b.service||''); });
+  var waitlist = leads.filter(function(l){ return /waitlist/i.test(l.enquiryType||''); });
+  var callbacks = leads.filter(function(l){ return /callback|missed/i.test(l.enquiryType||''); });
+  var h = '<div class="pt-cols">';
+  h += '<div class="pt-sec"><h3>📅 Requested Tours</h3>' +
+    (tours.length ? tours.map(function(t2){
+      var lead = t2.leadId ? DRS.get('leads', t2.leadId) : null;
+      return '<div class="pt-row"><span>🏫</span><div style="flex:1"><b style="color:var(--t1)">'+esc(lead?lead.name:'Parent')+'</b>'+
+        (lead&&kidOf(lead)?' <span style="font-size:.6875rem;color:var(--t4)">· '+kidOf(lead)+'</span>':'')+
+        '<div style="font-size:.6875rem;color:var(--t4)">'+(t2.bookingDate?DRUI.fmtDate(t2.bookingDate):'time to be confirmed by staff')+' · '+esc(lead?(lead.phone||''):'')+'</div></div>'+
+        '<span class="badge badge--'+(t2.status==='confirmed'?'green':'amber')+'">'+t2.status+'</span></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No tour requests yet — the AI Employee offers tours automatically when parents show interest.</div>') + '</div>';
+  h += '<div class="pt-sec"><h3>⏳ Waitlist Parents</h3>' +
+    (waitlist.length ? waitlist.map(function(l){
+      var f2 = l.fields||{};
+      return '<div class="pt-row"><span>🧡</span><div style="flex:1"><b style="color:var(--t1)">'+esc(l.name||'Parent')+'</b>'+
+        (kidOf(l)?' · '+kidOf(l):'')+(f2.startDate?' · wants '+esc(f2.startDate):'')+(f2.schedule?' · '+esc(f2.schedule):'')+
+        '<div style="font-size:.6875rem;color:var(--t4)">'+esc(l.phone||l.email||'')+'</div></div>'+fBadge(friendly(l.status))+'</div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No waitlist requests yet.</div>') + '</div>';
+  h += '</div><div class="pt-sec"><h3>📞 Enrollment Callbacks</h3>' +
+    (callbacks.length ? callbacks.map(function(l){
+      return '<div class="pt-row"><span>📞</span><div style="flex:1"><b style="color:var(--t1)">'+esc(l.name||'Caller')+'</b>' +
+        '<div style="font-size:.6875rem;color:var(--t4)">'+esc(l.phone||'')+' · '+DRUI.timeAgo(l.createdAt)+' · call back '+(l.nextFollowUpDue?'by '+DRUI.fmtDate(l.nextFollowUpDue):'today')+'</div></div>'+fBadge(friendly(l.status))+'</div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No callbacks waiting. The Missed Call Recovery skill catches these automatically.</div>') + '</div>';
+  return h;
+}
+
+/* ── B4: Parent Communication ────────────────────────────── */
+function renderComms() {
+  var settings = biz.commSettings || {};
+  var h = '<div class="pt-sec"><h3>📣 Parent Message Templates</h3>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Your AI Employee drafts these for you — nothing is sent to parents without the template being enabled. '+
+    (DRA.bizSetupStatus(biz)==='live'?'':'<b>Currently in Demo Mode — messages are prepared but not sent.</b>')+'</div>' +
+    DRD.commTemplates.map(function(t){
+      var on = settings[t.id] !== undefined ? settings[t.id] : t.on;
+      return '<div class="pt-row"><span>'+(t.channel.indexOf('WhatsApp')!==-1?'📲':'📧')+'</span>' +
+        '<div style="flex:1"><b style="color:var(--t1)">'+t.label+'</b> <span style="font-size:.625rem;color:var(--t4)">· '+t.channel+'</span>' +
+        '<div style="font-size:.75rem;color:var(--t3);margin-top:3px;background:var(--bg-alt);border-radius:8px;padding:8px 10px;line-height:1.5">'+esc(t.body.replace('{daycare}', biz.name))+'</div></div>' +
+        '<label class="sw"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleTemplate(\''+t.id+'\',this.checked)"><span class="tr"></span></label></div>';
+    }).join('') + '</div>';
+
+  var tasks = DRS.list('tasks', { businessId: biz.id }).filter(function(t){ return t.type==='whatsapp-followup'; });
+  h += '<div class="pt-sec"><h3>✉️ Messages the AI Has Prepared</h3>' +
+    (tasks.length ? tasks.slice(0,8).map(function(t){
+      return '<div class="pt-row"><span>📲</span><div style="flex:1"><div style="font-size:.78125rem;color:var(--t2)">'+esc(t.message||'')+'</div>' +
+        '<div style="font-size:.625rem;color:var(--t4);margin-top:2px">'+(t.status==='scheduled'?'scheduled for '+DRUI.fmtDate(t.dueAt):t.status)+'</div></div>' +
+        '<span class="badge badge--'+(t.status==='scheduled'?'amber':'green')+'">'+(t.status==='scheduled'?'follow-up prepared':'sent')+'</span></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No messages prepared yet — they appear here when the AI captures enquiries.</div>') + '</div>';
+  return h;
+}
+window.toggleTemplate = function(id, on){
+  var s = Object.assign({}, biz.commSettings||{}); s[id]=on;
+  biz = DRS.update('businesses', biz.id, { commSettings: s });
+  AG.toast('Template '+(on?'enabled':'disabled'),'success');
+};
+
+/* ── B5: Reviews & Reputation ────────────────────────────── */
+function renderReviews() {
+  var reviews = DRS.list('reviews', { businessId: biz.id });
+  var flagged = reviews.filter(function(r){return r.status==='flagged';});
+  var pub = reviews.filter(function(r){return r.status!=='flagged';});
+  function stars(n){ var s2=''; for(var i=1;i<=5;i++) s2+= i<=(n||0)?'★':'☆'; return '<span style="color:#F59E0B">'+s2+'</span>'; }
+  var h = '<div class="pt-cols">';
+  h += '<div class="pt-sec"><h3>⭐ Reviews Collected</h3>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:10px">Your review link: '+(biz.reviewLink?'<a href="'+esc(biz.reviewLink)+'" target="_blank" style="color:var(--accent);font-weight:700">'+esc(biz.reviewLink)+'</a>':'<i>not set — ask your Digital Rise admin</i>')+'</div>' +
+    (pub.length ? pub.map(function(r){
+      return '<div class="pt-row"><span>💛</span><div style="flex:1"><b style="color:var(--t1)">'+esc(r.authorName||'Parent')+'</b> '+stars(r.rating)+
+        '<div style="font-size:.75rem;color:var(--t3);margin-top:2px">'+esc(r.content||'')+'</div></div></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">No reviews yet — the AI asks happy parents at the right moment.</div>') + '</div>';
+  h += '<div class="pt-sec"><h3>🚨 Feedback Needing Attention</h3>' +
+    (flagged.length ? flagged.map(function(r){
+      return '<div class="pt-row"><span>🚨</span><div style="flex:1"><div style="font-size:.78125rem;color:var(--t2)">'+esc(r.content||'')+'</div>' +
+        '<div style="font-size:.6875rem;color:var(--t4);margin-top:4px"><b>Suggested response draft:</b> "Thank you for telling us — this isn\'t the experience we want any family to have. Our director will call you today to make it right."</div></div>' +
+        '<span class="badge badge--red">private</span></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">Nothing flagged. Unhappy feedback is routed here privately — never to the public review link.</div>') + '</div>';
+  return h + '</div>';
+}
+
+/* ── B6: Activity & Printable Hub ────────────────────────── */
+function renderHub() {
+  var F = hubFilter;
+  var acts = DRD.activities.filter(function(a){
+    if (F.age && a.ages.indexOf(F.age)===-1) return false;
+    if (F.setting && a.setting!==F.setting) return false;
+    if (F.season && a.season!==F.season && a.season!=='any') return false;
+    if (F.prep && a.prep!==F.prep) return false;
+    return true;
+  });
+  function chips(key, opts) {
+    return opts.map(function(o){
+      return '<span class="flt-chip'+(F[key]===o[0]?' is-active':'')+'" onclick="setHub(\''+key+'\',\''+o[0]+'\')">'+o[1]+'</span>';
+    }).join('');
+  }
+  var h = '<div class="pt-sec"><h3>🎨 Activity Planner</h3>' +
+    '<div style="margin-bottom:4px">'+chips('age',[['','All ages'],['infant','Infant'],['toddler','Toddler'],['preschool','Preschool']])+'</div>' +
+    '<div style="margin-bottom:4px">'+chips('setting',[['','Any setting'],['indoor','Indoor / rainy day'],['outdoor','Outdoor']])+'</div>' +
+    '<div style="margin-bottom:12px">'+chips('season',[['','Any season'],['spring','Spring'],['summer','Summer'],['fall','Fall'],['winter','Winter']])+chips('prep',[['','Any prep'],['low','Low prep'],['moderate','Moderate prep']])+'</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">' +
+    acts.map(function(a){
+      return '<div class="act-card"><div style="font-size:.875rem;font-weight:800;color:var(--t1);margin-bottom:4px">'+a.title+'</div>' +
+        '<div style="font-size:.625rem;color:var(--t4);margin-bottom:8px">'+a.ages.join(' · ')+' · '+a.setting+' · '+a.goal+' · '+a.prep+' prep</div>' +
+        '<div style="font-size:.71875rem;color:var(--t3)"><b>Materials:</b> '+a.materials+'</div>' +
+        '<div style="font-size:.71875rem;color:var(--t3);margin-top:5px;background:#FFF7ED;border-radius:8px;padding:7px 9px"><b>💬 Parent note idea:</b> '+a.parentNote+'</div>' +
+        '<div style="font-size:.6875rem;color:var(--accent);font-weight:700;margin-top:7px">🖨️ Pairs with: '+a.printable+'</div></div>';
+    }).join('') +
+    (acts.length?'':'<div style="font-size:.8125rem;color:var(--t4)">No activities match those filters — try widening them.</div>') + '</div></div>';
+
+  h += '<div class="pt-sec"><h3>🖨️ Printable Resource Library</h3>' +
+    '<div style="font-size:.75rem;color:var(--t3);margin-bottom:10px">Suggested printable categories — your AI Employee recommends packs matched to the weekly theme.</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">' +
+    DRD.printables.map(function(pk){
+      return '<div class="act-card" style="padding:13px"><div style="font-size:.8125rem;font-weight:800;color:var(--t1)">'+pk.cat+'</div>' +
+        '<div style="font-size:.6875rem;color:var(--t3);margin-top:3px">'+pk.items+'</div></div>';
+    }).join('') + '</div></div>';
+  return h;
+}
+window.setHub = function(k, v){ hubFilter[k] = hubFilter[k]===v?'':v; renderAll(); };
+
+/* ── B7: AI Employee Settings ────────────────────────────── */
+function renderSettings() {
+  var skills = (biz.skills||[]).map(function(id){ return DRD.daycareSkills.find(function(s2){return s2.id===id;}); }).filter(Boolean);
+  var handoff = biz.handoff || {};
+  var channels = (biz.deployChannels||[]).filter(function(c){return c!=='demo';});
+  var h = '<div class="pt-sec"><h3>🤖 What Your AI Employee Handles</h3>' +
+    (skills.length ? skills.map(function(sk){
+      return '<div class="pt-row"><span style="font-size:1.125rem">'+sk.icon+'</span><div style="flex:1">' +
+        '<b style="color:var(--t1)">'+sk.label+'</b><div style="font-size:.71875rem;color:var(--t3);margin-top:2px">'+sk.handles+'</div></div>' +
+        '<span class="badge badge--green">active</span></div>';
+    }).join('') : '<div style="font-size:.8125rem;color:var(--t4)">Skills are set up by your Digital Rise admin.</div>') + '</div>';
+
+  h += '<div class="pt-cols">';
+  h += '<div class="pt-sec"><h3>📬 What happens when a parent enquires</h3>' +
+    ['1️⃣ The AI answers instantly from your approved daycare knowledge',
+     '2️⃣ It captures the parent\'s name, contact and child details naturally',
+     '3️⃣ The enquiry lands in your Parent Enquiries inbox' + (handoff.adminEmail?' and '+esc(handoff.adminEmail)+' is notified':''),
+     '4️⃣ A follow-up is prepared automatically (' + (handoff.whatsapp||biz.whatsapp?'WhatsApp':'email') + ')',
+     '5️⃣ Anything sensitive — allergies, complaints, urgent issues — is handed to your staff, never guessed'].map(function(x){
+      return '<div class="pt-row"><span style="flex:1;color:var(--t2)">'+x+'</span></div>';
+    }).join('') + '</div>';
+  h += '<div class="pt-sec"><h3>🔌 Active Channels & Handoff</h3>' +
+    '<div class="pt-row"><span>🏠</span><span style="flex:1">Client portal (this workspace)</span><span class="badge badge--green">active</span></div>' +
+    '<div class="pt-row"><span>💻</span><span style="flex:1">Website chat widget</span>'+(channels.indexOf('widget')!==-1?'<span class="badge badge--green">live</span>':'<span class="badge badge--gray">not deployed</span>')+'</div>' +
+    '<div class="pt-row"><span>📲</span><span style="flex:1">WhatsApp follow-ups</span>'+(handoff.whatsapp||biz.whatsapp?'<span class="badge badge--amber">integration ready</span>':'<span class="badge badge--gray">not set</span>')+'</div>' +
+    '<div class="pt-row"><span>📧</span><span style="flex:1">Email notifications'+(handoff.adminEmail?' → '+esc(handoff.adminEmail):'')+'</span>'+(handoff.adminEmail?'<span class="badge badge--amber">integration ready</span>':'<span class="badge badge--gray">not set</span>')+'</div>' +
+    '<div class="pt-row"><span>🔗</span><span style="flex:1">Sheets / Zapier / Make handoff</span>'+((handoff.sheets||handoff.zapier||handoff.make)?'<span class="badge badge--amber">integration ready</span>':'<span class="badge badge--gray">not set</span>')+'</div>' +
+    '<div style="font-size:.6875rem;color:var(--t4);margin-top:10px">These connections support your AI Employee — everything always lands in this workspace regardless.</div></div>';
+  return h + '</div>';
+}
+</script>
+</body>
+</html>

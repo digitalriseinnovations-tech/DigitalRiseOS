@@ -52,12 +52,12 @@ var DRUI = (function () {
     var el = document.getElementById('agSidebar');
     if (!el) return;
     var biz = opts.biz;
-    var html = '<div class="ag-nav-section">PLATFORM</div>';
-    html += navItem('/agents/dashboard',  'Dashboard',  'dashboard',  opts.nav);
-    html += navItem('/agents/businesses', 'Businesses', 'businesses', opts.nav);
-    html += navItem('/agents/industries', 'Industries', 'industries', opts.nav);
-    html += navItem('/agents/templates',  'Templates',  'templates',  opts.nav);
-    html += navItem('/agents/settings',   'Settings',   'settings',   opts.nav);
+    var html = '<div class="ag-nav-section">ADMIN CONSOLE</div>';
+    html += navItem('/agents/dashboard',      'Dashboard',        'dashboard',  opts.nav);
+    html += navItem('/agents/businesses',     'Daycare Clients',  'businesses', opts.nav);
+    html += navItem('/agents/businesses/new', 'New Daycare Setup','new-setup',  opts.nav);
+    html += navItem('/agents/templates',      'AI Employee Skills','templates', opts.nav);
+    html += navItem('/agents/settings',       'Settings',         'settings',   opts.nav);
 
     if (biz) {
       var tm = (window.DRD && DRD.terms) ? DRD.terms(biz.industryGroup) : { enquiries:'Enquiries', conversations:'Conversations', bookings:'Bookings' };
@@ -69,6 +69,9 @@ var DRUI = (function () {
        ['reviews','Reviews & Reputation','reviews'],['deploy','Connect Channels','deploy']].forEach(function (it) {
         html += navItem(bizUrl(biz.slug, it[2]), it[1], it[0], opts.bizNav);
       });
+      html += '<a href="' + bizUrl(biz.slug, 'portal') + '" class="ag-nav-item" style="color:var(--accent);font-weight:700" target="_blank">' +
+        '<span class="ag-nav-ico" style="font-size:.9375rem;display:flex;align-items:center;justify-content:center">🏠</span>' +
+        '<span>Open Client Portal ↗</span></a>';
     }
 
     var liveAgents = DRS.list('agents').filter(function (a) { return a.status === 'active'; }).length;
@@ -77,12 +80,12 @@ var DRUI = (function () {
     el.innerHTML =
       '<div class="ag-logo"><a href="/agents/dashboard" class="ag-logo-link">' +
         '<div class="ag-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>' +
-        '<div><div class="ag-logo-name">Digital Rise</div><div class="ag-logo-sub">AI Employee Suite</div></div>' +
+        '<div><div class="ag-logo-name">Digital Rise</div><div class="ag-logo-sub">Daycare AI Employee System</div></div>' +
       '</a></div>' +
       '<div class="ag-nav-wrap">' + html + '</div>' +
       '<div class="ag-sb-footer"><div class="ag-sb-status"><div class="ag-sb-dot"></div><div>' +
         '<div class="ag-sb-status-text">' + liveAgents + ' AI Employees working</div>' +
-        '<div class="ag-sb-status-sub">' + bizCount + ' business' + (bizCount === 1 ? '' : 'es') + ' supported</div>' +
+        '<div class="ag-sb-status-sub">' + bizCount + ' daycare' + (bizCount === 1 ? '' : 's') + ' supported</div>' +
       '</div></div></div>';
   }
 

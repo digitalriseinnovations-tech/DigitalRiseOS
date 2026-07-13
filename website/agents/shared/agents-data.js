@@ -920,3 +920,136 @@ var DRD = (function () {
     ],
   };
 })();
+
+
+/* ============================================================
+   DRD v5 — DAYCARE AI EMPLOYEE SYSTEM
+   Skill catalog, daycare operations fields, daycare intents,
+   activity & printable hub content, parent comm templates.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ── 12 Daycare AI Employee skills (mapped to agent types) ── */
+  DRD.daycareSkills = [
+    { id:'parent-enquiry',    label:'Parent Enquiry',        icon:'💬', agentType:'website-enquiry',
+      handles:'Answers parent questions instantly — fees, meals, hours, programs — and captures every enquiry.',
+      captures:'Parent name, phone, email, child age', triggers:'Confirmation + admin alert on every new enquiry' },
+    { id:'tour-booking',      label:'Tour Booking',          icon:'📅', agentType:'booking',
+      handles:'Turns interest into booked tour requests with the fewest steps.',
+      captures:'Preferred day/time, child age, start date', triggers:'Tour confirmation, staff tour alert, reminder' },
+    { id:'availability-check',label:'Availability Check',    icon:'🪑', agentType:'website-enquiry',
+      handles:'Answers space/room questions honestly and routes to the team for live confirmation.',
+      captures:'Child age, desired schedule, start month', triggers:'Staff availability check task' },
+    { id:'fees-subsidy',      label:'Fees & Subsidy Support',icon:'💰', agentType:'website-enquiry',
+      handles:'Explains fees and CWELCC/subsidy support from approved knowledge only — never invents numbers.',
+      captures:'Age group, schedule needs', triggers:'Fee sheet follow-up if requested' },
+    { id:'waitlist-support',  label:'Waitlist Support',      icon:'⏳', agentType:'waitlist-followup',
+      handles:'Adds families to the waitlist and keeps them warm until a spot opens.',
+      captures:'Child age, desired start date', triggers:'Waitlist confirmation + monthly check-in' },
+    { id:'callback-requests', label:'Callback Requests',     icon:'📞', agentType:'missed-call',
+      handles:'Captures callback requests and recovers missed calls with an instant text-back.',
+      captures:'Name, phone, best time to call', triggers:'Staff callback task (2h)' },
+    { id:'existing-parent',   label:'Existing Parent Support',icon:'👨‍👩‍👧', agentType:'website-enquiry',
+      handles:'Handles enrolled-family requests — absences, pickup notes, questions — and hands off to staff.',
+      captures:'Parent name, child, message', triggers:'Staff handoff note' },
+    { id:'review-reputation', label:'Review & Reputation',   icon:'⭐', agentType:'review',
+      handles:'Requests Google reviews from happy parents and routes unhappy feedback privately to the director.',
+      captures:'Sentiment, feedback text', triggers:'Review request / private alert' },
+    { id:'parent-communication', label:'Parent Communication', icon:'📣', agentType:'whatsapp-followup',
+      handles:'Drafts and sends parent notices — closures, events, reminders — via email/WhatsApp.',
+      captures:'—', triggers:'Notice drafts for approval' },
+    { id:'activity-planning', label:'Activity Planning',     icon:'🎨', agentType:'activity-planner',
+      handles:'Suggests weekly themes and age-appropriate activities for staff.',
+      captures:'Age group, season, prep level', triggers:'Weekly suggestion' },
+    { id:'printable-suggestions', label:'Printable Suggestions', icon:'🖨️', agentType:'activity-planner',
+      handles:'Recommends printable packs — worksheets, charts, seasonal packs — matched to the week.',
+      captures:'Age group, theme', triggers:'Printable pack suggestion' },
+    { id:'social-content',    label:'Social Content Support',icon:'✨', agentType:'marketing-content',
+      handles:'Drafts social posts and parent-facing content in the daycare\'s tone.',
+      captures:'—', triggers:'Post draft suggestions' },
+  ];
+  DRD.skillsToAgents = function (skillIds) {
+    var types = [];
+    (skillIds || []).forEach(function (id) {
+      var s = DRD.daycareSkills.find(function (x) { return x.id === id; });
+      if (s && types.indexOf(s.agentType) === -1) types.push(s.agentType);
+    });
+    return types;
+  };
+  DRD.recommendedSkills = ['parent-enquiry','tour-booking','availability-check','fees-subsidy','waitlist-support','callback-requests','review-reputation','activity-planning'];
+
+  /* ── Daycare operations fields (extends childcare fields) ── */
+  [
+    { id:'programs',        label:'Programs Offered',          ph:'e.g. Infant, Toddler, Preschool, Before/After school', ta:true },
+    { id:'subsidyNotes',    label:'Subsidy / CWELCC Info',     ph:'CWELCC participation, regional subsidies, how it applies…', ta:true },
+    { id:'allergyNotes',    label:'Allergy & Special Diet Support', ph:'Nut-free? Individual allergy plans? Special diets…', ta:true },
+    { id:'sickPolicy',      label:'Sick Policy Summary',       ph:'Symptom-free rules, exclusion periods, medication…', ta:true },
+    { id:'holidayClosures', label:'Holiday Closure Notes',     ph:'e.g. Closed stat holidays, Dec 24–Jan 2…' },
+    { id:'feesVisibility',  label:'Fees Visibility Rule',      ph:'Share fees in chat, or capture contact and send fee sheet?' },
+    { id:'napOutdoor',      label:'Naps / Outdoor Play / General FAQ Notes', ph:'Nap schedule, outdoor time, what to bring…', ta:true },
+  ].forEach(function (f) {
+    if (!DRD.industryFields.childcare.some(function (x) { return x.id === f.id; })) DRD.industryFields.childcare.push(f);
+  });
+
+  /* ── New daycare intents ─────────────────────────────────── */
+  function insertBefore(beforeId, intent) {
+    var idx = DRD.intents.findIndex(function (i) { return i.id === beforeId; });
+    if (idx === -1) DRD.intents.push(intent); else DRD.intents.splice(idx, 0, intent);
+  }
+  if (!DRD.intents.some(function (i) { return i.id === 'holiday-closure'; })) {
+    insertBefore('hours', { id:'holiday-closure', label:'Holiday closures',
+      kws:['holiday','closed for christmas','winter break','march break','stat holiday','closure','closed on','summer break'] });
+    insertBefore('activity-planning', { id:'printables', label:'Printable resources',
+      kws:['printable','worksheet','flashcard','colouring sheet','coloring sheet','routine chart','reward chart','poster'] });
+  }
+
+  /* ── Activity & Printable Hub catalogs ───────────────────── */
+  DRD.activities = [
+    { title:'Indoor Obstacle Course', ages:['toddler','preschool'], setting:'indoor', season:'any',    goal:'Gross motor', prep:'low',
+      materials:'Cushions, painter\'s tape, tunnels or chairs', parentNote:'Ask your child which part of the obstacle course was trickiest — great conversation starter!', printable:'Movement cards pack' },
+    { title:'Rainy Day Sensory Bins', ages:['infant','toddler'], setting:'indoor', season:'spring',  goal:'Sensory', prep:'moderate',
+      materials:'Rice or oats, scoops, cups, hidden toys', parentNote:'We explored textures today — your little one loved scooping and pouring!', printable:'Sensory play ideas handout' },
+    { title:'Alphabet Nature Hunt', ages:['preschool'], setting:'outdoor', season:'summer',  goal:'Literacy', prep:'low',
+      materials:'Clipboards, letter checklist, pencils', parentNote:'Ask what letters they found outside today!', printable:'Alphabet hunt checklist' },
+    { title:'Water Play Station', ages:['toddler','preschool'], setting:'outdoor', season:'summer',  goal:'Sensory', prep:'moderate',
+      materials:'Water table or bins, funnels, cups, towels', parentNote:'Please pack a spare outfit tomorrow — water play day!', printable:'Water safety poster' },
+    { title:'Leaf Colour Sorting', ages:['toddler','preschool'], setting:'outdoor', season:'fall',    goal:'Math & sorting', prep:'low',
+      materials:'Collected leaves, sorting mats', parentNote:'We sorted leaves by colour and size — try it on your next walk!', printable:'Fall sorting mats' },
+    { title:'Snow Measurement Lab', ages:['preschool'], setting:'outdoor', season:'winter',  goal:'Early STEM', prep:'low',
+      materials:'Rulers, cups, magnifying glasses', parentNote:'We measured snow depth like real scientists today!', printable:'Winter science journal page' },
+    { title:'Story Stones Circle', ages:['toddler','preschool'], setting:'indoor', season:'any',     goal:'Language', prep:'moderate',
+      materials:'Painted stones or picture cards', parentNote:'Ask your child to retell the story we built together!', printable:'Story sequence cards' },
+    { title:'Music & Movement Freeze Dance', ages:['infant','toddler','preschool'], setting:'indoor', season:'any', goal:'Gross motor', prep:'low',
+      materials:'Music player, scarves', parentNote:'Freeze dance was a hit — try the freeze game at home!', printable:'Action song lyric sheet' },
+  ];
+  DRD.printables = [
+    { cat:'Rainy day activities',   items:'Indoor scavenger hunts, quiet-time packs, movement cards' },
+    { cat:'Summer outdoor pack',    items:'Nature hunts, water play signs, sun safety poster' },
+    { cat:'Alphabet worksheets',    items:'Tracing A–Z, letter hunts, beginning sounds' },
+    { cat:'Number worksheets',      items:'Counting 1–20, number tracing, ten frames' },
+    { cat:'Flashcards',             items:'Alphabet, numbers, colours, shapes, emotions' },
+    { cat:'Posters',                items:'Classroom rules, handwashing, feelings chart' },
+    { cat:'Routine charts',         items:'Morning routine, clean-up steps, visual schedules' },
+    { cat:'Reward charts',          items:'Star charts, sticker trackers, kindness charts' },
+    { cat:'Seasonal packs',         items:'Fall, winter, spring, summer themed bundles' },
+    { cat:'Holiday packs',          items:'Halloween, winter holidays, Valentine\'s, Easter' },
+    { cat:'Parent handouts',        items:'What-to-pack lists, illness policy one-pagers, tour welcome sheets' },
+  ];
+
+  /* ── Parent communication templates ──────────────────────── */
+  DRD.commTemplates = [
+    { id:'holiday-closure', label:'Holiday Closure Notice', channel:'email + WhatsApp', on:true,
+      body:'Dear families, a friendly reminder that {daycare} will be closed {dates}. We wish you a wonderful break and look forward to welcoming the children back on {return date}! 💛' },
+    { id:'event-reminder',  label:'Event / Activity Day Reminder', channel:'WhatsApp', on:true,
+      body:'Reminder: tomorrow is {event} at {daycare}! {details — e.g. please pack a water bottle and sun hat}. Can\'t wait! ☀️' },
+    { id:'tour-confirm',    label:'Tour Confirmation', channel:'email', on:true,
+      body:'Hi {parent name}, your tour at {daycare} is confirmed for {date/time}. We\'ll meet you at the front entrance — plan for about 30 minutes. See you soon!' },
+    { id:'waitlist-confirm',label:'Waitlist Confirmation', channel:'email', on:true,
+      body:'Hi {parent name}, {child name} has been added to our waitlist for {age group}. We\'ll contact you as soon as a spot opens — siblings of enrolled children get priority.' },
+    { id:'fee-reminder',    label:'Fee Reminder (optional)', channel:'email', on:false,
+      body:'Hi {parent name}, a gentle reminder that {month} fees are due on {date}. Any questions, just reply here. Thank you!' },
+    { id:'document-reminder', label:'Enrollment Document Reminder', channel:'email', on:true,
+      body:'Hi {parent name}, we\'re missing {document} for {child name}\'s file. You can reply with a photo or drop it off at the front desk. Thanks so much!' },
+  ];
+})();
