@@ -1,7 +1,7 @@
 "use client";
 /* One-time founder bootstrap: the FIRST account to claim becomes the
    Platform Super Admin. Refuses silently once any admin exists. */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { AuthCard, Alert } from "../(auth)/auth-card";
@@ -13,6 +13,17 @@ export default function Bootstrap() {
   const [pw, setPw] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "confirm-email" | "error">("idle");
   const [error, setError] = useState("");
+
+  /* Already signed in (e.g. returning after email confirmation)?
+     Claim directly — no second sign-up needed. */
+  useEffect(() => {
+    const sb = supabaseBrowser();
+    sb.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      const { data: claimed } = await sb.rpc("claim_founder");
+      if (claimed) router.push("/platform");
+    });
+  }, [router]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,3 +74,4 @@ export default function Bootstrap() {
     </AuthCard>
   );
 }
+

@@ -48,6 +48,11 @@ function LoginForm() {
     const m: any = members?.[0];
     if (m?.businesses?.status === "suspended") return router.push("/suspended");
     if (m?.businesses?.slug) return router.push(`/w/${m.businesses.slug}`);
+    /* No membership + no admin flag: if NO platform admin exists yet, this is
+       the founder finishing sign-up after email confirmation — claim safely.
+       claim_founder() is a no-op the moment any admin exists. */
+    const { data: claimed } = await sb.rpc("claim_founder");
+    if (claimed) return router.push("/platform");
     router.push("/unauthorized");
   }
 
